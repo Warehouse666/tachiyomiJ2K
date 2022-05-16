@@ -19,7 +19,6 @@ import androidx.core.text.scale
 import androidx.core.text.superscript
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.util.system.getResourceColor
-import eu.kanade.tachiyomi.util.system.timeSpanFromNow
 import net.greypanther.natsort.CaseInsensitiveSimpleNaturalComparator
 import java.net.URI
 import java.net.URISyntaxException
@@ -197,10 +196,4 @@ fun String.getUrlWithoutDomain(): String {
     } catch (e: URISyntaxException) {
         this
     }
-}
-
-fun Context.timeSpanFromNow(res: Int, time: Long): String {
-    return getString(
-        res, time.timeSpanFromNow(this).replaceFirstChar { it.lowercase(Locale.getDefault()) },
-    ).replaceFirstChar { it.titlecase(Locale.getDefault()) }
 }

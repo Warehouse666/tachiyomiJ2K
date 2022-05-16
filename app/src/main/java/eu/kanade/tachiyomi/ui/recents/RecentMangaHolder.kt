@@ -14,7 +14,6 @@ import eu.kanade.tachiyomi.databinding.RecentMangaItemBinding
 import eu.kanade.tachiyomi.ui.manga.chapter.BaseChapterHolder
 import eu.kanade.tachiyomi.util.chapter.ChapterUtil
 import eu.kanade.tachiyomi.util.isLocal
-import eu.kanade.tachiyomi.util.lang.timeSpanFromNow
 import eu.kanade.tachiyomi.util.system.dpToPx
 import eu.kanade.tachiyomi.util.system.timeSpanFromNow
 import eu.kanade.tachiyomi.util.view.setCards

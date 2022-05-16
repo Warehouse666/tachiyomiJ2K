@@ -11,7 +11,6 @@ import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.source.SourceManager
 import eu.kanade.tachiyomi.util.lang.chop
 import eu.kanade.tachiyomi.util.lang.removeArticles
-import eu.kanade.tachiyomi.util.lang.timeSpanFromNow
 import eu.kanade.tachiyomi.util.system.isLTR
 import eu.kanade.tachiyomi.util.system.timeSpanFromNow
 import eu.kanade.tachiyomi.util.system.withDefContext

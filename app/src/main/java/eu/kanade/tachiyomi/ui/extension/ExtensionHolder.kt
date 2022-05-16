@@ -18,7 +18,6 @@ import eu.kanade.tachiyomi.extension.model.Extension
 import eu.kanade.tachiyomi.extension.model.InstallStep
 import eu.kanade.tachiyomi.extension.model.InstalledExtensionsOrder
 import eu.kanade.tachiyomi.ui.base.holder.BaseFlexibleViewHolder
-import eu.kanade.tachiyomi.util.lang.timeSpanFromNow
 import eu.kanade.tachiyomi.util.system.LocaleHelper
 import eu.kanade.tachiyomi.util.system.getResourceColor
 import eu.kanade.tachiyomi.util.system.timeSpanFromNow
