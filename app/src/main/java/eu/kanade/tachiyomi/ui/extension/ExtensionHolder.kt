@@ -18,6 +18,7 @@ import eu.kanade.tachiyomi.extension.model.Extension
 import eu.kanade.tachiyomi.extension.model.InstallStep
 import eu.kanade.tachiyomi.extension.model.InstalledExtensionsOrder
 import eu.kanade.tachiyomi.ui.base.holder.BaseFlexibleViewHolder
+import eu.kanade.tachiyomi.util.lang.timeSpanFromNow
 import eu.kanade.tachiyomi.util.system.LocaleHelper
 import eu.kanade.tachiyomi.util.system.getResourceColor
 import eu.kanade.tachiyomi.util.system.timeSpanFromNow
@@ -49,9 +50,9 @@ class ExtensionHolder(view: View, val adapter: ExtensionAdapter) :
                 InstalledExtensionsOrder.RecentlyUpdated -> {
                     extensionUpdateDate(extension.pkgName)?.let {
                         binding.date.isVisible = true
-                        binding.date.text = itemView.context.getString(
+                        binding.date.text = itemView.context.timeSpanFromNow(
                             R.string.updated_,
-                            it.timeSpanFromNow,
+                            it,
                         )
                         infoText.add("")
                     }
@@ -59,9 +60,9 @@ class ExtensionHolder(view: View, val adapter: ExtensionAdapter) :
                 InstalledExtensionsOrder.RecentlyInstalled -> {
                     extensionInstallDate(extension.pkgName)?.let {
                         binding.date.isVisible = true
-                        binding.date.text = itemView.context.getString(
+                        binding.date.text = itemView.context.timeSpanFromNow(
                             R.string.installed_,
-                            it.timeSpanFromNow,
+                            it,
                         )
                         infoText.add("")
                     }
