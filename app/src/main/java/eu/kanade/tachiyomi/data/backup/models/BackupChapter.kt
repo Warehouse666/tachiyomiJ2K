@@ -1,5 +1,6 @@
 package eu.kanade.tachiyomi.data.backup.models
 
+import eu.kanade.tachiyomi.data.database.memoAdapter
 import eu.kanade.tachiyomi.data.database.models.Chapter
 import eu.kanade.tachiyomi.data.database.models.ChapterImpl
 import kotlinx.serialization.Serializable
@@ -23,6 +24,7 @@ data class BackupChapter(
     @ProtoNumber(10) var sourceOrder: Int = 0,
     // J2K specific values
     @ProtoNumber(800) var pagesLeft: Int = 0,
+    @ProtoNumber(801) var memo: String = "{}",
 ) {
     fun toChapterImpl(): ChapterImpl =
         ChapterImpl().apply {
@@ -37,6 +39,7 @@ data class BackupChapter(
             date_upload = this@BackupChapter.dateUpload
             source_order = this@BackupChapter.sourceOrder
             pages_left = this@BackupChapter.pagesLeft
+            memo = memoAdapter.decode(this@BackupChapter.memo)
         }
 
     companion object {
@@ -53,6 +56,7 @@ data class BackupChapter(
                 dateUpload = chapter.date_upload,
                 sourceOrder = chapter.source_order,
                 pagesLeft = chapter.pages_left,
+                memo = memoAdapter.encode(chapter.memo),
             )
     }
 }

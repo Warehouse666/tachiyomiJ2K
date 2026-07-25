@@ -1,6 +1,7 @@
 package eu.kanade.tachiyomi.source.model
 
 import eu.kanade.tachiyomi.data.database.models.MangaImpl
+import kotlinx.serialization.json.JsonObject
 import java.io.Serializable
 
 interface SManga : Serializable {
@@ -23,6 +24,17 @@ interface SManga : Serializable {
     var update_strategy: UpdateStrategy
 
     var initialized: Boolean
+
+    /**
+     * Extra metadata associated with the manga.
+     *
+     * The JSON object is not visible to users and intended for internal or source-specific
+     * purposes. Apps may define their own namespaced keys (e.g., "mihon.*") for sources to
+     * populate. Persisted to the local database and backups.
+     *
+     * @since extensions-lib 1.6
+     */
+    var memo: JsonObject
 
     val originalTitle: String
         get() = (this as? MangaImpl)?.ogTitle ?: title
@@ -68,6 +80,8 @@ interface SManga : Serializable {
 
         update_strategy = other.update_strategy
 
+        memo = other.memo
+
         if (!initialized) {
             initialized = other.initialized
         }
@@ -84,6 +98,7 @@ interface SManga : Serializable {
             it.status = status
             it.thumbnail_url = thumbnail_url
             it.initialized = initialized
+            it.memo = memo
         }
 
     companion object {

@@ -28,7 +28,10 @@ abstract class DelegatedHttpSource {
     protected open suspend fun getMangaInfo(url: String): Manga? {
         val id = delegate?.id ?: return null
         val manga = Manga.create(url, "", id)
-        val networkManga = delegate?.getMangaDetails(manga.copy()) ?: return null
+        val networkManga =
+            delegate
+                ?.getMangaUpdate(manga.copy(), emptyList(), fetchDetails = true, fetchChapters = false)
+                ?.manga ?: return null
         val newManga =
             MangaImpl().apply {
                 this.url = url
@@ -47,6 +50,6 @@ abstract class DelegatedHttpSource {
     suspend fun getChapters(url: String): List<SChapter>? {
         val id = delegate?.id ?: return null
         val manga = Manga.create(url, "", id)
-        return delegate?.getChapterList(manga)
+        return delegate?.getMangaUpdate(manga, emptyList(), fetchDetails = false, fetchChapters = true)?.chapters
     }
 }

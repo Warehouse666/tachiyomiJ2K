@@ -1,5 +1,6 @@
 package eu.kanade.tachiyomi.data.backup.models
 
+import eu.kanade.tachiyomi.data.database.memoAdapter
 import eu.kanade.tachiyomi.data.database.models.ChapterImpl
 import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.data.database.models.MangaImpl
@@ -49,6 +50,7 @@ data class BackupManga(
     // skipping 803 due to using duplicate value in previous builds
     @ProtoNumber(804) var customDescription: String? = null,
     @ProtoNumber(805) var customGenre: List<String>? = null,
+    @ProtoNumber(806) var memo: String = "{}",
 ) {
     fun getMangaImpl(): MangaImpl =
         MangaImpl().apply {
@@ -70,6 +72,7 @@ data class BackupManga(
                 ?: -1
             chapter_flags = this@BackupManga.chapterFlags
             update_strategy = this@BackupManga.updateStrategy
+            memo = memoAdapter.decode(this@BackupManga.memo)
         }
 
     fun getChaptersImpl(): List<ChapterImpl> =
@@ -124,6 +127,7 @@ data class BackupManga(
                 viewer_flags = manga.viewer_flags.takeIf { it != -1 } ?: 0,
                 chapterFlags = manga.chapter_flags,
                 updateStrategy = manga.update_strategy,
+                memo = memoAdapter.encode(manga.memo),
             ).also { backupManga ->
                 customMangaManager?.getManga(manga)?.let {
                     backupManga.customTitle = it.title

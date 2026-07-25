@@ -265,7 +265,13 @@ class LibraryUpdateJob(
                                 ensureActive()
                                 val networkManga =
                                     try {
-                                        source.getMangaDetails(manga.copy())
+                                        source
+                                            .getMangaUpdate(
+                                                manga.copy(),
+                                                emptyList(),
+                                                fetchDetails = true,
+                                                fetchChapters = false,
+                                            ).manga
                                     } catch (e: java.lang.Exception) {
                                         Timber.e(e)
                                         null
@@ -419,7 +425,14 @@ class LibraryUpdateJob(
                 var hasDownloads = false
                 ensureActive()
                 notifier.showProgressNotification(manga, progress, mangaToUpdate.size)
-                val fetchedChapters = source.getChapterList(manga)
+                val fetchedChapters =
+                    source
+                        .getMangaUpdate(
+                            manga,
+                            emptyList(),
+                            fetchDetails = false,
+                            fetchChapters = true,
+                        ).chapters
 
                 if (fetchedChapters.isNotEmpty()) {
                     val newChapters = syncChaptersWithSource(db, fetchedChapters, manga, source)

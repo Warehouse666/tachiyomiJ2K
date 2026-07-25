@@ -1,6 +1,9 @@
 package eu.kanade.tachiyomi.data.database
 
 import eu.kanade.tachiyomi.source.model.UpdateStrategy
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import timber.log.Timber
 import java.util.Date
 
 val dateAdapter =
@@ -30,6 +33,23 @@ val updateStrategyAdapter =
         override fun decode(databaseValue: Int): UpdateStrategy = enumValues.getOrElse(databaseValue) { UpdateStrategy.ALWAYS_UPDATE }
 
         override fun encode(value: UpdateStrategy): Int = value.ordinal
+    }
+
+val memoAdapter =
+    object : ColumnAdapter<JsonObject, String> {
+        override fun decode(databaseValue: String): JsonObject =
+            if (databaseValue.isEmpty()) {
+                JsonObject(emptyMap())
+            } else {
+                try {
+                    Json.decodeFromString(JsonObject.serializer(), databaseValue)
+                } catch (e: Exception) {
+                    Timber.e(e, "Failed to decode manga/chapter memo")
+                    JsonObject(emptyMap())
+                }
+            }
+
+        override fun encode(value: JsonObject): String = value.toString()
     }
 
 interface ColumnAdapter<T : Any, S> {

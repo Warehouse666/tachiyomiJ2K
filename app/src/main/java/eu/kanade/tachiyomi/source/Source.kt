@@ -5,6 +5,7 @@ import eu.kanade.tachiyomi.extension.ExtensionManager
 import eu.kanade.tachiyomi.source.model.Page
 import eu.kanade.tachiyomi.source.model.SChapter
 import eu.kanade.tachiyomi.source.model.SManga
+import eu.kanade.tachiyomi.source.model.SMangaUpdate
 import eu.kanade.tachiyomi.source.online.HttpSource
 import eu.kanade.tachiyomi.util.system.awaitSingle
 import rx.Observable
@@ -58,6 +59,30 @@ interface Source {
      */
     @Suppress("DEPRECATION")
     suspend fun getPageList(chapter: SChapter): List<Page> = fetchPageList(chapter).awaitSingle()
+
+    /**
+     * Fetches updated information for a manga.
+     *
+     * Depending on the provided flags, this may include updated manga metadata,
+     * available chapters, or both. If a value is not requested, the passed-in value
+     * is returned as-is.
+     *
+     * @since extensions-lib 1.6
+     * @param manga the manga to fetch updates for.
+     * @param chapters existing chapters of the manga.
+     * @param fetchDetails whether to fetch updated manga details.
+     * @param fetchChapters whether to fetch available chapters.
+     */
+    suspend fun getMangaUpdate(
+        manga: SManga,
+        chapters: List<SChapter>,
+        fetchDetails: Boolean,
+        fetchChapters: Boolean,
+    ): SMangaUpdate {
+        val newManga = if (fetchDetails) getMangaDetails(manga) else manga
+        val newChapters = if (fetchChapters) getChapterList(manga) else chapters
+        return SMangaUpdate(newManga, newChapters)
+    }
 
     fun includeLangInName(
         enabledLanguages: Set<String>,

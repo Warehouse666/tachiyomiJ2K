@@ -9,6 +9,7 @@ import com.pushtorefresh.storio.sqlite.operations.put.DefaultPutResolver
 import com.pushtorefresh.storio.sqlite.queries.DeleteQuery
 import com.pushtorefresh.storio.sqlite.queries.InsertQuery
 import com.pushtorefresh.storio.sqlite.queries.UpdateQuery
+import eu.kanade.tachiyomi.data.database.memoAdapter
 import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.data.database.models.MangaImpl
 import eu.kanade.tachiyomi.data.database.tables.MangaTable.COL_ARTIST
@@ -23,6 +24,7 @@ import eu.kanade.tachiyomi.data.database.tables.MangaTable.COL_HIDE_TITLE
 import eu.kanade.tachiyomi.data.database.tables.MangaTable.COL_ID
 import eu.kanade.tachiyomi.data.database.tables.MangaTable.COL_INITIALIZED
 import eu.kanade.tachiyomi.data.database.tables.MangaTable.COL_LAST_UPDATE
+import eu.kanade.tachiyomi.data.database.tables.MangaTable.COL_MEMO
 import eu.kanade.tachiyomi.data.database.tables.MangaTable.COL_SOURCE
 import eu.kanade.tachiyomi.data.database.tables.MangaTable.COL_STATUS
 import eu.kanade.tachiyomi.data.database.tables.MangaTable.COL_THUMBNAIL_URL
@@ -76,6 +78,7 @@ class MangaPutResolver : DefaultPutResolver<Manga>() {
             put(COL_DATE_ADDED, obj.date_added)
             put(COL_FILTERED_SCANLATORS, obj.filtered_scanlators)
             put(COL_UPDATE_STRATEGY, obj.update_strategy.let(updateStrategyAdapter::encode))
+            put(COL_MEMO, obj.memo.let(memoAdapter::encode))
         }
 }
 
@@ -106,6 +109,7 @@ interface BaseMangaGetResolver {
             cursor.getInt(cursor.getColumnIndex(COL_UPDATE_STRATEGY)).let(
                 updateStrategyAdapter::decode,
             )
+        memo = cursor.getString(cursor.getColumnIndex(COL_MEMO)).orEmpty().let(memoAdapter::decode)
     }
 }
 

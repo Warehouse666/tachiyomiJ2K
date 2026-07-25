@@ -9,6 +9,7 @@ import com.pushtorefresh.storio.sqlite.operations.put.DefaultPutResolver
 import com.pushtorefresh.storio.sqlite.queries.DeleteQuery
 import com.pushtorefresh.storio.sqlite.queries.InsertQuery
 import com.pushtorefresh.storio.sqlite.queries.UpdateQuery
+import eu.kanade.tachiyomi.data.database.memoAdapter
 import eu.kanade.tachiyomi.data.database.models.Chapter
 import eu.kanade.tachiyomi.data.database.models.ChapterImpl
 import eu.kanade.tachiyomi.data.database.tables.ChapterTable.COL_BOOKMARK
@@ -18,6 +19,7 @@ import eu.kanade.tachiyomi.data.database.tables.ChapterTable.COL_DATE_UPLOAD
 import eu.kanade.tachiyomi.data.database.tables.ChapterTable.COL_ID
 import eu.kanade.tachiyomi.data.database.tables.ChapterTable.COL_LAST_PAGE_READ
 import eu.kanade.tachiyomi.data.database.tables.ChapterTable.COL_MANGA_ID
+import eu.kanade.tachiyomi.data.database.tables.ChapterTable.COL_MEMO
 import eu.kanade.tachiyomi.data.database.tables.ChapterTable.COL_NAME
 import eu.kanade.tachiyomi.data.database.tables.ChapterTable.COL_PAGES_LEFT
 import eu.kanade.tachiyomi.data.database.tables.ChapterTable.COL_READ
@@ -63,6 +65,7 @@ class ChapterPutResolver : DefaultPutResolver<Chapter>() {
             put(COL_PAGES_LEFT, obj.pages_left)
             put(COL_CHAPTER_NUMBER, obj.chapter_number)
             put(COL_SOURCE_ORDER, obj.source_order)
+            put(COL_MEMO, obj.memo.let(memoAdapter::encode))
         }
 }
 
@@ -82,6 +85,7 @@ class ChapterGetResolver : DefaultGetResolver<Chapter>() {
             pages_left = cursor.getInt(cursor.getColumnIndex(COL_PAGES_LEFT))
             chapter_number = cursor.getFloat(cursor.getColumnIndex(COL_CHAPTER_NUMBER))
             source_order = cursor.getInt(cursor.getColumnIndex(COL_SOURCE_ORDER))
+            memo = cursor.getString(cursor.getColumnIndex(COL_MEMO)).orEmpty().let(memoAdapter::decode)
         }
 }
 
