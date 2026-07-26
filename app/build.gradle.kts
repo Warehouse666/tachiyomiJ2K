@@ -1,4 +1,3 @@
-import java.io.ByteArrayOutputStream
 import org.gradle.api.tasks.Copy
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
@@ -16,15 +15,6 @@ plugins {
 
 if (gradle.startParameter.taskRequests.toString().contains("Standard")) {
     apply<com.google.gms.googleservices.GoogleServicesPlugin>()
-}
-
-fun runCommand(command: String): String {
-    val byteOut = ByteArrayOutputStream()
-    project.exec {
-        commandLine = command.split(" ")
-        standardOutput = byteOut
-    }
-    return String(byteOut.toByteArray()).trim()
 }
 
 val supportedAbis = setOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
@@ -89,6 +79,7 @@ android {
     buildFeatures {
         viewBinding = true
         compose = true
+        buildConfig = true
 
         // Disable some unused things
         aidl = false
