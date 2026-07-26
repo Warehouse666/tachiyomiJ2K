@@ -28,7 +28,7 @@ class TachiyomiImageDecoder(
 
         check(decoder != null && decoder.width > 0 && decoder.height > 0) { "Failed to initialize decoder." }
 
-        val bitmap = decoder.decode(rgb565 = options.allowRgb565)
+        val bitmap = decoder.decode()
         decoder.recycle()
 
         check(bitmap != null) { "Failed to decode image." }

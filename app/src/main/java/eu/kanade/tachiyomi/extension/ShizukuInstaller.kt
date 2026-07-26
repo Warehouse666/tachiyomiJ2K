@@ -1,15 +1,23 @@
 package eu.kanade.tachiyomi.extension
 
+import android.app.PendingIntent
 import android.content.BroadcastReceiver
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
+import android.content.ServiceConnection
+import android.content.pm.PackageInstaller
 import android.content.pm.PackageManager
 import android.net.Uri
-import android.os.Build
+import android.os.IBinder
+import androidx.core.content.ContextCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import eu.kanade.tachiyomi.BuildConfig
 import eu.kanade.tachiyomi.R
+import eu.kanade.tachiyomi.extension.shizuku.IShellInterface
+import eu.kanade.tachiyomi.extension.shizuku.ShellInterface
 import eu.kanade.tachiyomi.extension.util.ExtensionInstaller.Companion.EXTRA_DOWNLOAD_ID
-import eu.kanade.tachiyomi.util.system.getUriSize
 import eu.kanade.tachiyomi.util.system.isPackageInstalled
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -20,8 +28,6 @@ import rikka.shizuku.Shizuku
 import rikka.sui.Sui
 import timber.log.Timber
 import uy.kohesive.injekt.injectLazy
-import java.io.BufferedReader
-import java.io.InputStream
 import java.util.Collections
 import java.util.concurrent.atomic.AtomicReference
 
@@ -33,6 +39,56 @@ class ShizukuInstaller(
 
     private var waitingInstall = AtomicReference<Entry>(null)
     private val ioScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    // Raw shell execution via Shizuku.newProcess was removed upstream (made private) in
+    // shizuku-api 13.1.x, so installs now go through a bound UserService that talks to the
+    // hidden PackageInstaller APIs directly, same approach as upstream Mihon.
+    private var shellInterface: IShellInterface? = null
+
+    private val shizukuArgs by lazy {
+        Shizuku
+            .UserServiceArgs(ComponentName(context, ShellInterface::class.java))
+            .tag("shizuku_service")
+            .processNameSuffix("shizuku_service")
+            .debuggable(BuildConfig.DEBUG)
+            .daemon(false)
+            .version(2)
+    }
+
+    private val serviceConnection =
+        object : ServiceConnection {
+            override fun onServiceConnected(
+                name: ComponentName?,
+                service: IBinder?,
+            ) {
+                shellInterface = IShellInterface.Stub.asInterface(service)
+                ready = true
+                checkQueue()
+            }
+
+            override fun onServiceDisconnected(name: ComponentName?) {
+                shellInterface = null
+            }
+        }
+
+    private val statusIntent =
+        PendingIntent.getBroadcast(
+            context,
+            0,
+            Intent(ACTION_INSTALL_RESULT).setPackage(context.packageName),
+            PendingIntent.FLAG_MUTABLE,
+        )
+
+    private val installResultReceiver =
+        object : BroadcastReceiver() {
+            override fun onReceive(
+                context: Context,
+                intent: Intent,
+            ) {
+                val status = intent.getIntExtra(PackageInstaller.EXTRA_STATUS, PackageInstaller.STATUS_FAILURE)
+                continueQueue(status == PackageInstaller.STATUS_SUCCESS)
+            }
+        }
 
     private val cancelReceiver =
         object : BroadcastReceiver() {
@@ -69,8 +125,7 @@ class ShizukuInstaller(
             ) {
                 if (requestCode == SHIZUKU_PERMISSION_REQUEST_CODE) {
                     if (grantResult == PackageManager.PERMISSION_GRANTED) {
-                        ready = true
-                        checkQueue()
+                        Shizuku.bindUserService(shizukuArgs, serviceConnection)
                     } else {
                         finishedQueue(this@ShizukuInstaller)
                     }
@@ -87,51 +142,33 @@ class ShizukuInstaller(
             finishedQueue(this)
             context.getString(R.string.ext_installer_shizuku_stopped)
         }
-        ready =
-            if (Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED) {
-                true
-            } else {
-                Shizuku.addRequestPermissionResultListener(shizukuPermissionListener)
-                Shizuku.requestPermission(SHIZUKU_PERMISSION_REQUEST_CODE)
-                false
-            }
+
+        ContextCompat.registerReceiver(
+            context,
+            installResultReceiver,
+            IntentFilter(ACTION_INSTALL_RESULT),
+            ContextCompat.RECEIVER_NOT_EXPORTED,
+        )
+
+        if (Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED) {
+            Shizuku.bindUserService(shizukuArgs, serviceConnection)
+        } else {
+            Shizuku.addRequestPermissionResultListener(shizukuPermissionListener)
+            Shizuku.requestPermission(SHIZUKU_PERMISSION_REQUEST_CODE)
+        }
     }
 
-    @Suppress("BlockingMethodInNonBlockingContext")
     fun processEntry(entry: Entry) {
         extensionManager.setInstalling(entry.downloadId, entry.uri.hashCode())
         ioScope.launch {
-            var sessionId: String? = null
             try {
-                val size = context.getUriSize(entry.uri) ?: throw IllegalStateException()
-                context.contentResolver.openInputStream(entry.uri)!!.use {
-                    val createCommand =
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                            "pm install-create --user current -r -i ${context.packageName} -S $size"
-                        } else {
-                            "pm install-create -r -i ${context.packageName} -S $size"
-                        }
-                    val createResult = exec(createCommand)
-                    sessionId = SESSION_ID_REGEX.find(createResult.out)?.value
-                        ?: throw RuntimeException("Failed to create install session")
-
-                    val writeResult = exec("pm install-write -S $size $sessionId base -", it)
-                    if (writeResult.resultCode != 0) {
-                        throw RuntimeException("Failed to write APK to session $sessionId")
-                    }
-
-                    val commitResult = exec("pm install-commit $sessionId")
-                    if (commitResult.resultCode != 0) {
-                        throw RuntimeException("Failed to commit install session $sessionId")
-                    }
-
-                    continueQueue(true)
+                val shell = shellInterface ?: throw IllegalStateException("Shizuku service is not bound")
+                context.contentResolver.openAssetFileDescriptor(entry.uri, "r")!!.use {
+                    shell.install(it, statusIntent.intentSender)
                 }
+                context.contentResolver.delete(entry.uri, null, null)
             } catch (e: Exception) {
                 Timber.e(e, "Failed to install extension ${entry.downloadId} ${entry.uri}")
-                if (sessionId != null) {
-                    exec("pm install-abandon $sessionId")
-                }
                 continueQueue(false)
             }
         }
@@ -216,6 +253,14 @@ class ShizukuInstaller(
     fun onDestroy() {
         Shizuku.removeBinderDeadListener(shizukuDeadListener)
         Shizuku.removeRequestPermissionResultListener(shizukuPermissionListener)
+        if (Shizuku.pingBinder()) {
+            try {
+                Shizuku.unbindUserService(shizukuArgs, serviceConnection, true)
+            } catch (e: Exception) {
+                Timber.w(e, "Failed to unbind shizuku service")
+            }
+        }
+        context.unregisterReceiver(installResultReceiver)
         ioScope.cancel()
         LocalBroadcastManager.getInstance(context).unregisterReceiver(cancelReceiver)
         queue.forEach { extensionManager.setInstallationResult(it.pkgName, false) }
@@ -223,30 +268,11 @@ class ShizukuInstaller(
         waitingInstall.set(null)
     }
 
-    private fun exec(
-        command: String,
-        stdin: InputStream? = null,
-    ): ShellResult {
-        @Suppress("DEPRECATION")
-        val process = Shizuku.newProcess(arrayOf("sh", "-c", command), null, null)
-        if (stdin != null) {
-            process.outputStream.use { stdin.copyTo(it) }
-        }
-        val output = process.inputStream.bufferedReader().use(BufferedReader::readText)
-        val resultCode = process.waitFor()
-        return ShellResult(resultCode, output)
-    }
-
-    private data class ShellResult(
-        val resultCode: Int,
-        val out: String,
-    )
-
     companion object {
         const val shizukuPkgName = "moe.shizuku.privileged.api"
         const val downloadLink = "https://shizuku.rikka.app/download"
         private const val SHIZUKU_PERMISSION_REQUEST_CODE = 14045
-        private val SESSION_ID_REGEX = Regex("(?<=\\[).+?(?=])")
+        private const val ACTION_INSTALL_RESULT = "${BuildConfig.APPLICATION_ID}.ACTION_SHIZUKU_INSTALL_RESULT"
 
         fun isShizukuRunning(): Boolean = Shizuku.pingBinder() && Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED
     }
