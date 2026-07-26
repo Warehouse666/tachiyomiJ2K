@@ -55,6 +55,17 @@ abstract class HttpSource : CatalogueSource {
     open fun getHomeUrl(): String = baseUrl
 
     /**
+     * Whether this source provides its own implementation of [getMangaUpdate] rather than
+     * relying on the default one inherited from [eu.kanade.tachiyomi.source.Source], which
+     * fetches details and chapters as two separate calls. Sources that override it may combine
+     * both into a single network request, so callers can use this to decide whether requesting
+     * both at once is actually worthwhile.
+     */
+    val overridesGetMangaUpdate: Boolean by lazy {
+        javaClass.methods.first { it.name == "getMangaUpdate" }.declaringClass != HttpSource::class.java
+    }
+
+    /**
      * Version id used to generate the source id. If the site completely changes and urls are
      * incompatible, you may increase this value and it'll be considered as a new source.
      */

@@ -8,6 +8,8 @@ import eu.kanade.tachiyomi.source.model.SManga
 import eu.kanade.tachiyomi.source.model.SMangaUpdate
 import eu.kanade.tachiyomi.source.online.HttpSource
 import eu.kanade.tachiyomi.util.system.awaitSingle
+import kotlinx.coroutines.async
+import kotlinx.coroutines.supervisorScope
 import rx.Observable
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
@@ -78,11 +80,12 @@ interface Source {
         chapters: List<SChapter>,
         fetchDetails: Boolean,
         fetchChapters: Boolean,
-    ): SMangaUpdate {
-        val newManga = if (fetchDetails) getMangaDetails(manga) else manga
-        val newChapters = if (fetchChapters) getChapterList(manga) else chapters
-        return SMangaUpdate(newManga, newChapters)
-    }
+    ): SMangaUpdate =
+        supervisorScope {
+            val asyncManga = if (fetchDetails) async { getMangaDetails(manga) } else null
+            val asyncChapters = if (fetchChapters) async { getChapterList(manga) } else null
+            SMangaUpdate(asyncManga?.await() ?: manga, asyncChapters?.await() ?: chapters)
+        }
 
     fun includeLangInName(
         enabledLanguages: Set<String>,

@@ -358,41 +358,24 @@ class MangaDetailsPresenter(
         if (view?.isNotOnline() == true && !manga.isLocal()) return
         presenterScope.launch {
             isLoading = true
-            var mangaError: java.lang.Exception? = null
-            var chapterError: java.lang.Exception? = null
-            val chapters =
-                async(Dispatchers.IO) {
-                    try {
-                        source
-                            .getMangaUpdate(
-                                manga,
-                                emptyList(),
-                                fetchDetails = false,
-                                fetchChapters = true,
-                            ).chapters
-                    } catch (e: Exception) {
-                        chapterError = e
-                        emptyList()
-                    }
-                }
+            var error: java.lang.Exception? = null
             val thumbnailUrl = manga.thumbnail_url
-            val nManga =
-                async(Dispatchers.IO) {
+            val update =
+                withContext(Dispatchers.IO) {
                     try {
-                        source
-                            .getMangaUpdate(
-                                manga.copy(),
-                                emptyList(),
-                                fetchDetails = true,
-                                fetchChapters = false,
-                            ).manga
-                    } catch (e: java.lang.Exception) {
-                        mangaError = e
+                        source.getMangaUpdate(
+                            manga.copy(),
+                            emptyList(),
+                            fetchDetails = true,
+                            fetchChapters = true,
+                        )
+                    } catch (e: Exception) {
+                        error = e
                         null
                     }
                 }
 
-            val networkManga = nManga.await()
+            val networkManga = update?.manga
             if (networkManga != null) {
                 manga.copyFrom(networkManga)
                 manga.initialized = true
@@ -420,7 +403,7 @@ class MangaDetailsPresenter(
                     }
                 }
             }
-            val finChapters = chapters.await()
+            val finChapters = update?.chapters.orEmpty()
             if (finChapters.isNotEmpty()) {
                 val newChapters = syncChaptersWithSource(db, finChapters, manga, source)
                 if (newChapters.first.isNotEmpty()) {
@@ -450,24 +433,17 @@ class MangaDetailsPresenter(
                 getChapters()
             }
             isLoading = false
-            if (chapterError == null) {
+            if (error == null) {
                 withContext(Dispatchers.Main) {
                     view?.updateChapters(this@MangaDetailsPresenter.chapters)
                 }
-            }
-            if (chapterError != null) {
+            } else {
                 withContext(Dispatchers.Main) {
                     view?.showError(
-                        trimException(chapterError!!),
+                        trimException(error),
                     )
                 }
                 return@launch
-            } else if (mangaError != null) {
-                withContext(Dispatchers.Main) {
-                    view?.showError(
-                        trimException(mangaError!!),
-                    )
-                }
             }
             getHistory()
         }

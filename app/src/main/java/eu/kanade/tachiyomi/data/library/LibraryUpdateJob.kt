@@ -76,6 +76,7 @@ import java.io.File
 import java.lang.ref.WeakReference
 import java.util.Date
 import java.util.concurrent.CancellationException
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -110,6 +111,9 @@ class LibraryUpdateJob(
 
     // List containing skipped updates
     private val skippedUpdates = mutableMapOf<Manga, String?>()
+
+    // IDs of manga whose details were already refreshed alongside their chapter update
+    private val detailsRefreshedMangaIds = ConcurrentHashMap.newKeySet<Long>()
 
     val count = AtomicInteger(0)
 
@@ -277,30 +281,7 @@ class LibraryUpdateJob(
                                         null
                                     }
                                 if (networkManga != null) {
-                                    val thumbnailUrl = manga.thumbnail_url
-                                    manga.copyFrom(networkManga)
-                                    manga.initialized = true
-                                    if (thumbnailUrl != manga.thumbnail_url) {
-                                        coverCache.deleteFromCache(thumbnailUrl)
-                                        // load new covers in background
-                                        val request =
-                                            ImageRequest
-                                                .Builder(context)
-                                                .data(manga)
-                                                .memoryCachePolicy(CachePolicy.DISABLED)
-                                                .build()
-                                        Coil.imageLoader(context).execute(request)
-                                    } else {
-                                        val request =
-                                            ImageRequest
-                                                .Builder(context)
-                                                .data(manga)
-                                                .memoryCachePolicy(CachePolicy.DISABLED)
-                                                .diskCachePolicy(CachePolicy.WRITE_ONLY)
-                                                .build()
-                                        Coil.imageLoader(context).execute(request)
-                                    }
-                                    db.insertManga(manga).executeAsBlocking()
+                                    applyMangaDetailsUpdate(manga, networkManga)
                                 }
                             }
                         }
@@ -309,6 +290,41 @@ class LibraryUpdateJob(
             asyncList.awaitAll()
             notifier.cancelProgressNotification()
         }
+
+    /**
+     * Applies a freshly fetched [networkManga] onto [manga], persists it, and warms the cover
+     * cache. Shared by the dedicated details-refresh pass and the combined chapter+details
+     * fetch for sources that override [HttpSource.overridesGetMangaUpdate].
+     */
+    private suspend fun applyMangaDetailsUpdate(
+        manga: LibraryManga,
+        networkManga: SManga,
+    ) {
+        val thumbnailUrl = manga.thumbnail_url
+        manga.copyFrom(networkManga)
+        manga.initialized = true
+        if (thumbnailUrl != manga.thumbnail_url) {
+            coverCache.deleteFromCache(thumbnailUrl)
+            // load new covers in background
+            val request =
+                ImageRequest
+                    .Builder(context)
+                    .data(manga)
+                    .memoryCachePolicy(CachePolicy.DISABLED)
+                    .build()
+            Coil.imageLoader(context).execute(request)
+        } else {
+            val request =
+                ImageRequest
+                    .Builder(context)
+                    .data(manga)
+                    .memoryCachePolicy(CachePolicy.DISABLED)
+                    .diskCachePolicy(CachePolicy.WRITE_ONLY)
+                    .build()
+            Coil.imageLoader(context).execute(request)
+        }
+        db.insertManga(manga).executeAsBlocking()
+    }
 
     /**
      * Method that updates the metadata of the connected tracking services. It's called in a
@@ -352,7 +368,10 @@ class LibraryUpdateJob(
         if (newUpdates.isNotEmpty()) {
             notifier.showResultNotification(newUpdates)
             if (!wasStopped && preferences.refreshCoversToo().get() && !isStopped) {
-                updateDetails(newUpdates.keys.toList())
+                val remainingDetails = newUpdates.keys.filterNot { it.id?.let(detailsRefreshedMangaIds::contains) == true }
+                if (remainingDetails.isNotEmpty()) {
+                    updateDetails(remainingDetails)
+                }
                 notifier.cancelProgressNotification()
                 if (downloadNew && hasDownloads) {
                     DownloadJob.start(context, runExtensionUpdatesAfter)
@@ -364,6 +383,7 @@ class LibraryUpdateJob(
             }
         }
         newUpdates.clear()
+        detailsRefreshedMangaIds.clear()
         if (skippedUpdates.isNotEmpty() && Notifications.isNotificationChannelEnabled(context, Notifications.CHANNEL_LIBRARY_SKIPPED)) {
             val skippedFile =
                 writeErrorFile(
@@ -425,14 +445,26 @@ class LibraryUpdateJob(
                 var hasDownloads = false
                 ensureActive()
                 notifier.showProgressNotification(manga, progress, mangaToUpdate.size)
-                val fetchedChapters =
-                    source
-                        .getMangaUpdate(
-                            manga,
-                            emptyList(),
-                            fetchDetails = false,
-                            fetchChapters = true,
-                        ).chapters
+
+                // Only worth combining with the details call if this source actually has its
+                // own implementation of getMangaUpdate; otherwise it's still two separate
+                // network calls under the hood, and refreshing details is better left to the
+                // dedicated pass that runs once everything else has finished.
+                val fetchDetails = preferences.refreshCoversToo().get() && source.overridesGetMangaUpdate
+                val update =
+                    source.getMangaUpdate(
+                        if (fetchDetails) manga.copy() else manga,
+                        emptyList(),
+                        fetchDetails = fetchDetails,
+                        fetchChapters = true,
+                    )
+
+                if (fetchDetails) {
+                    applyMangaDetailsUpdate(manga, update.manga)
+                    manga.id?.let { detailsRefreshedMangaIds.add(it) }
+                }
+
+                val fetchedChapters = update.chapters
 
                 if (fetchedChapters.isNotEmpty()) {
                     val newChapters = syncChaptersWithSource(db, fetchedChapters, manga, source)
