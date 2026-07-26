@@ -283,7 +283,7 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
         SubsamplingScaleImageView.setPreferredBitmapConfig(Bitmap.Config.ARGB_8888)
 
         // Setup shared element transitions
-        if (intent.extras?.getString(TRANSITION_NAME) != null) {
+        if (savedInstanceState == null && intent.extras?.getString(TRANSITION_NAME) != null) {
             window.requestFeature(Window.FEATURE_ACTIVITY_TRANSITIONS)
             findViewById<View>(android.R.id.content)?.let { contentView ->
                 MainActivity.chapterIdToExitTo = 0L
