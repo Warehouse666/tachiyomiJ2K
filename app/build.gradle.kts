@@ -138,9 +138,7 @@ dependencies {
     implementation("androidx.glance:glance-appwidget:1.1.1")
 
     // Modified dependencies
-    implementation("com.github.jays2kings:subsampling-scale-image-view:756849e") {
-        exclude(module = "image-decoder")
-    }
+    implementation("com.github.jays2kings:subsampling-scale-image-view:7bb1a05")
     implementation("com.github.mihonapp:image-decoder:e03b81e18a")
 
     // Android X libraries

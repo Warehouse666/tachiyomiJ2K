@@ -39,6 +39,7 @@ class ShizukuInstaller(
 
     private var waitingInstall = AtomicReference<Entry>(null)
     private val ioScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private var receiverRegistered = false
 
     // Raw shell execution via Shizuku.newProcess was removed upstream (made private) in
     // shizuku-api 13.1.x, so installs now go through a bound UserService that talks to the
@@ -138,10 +139,6 @@ class ShizukuInstaller(
 
     init {
         Shizuku.addBinderDeadListener(shizukuDeadListener)
-        require(Shizuku.pingBinder() && (context.isPackageInstalled(shizukuPkgName) || Sui.isSui())) {
-            finishedQueue(this)
-            context.getString(R.string.ext_installer_shizuku_stopped)
-        }
 
         ContextCompat.registerReceiver(
             context,
@@ -149,6 +146,12 @@ class ShizukuInstaller(
             IntentFilter(ACTION_INSTALL_RESULT),
             ContextCompat.RECEIVER_NOT_EXPORTED,
         )
+        receiverRegistered = true
+
+        require(Shizuku.pingBinder() && (context.isPackageInstalled(shizukuPkgName) || Sui.isSui())) {
+            finishedQueue(this)
+            context.getString(R.string.ext_installer_shizuku_stopped)
+        }
 
         if (Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED) {
             Shizuku.bindUserService(shizukuArgs, serviceConnection)
@@ -260,7 +263,10 @@ class ShizukuInstaller(
                 Timber.w(e, "Failed to unbind shizuku service")
             }
         }
-        context.unregisterReceiver(installResultReceiver)
+        if (receiverRegistered) {
+            receiverRegistered = false
+            context.unregisterReceiver(installResultReceiver)
+        }
         ioScope.cancel()
         LocalBroadcastManager.getInstance(context).unregisterReceiver(cancelReceiver)
         queue.forEach { extensionManager.setInstallationResult(it.pkgName, false) }

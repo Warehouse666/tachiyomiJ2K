@@ -20,6 +20,7 @@ import eu.kanade.tachiyomi.source.SourceManager
 import eu.kanade.tachiyomi.util.chapter.ChapterFilter
 import eu.kanade.tachiyomi.util.manga.MangaShortcutManager
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.protobuf.ProtoBuf
 import uy.kohesive.injekt.api.InjektModule
 import uy.kohesive.injekt.api.InjektRegistrar
 import uy.kohesive.injekt.api.addSingleton
@@ -64,6 +65,10 @@ class AppModule(
                 ignoreUnknownKeys = true
                 explicitNulls = false
             }
+        }
+
+        addSingletonFactory<ProtoBuf> {
+            ProtoBuf
         }
 
         addSingletonFactory { ChapterFilter() }

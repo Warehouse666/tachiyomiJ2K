@@ -63,15 +63,20 @@ class NetworkHelper(
             return builder
         }
 
-    val client by lazy { baseClientBuilder.cache(Cache(cacheDir, cacheSize)).build() }
-
-    @Suppress("UNUSED")
-    val cloudflareClient by lazy {
-        client
-            .newBuilder()
+    val client by lazy {
+        baseClientBuilder
+            .cache(Cache(cacheDir, cacheSize))
             .addInterceptor(cloudflareInterceptor)
             .build()
     }
+
+    /**
+     * @deprecated The regular client handles Cloudflare by default since extensions-lib 1.5
+     */
+    @Deprecated("The regular client handles Cloudflare by default")
+    @Suppress("UNUSED")
+    val cloudflareClient: OkHttpClient
+        get() = client
 
     val defaultUserAgent
         get() =
