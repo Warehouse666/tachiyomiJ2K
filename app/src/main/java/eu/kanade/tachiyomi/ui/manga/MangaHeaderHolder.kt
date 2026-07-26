@@ -159,6 +159,10 @@ class MangaHeaderHolder(
             mangaSummary.customSelectionActionModeCallback = adapter.delegate.customActionMode(mangaSummary)
             applyBlur()
             mangaCover.setOnClickListener { adapter.delegate.zoomImageFromThumb(coverCard) }
+            mangaCover.setOnLongClickListener { view ->
+                adapter.delegate.showCoverContextMenu(view)
+                true
+            }
             trackButton.setOnClickListener { adapter.delegate.showTrackingSheet() }
             if (startExpanded) {
                 expandDesc()

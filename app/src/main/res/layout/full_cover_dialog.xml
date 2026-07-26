@@ -80,8 +80,19 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/btn_replace"
             android:text="@string/share"
             app:icon="@drawable/ic_share_24dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_replace"
+            style="@style/Widget.Tachiyomi.Button.ActionButton.White.Landscape"
+            app:layout_constraintStart_toEndOf="@id/btn_share"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:text="@string/replace"
+            app:icon="@drawable/ic_edit_24dp" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

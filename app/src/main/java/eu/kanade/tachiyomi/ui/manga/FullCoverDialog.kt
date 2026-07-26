@@ -4,6 +4,7 @@ import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
 import android.content.BroadcastReceiver
+import android.content.ClipData
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
@@ -15,7 +16,11 @@ import android.graphics.drawable.Drawable
 import android.os.Build
 import android.os.PowerManager
 import android.os.SystemClock
+import android.view.ActionMode
+import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuItem
 import android.view.MotionEvent
 import android.view.VelocityTracker
 import android.view.View
@@ -41,7 +46,11 @@ import com.google.android.material.shape.CornerFamily
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.databinding.FullCoverDialogBinding
+import eu.kanade.tachiyomi.util.storage.getUriCompat
+import eu.kanade.tachiyomi.util.system.clipboardHasImage
+import eu.kanade.tachiyomi.util.system.clipboardManager
 import eu.kanade.tachiyomi.util.system.dpToPx
+import eu.kanade.tachiyomi.util.system.getClipboardImageUri
 import eu.kanade.tachiyomi.util.system.ignoredDisplayCutout
 import eu.kanade.tachiyomi.util.system.powerManager
 import eu.kanade.tachiyomi.util.system.rootWindowInsetsCompat
@@ -64,6 +73,7 @@ class FullCoverDialog(
     val velocityTracker: VelocityTracker by lazy { VelocityTracker.obtain() }
     private val ratio = 5f.dpToPx
     private val fullRatio = 0f
+    private var coverActionMode: ActionMode? = null
     private val shortAnimationDuration =
         (
             activity?.resources?.getInteger(
@@ -182,8 +192,24 @@ class FullCoverDialog(
 
         listOf(binding.touchOutside, binding.mangaCoverFull, binding.mangaCoverZoom).forEach {
             it.setOnClickListener {
-                onBackPressedDispatcher.onBackPressed()
+                if (coverActionMode != null) {
+                    coverActionMode?.finish()
+                } else {
+                    onBackPressedDispatcher.onBackPressed()
+                }
             }
+        }
+
+        listOf(binding.mangaCoverFull, binding.mangaCoverZoom).forEach {
+            it.setOnLongClickListener { view ->
+                view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+                showCoverContextMenu(view)
+                true
+            }
+        }
+
+        binding.mangaCoverZoom.setOnScaleChangeListener { _, _, _ ->
+            coverActionMode?.finish()
         }
 
         binding.btnSave.setOnClickListener {
@@ -191,6 +217,10 @@ class FullCoverDialog(
         }
         binding.btnShare.setOnClickListener {
             controller.shareCover()
+        }
+        binding.btnReplace.setOnClickListener {
+            dismiss()
+            controller.openEditMangaDialogAndPickCover()
         }
 
         val expandedImageView = binding.mangaCoverFull
@@ -229,6 +259,7 @@ class FullCoverDialog(
         expandedImageView.requestLayout()
         binding.btnShare.alpha = 0f
         binding.btnSave.alpha = 0f
+        binding.btnReplace.alpha = 0f
 
         binding.root.doOnApplyWindowInsetsCompat { _, insets, _ ->
             binding.buttonContainer.updatePadding(bottom = insets.ignoredDisplayCutout.bottom)
@@ -287,6 +318,7 @@ class FullCoverDialog(
                         addUpdateListener {
                             binding.btnShare.alpha = it.animatedValue as Float
                             binding.btnSave.alpha = it.animatedValue as Float
+                            binding.btnReplace.alpha = it.animatedValue as Float
                         }
                     }
                 playTogether(radiusAnimator, saveAnimator)
@@ -318,6 +350,9 @@ class FullCoverDialog(
     override fun dismiss() {
         super.dismiss()
         thumbView.alpha = 1f
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            activity?.window?.decorView?.setRenderEffect(null)
+        }
     }
 
     override fun onDetachedFromWindow() {
@@ -421,6 +456,7 @@ class FullCoverDialog(
                         addUpdateListener {
                             binding.btnShare.alpha = it.animatedValue as Float
                             binding.btnSave.alpha = it.animatedValue as Float
+                            binding.btnReplace.alpha = it.animatedValue as Float
                         }
                     }
                 playTogether(radiusAnimator, dimAnimator, saveAnimator)
@@ -449,5 +485,89 @@ class FullCoverDialog(
                 interpolator = DecelerateInterpolator()
                 duration = shortAnimationDuration
             }.start()
+    }
+
+    private fun showCoverContextMenu(anchor: View) {
+        coverActionMode?.finish()
+        coverActionMode =
+            anchor.startActionMode(
+                object : ActionMode.Callback2() {
+                    override fun onCreateActionMode(
+                        mode: ActionMode?,
+                        menu: Menu?,
+                    ): Boolean {
+                        menu?.add(0, MENU_COPY, 0, android.R.string.copy)
+                        if (context.clipboardHasImage()) {
+                            menu?.add(0, MENU_PASTE, 1, android.R.string.paste)
+                        }
+                        return true
+                    }
+
+                    override fun onPrepareActionMode(
+                        mode: ActionMode?,
+                        menu: Menu?,
+                    ): Boolean = false
+
+                    override fun onActionItemClicked(
+                        mode: ActionMode?,
+                        item: MenuItem?,
+                    ): Boolean {
+                        when (item?.itemId) {
+                            MENU_COPY -> copyCoverToClipboard()
+                            MENU_PASTE -> pasteCoverFromClipboard()
+                            else -> return false
+                        }
+                        mode?.finish()
+                        return true
+                    }
+
+                    override fun onDestroyActionMode(mode: ActionMode?) {
+                        coverActionMode = null
+                    }
+
+                    override fun onGetContentRect(
+                        mode: ActionMode?,
+                        view: View?,
+                        outRect: Rect?,
+                    ) {
+                        val target = view ?: anchor
+                        val viewWidth = target.width
+                        val viewHeight = target.height
+                        if (viewWidth <= 0 || viewHeight <= 0) {
+                            outRect?.set(0, 0, viewWidth, 0)
+                            return
+                        }
+                        // Assume a 9:16 cover; anchor just above where that image would sit.
+                        val coverAspect = 9f / 16f
+                        val viewAspect = viewWidth.toFloat() / viewHeight.toFloat()
+                        val coverHeight =
+                            if (viewAspect > coverAspect) {
+                                viewHeight
+                            } else {
+                                (viewWidth / coverAspect).toInt()
+                            }
+                        val coverTop = ((viewHeight - coverHeight) / 2).coerceAtLeast(0)
+                        outRect?.set(0, coverTop, viewWidth, coverTop)
+                    }
+                },
+                ActionMode.TYPE_FLOATING,
+            )
+    }
+
+    private fun copyCoverToClipboard() {
+        val cover = controller.presenter.shareCover() ?: return
+        val uri = cover.getUriCompat(context)
+        context.clipboardManager.setPrimaryClip(ClipData.newUri(context.contentResolver, "Cover", uri))
+    }
+
+    private fun pasteCoverFromClipboard() {
+        val uri = context.getClipboardImageUri() ?: return
+        dismiss()
+        controller.openEditMangaDialogWithCover(uri)
+    }
+
+    private companion object {
+        const val MENU_COPY = 1
+        const val MENU_PASTE = 2
     }
 }

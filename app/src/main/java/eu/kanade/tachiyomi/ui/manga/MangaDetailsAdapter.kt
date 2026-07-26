@@ -174,6 +174,8 @@ class MangaDetailsAdapter(
 
         fun zoomImageFromThumb(thumbView: View)
 
+        fun showCoverContextMenu(view: View)
+
         fun showTrackingSheet()
 
         fun updateScroll()

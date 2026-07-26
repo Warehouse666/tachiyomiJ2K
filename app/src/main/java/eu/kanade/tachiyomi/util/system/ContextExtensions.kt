@@ -4,6 +4,7 @@ import android.app.ActivityOptions
 import android.app.LocaleManager
 import android.app.Notification
 import android.app.NotificationManager
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -283,6 +284,30 @@ val Context.wifiManager: WifiManager
  */
 val Context.powerManager: PowerManager
     get() = getSystemService()!!
+
+/**
+ * Property to get the clipboard manager from the context.
+ */
+val Context.clipboardManager: ClipboardManager
+    get() = getSystemService()!!
+
+/**
+ * Returns true if the clipboard currently holds an image.
+ */
+fun Context.clipboardHasImage(): Boolean {
+    val description = clipboardManager.primaryClipDescription ?: return false
+    return description.hasMimeType("image/*")
+}
+
+/**
+ * Returns the uri of the image currently on the clipboard, if any.
+ */
+fun Context.getClipboardImageUri(): Uri? {
+    if (!clipboardHasImage()) return null
+    val clip = clipboardManager.primaryClip ?: return null
+    if (clip.itemCount == 0) return null
+    return clip.getItemAt(0).uri
+}
 
 /**
  * Returns true if device is connected to Wifi.

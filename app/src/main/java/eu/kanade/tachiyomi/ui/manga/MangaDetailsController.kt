@@ -10,6 +10,7 @@ import android.content.Intent
 import android.graphics.Color
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Icon
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.service.chooser.ChooserAction
@@ -98,8 +99,11 @@ import eu.kanade.tachiyomi.util.moveCategories
 import eu.kanade.tachiyomi.util.storage.getUriCompat
 import eu.kanade.tachiyomi.util.system.activityOptionsBackgroundOptions
 import eu.kanade.tachiyomi.util.system.addCheckBoxPrompt
+import eu.kanade.tachiyomi.util.system.clipboardHasImage
+import eu.kanade.tachiyomi.util.system.clipboardManager
 import eu.kanade.tachiyomi.util.system.contextCompatColor
 import eu.kanade.tachiyomi.util.system.dpToPx
+import eu.kanade.tachiyomi.util.system.getClipboardImageUri
 import eu.kanade.tachiyomi.util.system.getResourceColor
 import eu.kanade.tachiyomi.util.system.ignoredSystemInsets
 import eu.kanade.tachiyomi.util.system.isInNightMode
@@ -1193,14 +1197,7 @@ class MangaDetailsController :
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
-            R.id.action_edit -> {
-                editMangaDialog =
-                    EditMangaDialog(
-                        this,
-                        presenter.manga,
-                    )
-                editMangaDialog?.showDialog(router)
-            }
+            R.id.action_edit -> openEditMangaDialog()
             R.id.action_open_in_web_view -> openInWebView()
             R.id.action_refresh_tracking -> presenter.refreshTracking(true)
             R.id.action_migrate ->
@@ -1948,6 +1945,82 @@ class MangaDetailsController :
         }
     }
 
+    private fun openEditMangaDialog(): EditMangaDialog {
+        val dialog =
+            EditMangaDialog(
+                this,
+                presenter.manga,
+            )
+        editMangaDialog = dialog
+        dialog.showDialog(router)
+        return dialog
+    }
+
+    fun openEditMangaDialogAndPickCover() {
+        openEditMangaDialog()
+        changeCover()
+    }
+
+    fun openEditMangaDialogWithCover(uri: Uri) {
+        val dialog = openEditMangaDialog()
+        dialog.updateCover(uri)
+    }
+
+    override fun showCoverContextMenu(view: View) {
+        finishFloatingActionMode()
+        floatingActionMode =
+            view.startActionMode(
+                object : android.view.ActionMode.Callback {
+                    override fun onCreateActionMode(
+                        mode: android.view.ActionMode?,
+                        menu: Menu?,
+                    ): Boolean {
+                        menu?.add(0, MENU_COPY_COVER, 0, android.R.string.copy)
+                        if (view.context.clipboardHasImage()) {
+                            menu?.add(0, MENU_PASTE_COVER, 1, android.R.string.paste)
+                        }
+                        return true
+                    }
+
+                    override fun onPrepareActionMode(
+                        mode: android.view.ActionMode?,
+                        menu: Menu?,
+                    ): Boolean = false
+
+                    override fun onActionItemClicked(
+                        mode: android.view.ActionMode?,
+                        item: MenuItem?,
+                    ): Boolean {
+                        when (item?.itemId) {
+                            MENU_COPY_COVER -> copyCoverToClipboard()
+                            MENU_PASTE_COVER -> pasteCoverFromClipboard()
+                            else -> return false
+                        }
+                        mode?.finish()
+                        return true
+                    }
+
+                    override fun onDestroyActionMode(mode: android.view.ActionMode?) {
+                        floatingActionMode = null
+                    }
+                },
+                android.view.ActionMode.TYPE_FLOATING,
+            )
+    }
+
+    private fun copyCoverToClipboard() {
+        val context = view?.context ?: return
+        val cover = presenter.shareCover() ?: return
+        val uri = cover.getUriCompat(context)
+        context.clipboardManager.setPrimaryClip(ClipData.newUri(context.contentResolver, "Cover", uri))
+    }
+
+    private fun pasteCoverFromClipboard() {
+        val context = view?.context ?: return
+        val uri = context.getClipboardImageUri() ?: return
+        openEditMangaDialogWithCover(uri)
+    }
+
     override fun onActivityResult(
         requestCode: Int,
         resultCode: Int,
@@ -1991,6 +2064,9 @@ class MangaDetailsController :
 
         const val FROM_CATALOGUE_EXTRA = "from_catalogue"
         const val MANGA_EXTRA = "manga"
+
+        private const val MENU_COPY_COVER = 1
+        private const val MENU_PASTE_COVER = 2
 
         private enum class RangeMode {
             Download,

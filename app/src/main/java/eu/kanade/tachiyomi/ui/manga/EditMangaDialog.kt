@@ -5,7 +5,10 @@ import android.content.Context
 import android.content.res.ColorStateList
 import android.net.Uri
 import android.os.Bundle
+import android.view.ActionMode
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.view.WindowManager
 import android.view.inputmethod.EditorInfo
@@ -32,7 +35,9 @@ import eu.kanade.tachiyomi.util.isLocal
 import eu.kanade.tachiyomi.util.lang.chop
 import eu.kanade.tachiyomi.util.system.ImageUtil
 import eu.kanade.tachiyomi.util.system.LocaleHelper
+import eu.kanade.tachiyomi.util.system.clipboardHasImage
 import eu.kanade.tachiyomi.util.system.dpToPx
+import eu.kanade.tachiyomi.util.system.getClipboardImageUri
 import eu.kanade.tachiyomi.util.system.getResourceColor
 import eu.kanade.tachiyomi.util.system.isInNightMode
 import eu.kanade.tachiyomi.util.system.materialAlertDialog
@@ -184,6 +189,11 @@ class EditMangaDialog : DialogController {
         binding.mangaGenresTags.clearFocus()
         binding.coverLayout.setOnClickListener {
             infoController.changeCover()
+        }
+        binding.coverLayout.setOnLongClickListener { view ->
+            if (!view.context.clipboardHasImage()) return@setOnLongClickListener false
+            view.startActionMode(pasteCoverActionModeCallback(view), ActionMode.TYPE_FLOATING)
+            true
         }
         binding.resetTags.setOnClickListener { resetTags() }
         binding.resetTags.text =
@@ -373,6 +383,35 @@ class EditMangaDialog : DialogController {
         customCoverUri = uri
     }
 
+    private fun pasteCoverActionModeCallback(view: View): ActionMode.Callback =
+        object : ActionMode.Callback {
+            override fun onCreateActionMode(
+                mode: ActionMode?,
+                menu: Menu?,
+            ): Boolean {
+                menu?.add(0, MENU_PASTE, 0, android.R.string.paste)
+                return true
+            }
+
+            override fun onPrepareActionMode(
+                mode: ActionMode?,
+                menu: Menu?,
+            ): Boolean = false
+
+            override fun onActionItemClicked(
+                mode: ActionMode?,
+                item: MenuItem?,
+            ): Boolean {
+                if (item?.itemId != MENU_PASTE) return false
+                val uri = view.context.getClipboardImageUri() ?: return false
+                updateCover(uri)
+                mode?.finish()
+                return true
+            }
+
+            override fun onDestroyActionMode(mode: ActionMode?) = Unit
+        }
+
     private fun onPositiveButtonClick() {
         addTags()
         infoController.presenter.updateManga(
@@ -391,5 +430,6 @@ class EditMangaDialog : DialogController {
 
     private companion object {
         const val KEY_MANGA = "manga_id"
+        const val MENU_PASTE = 1
     }
 }

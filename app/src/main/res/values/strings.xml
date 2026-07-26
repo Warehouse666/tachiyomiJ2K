@@ -1172,6 +1172,7 @@
     <string name="remove">Remove</string>
     <string name="remove_from_">Remove from %1$s</string>
     <string name="reorder">Reorder</string>
+    <string name="replace">Replace</string>
     <string name="reset">Reset</string>
     <string name="restore">Restore</string>
     <string name="resume">Resume</string>
