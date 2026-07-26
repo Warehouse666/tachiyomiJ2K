@@ -280,6 +280,8 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
      * Called when the activity is created. Initializes the view model and configuration.
      */
     override fun onCreate(savedInstanceState: Bundle?) {
+        SubsamplingScaleImageView.setPreferredBitmapConfig(Bitmap.Config.ARGB_8888)
+
         // Setup shared element transitions
         if (intent.extras?.getString(TRANSITION_NAME) != null) {
             window.requestFeature(Window.FEATURE_ACTIVITY_TRANSITIONS)
@@ -2091,8 +2093,6 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
                 .onEach { setCutoutMode() }
                 .launchIn(scope)
 
-            preferences.trueColor().asImmediateFlowIn(scope) { setTrueColor(it) }
-
             preferences.fullscreen().asImmediateFlowIn(scope) { setFullscreen(it) }
 
             preferences.keepScreenOn().asImmediateFlowIn(scope) { setKeepScreenOn(it) }
@@ -2136,17 +2136,6 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
          */
         private fun setPageNumberVisibility(visible: Boolean) {
             binding.pageNumber.visibility = if (visible) View.VISIBLE else View.INVISIBLE
-        }
-
-        /**
-         * Sets the 32-bit color mode according to [enabled].
-         */
-        private fun setTrueColor(enabled: Boolean) {
-            if (enabled) {
-                SubsamplingScaleImageView.setPreferredBitmapConfig(Bitmap.Config.ARGB_8888)
-            } else {
-                SubsamplingScaleImageView.setPreferredBitmapConfig(Bitmap.Config.RGB_565)
-            }
         }
 
         /**

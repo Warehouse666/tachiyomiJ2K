@@ -140,8 +140,6 @@ class PreferencesHelper(
 
     fun showPageNumber() = flowPrefs.getBoolean(Keys.showPageNumber, true)
 
-    fun trueColor() = flowPrefs.getBoolean(Keys.trueColor, false)
-
     fun fullscreen() = flowPrefs.getBoolean(Keys.fullscreen, true)
 
     fun keepScreenOn() = flowPrefs.getBoolean(Keys.keepScreenOn, true)
