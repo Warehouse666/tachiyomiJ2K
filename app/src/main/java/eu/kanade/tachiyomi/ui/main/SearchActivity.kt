@@ -19,6 +19,7 @@ import eu.kanade.tachiyomi.ui.manga.MangaDetailsController
 import eu.kanade.tachiyomi.ui.reader.ReaderActivity
 import eu.kanade.tachiyomi.ui.security.SecureActivityDelegate
 import eu.kanade.tachiyomi.ui.setting.SettingsController
+import eu.kanade.tachiyomi.ui.setting.SettingsMainController
 import eu.kanade.tachiyomi.ui.setting.SettingsReaderController
 import eu.kanade.tachiyomi.ui.source.browse.BrowseSourceController
 import eu.kanade.tachiyomi.ui.source.globalsearch.GlobalSearchController
@@ -99,7 +100,8 @@ class SearchActivity : MainActivity() {
         }
     }
 
-    private fun intentShouldGoBack() = intent.action in listOf(SHORTCUT_MANGA, SHORTCUT_READER_SETTINGS, SHORTCUT_BROWSE)
+    private fun intentShouldGoBack() =
+        intent.action in listOf(SHORTCUT_MANGA, SHORTCUT_READER_SETTINGS, SHORTCUT_BROWSE, Intent.ACTION_APPLICATION_PREFERENCES)
 
     override fun syncActivityViewWithController(
         to: Controller?,
@@ -195,6 +197,14 @@ class SearchActivity : MainActivity() {
                 router.replaceTopController(
                     RouterTransaction
                         .with(SettingsReaderController())
+                        .pushChangeHandler(SimpleSwapChangeHandler())
+                        .popChangeHandler(FadeChangeHandler()),
+                )
+            }
+            Intent.ACTION_APPLICATION_PREFERENCES -> {
+                router.replaceTopController(
+                    RouterTransaction
+                        .with(SettingsMainController())
                         .pushChangeHandler(SimpleSwapChangeHandler())
                         .popChangeHandler(FadeChangeHandler()),
                 )
