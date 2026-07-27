@@ -830,10 +830,8 @@ fun Controller.setAppBarBG(
             activityBinding?.appBar?.backgroundColor = Color.TRANSPARENT
         }
         if (activityBinding?.appBar?.isInvisible != true) {
-            activity?.window?.statusBarColor =
-                context.getResourceColor(android.R.attr.statusBarColor)
             activityBinding?.statusBar?.gradientBackgroundColor =
-                context.getResourceColor(android.R.attr.statusBarColor)
+                ContextCompat.getColor(context, R.color.status_bar)
         }
     } else {
         val color =
@@ -844,8 +842,6 @@ fun Controller.setAppBarBG(
             )
         activityBinding?.appBar?.setBackgroundColor(color)
         if (activityBinding?.appBar?.isInvisible != true) {
-            activity?.window?.statusBarColor =
-                ColorUtils.setAlphaComponent(color, (0.87f * 255).roundToInt())
             activityBinding?.statusBar?.gradientBackgroundColor =
                 ColorUtils.setAlphaComponent(color, (0.87f * 255).roundToInt())
         }

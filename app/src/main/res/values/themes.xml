@@ -79,7 +79,9 @@
         <item name="actionBarTintColor">?attr/colorOnBackground</item>
         <item name="tabBarIconColor">?attr/colorSecondary</item>
         <item name="tabBarIconInactive">@color/colorPrimaryInactive</item>
-        <item name="android:statusBarColor">@color/status_bar</item>
+        <!-- No android:statusBarColor: the gradient status bar view (main_activity.xml)
+             already paints this area on top of the window, and Android 15+ forces the
+             system status bar transparent regardless -->
         <item name="android:navigationBarColor">#B3000000</item>
         <item name="android:colorEdgeEffect">?attr/colorSecondary</item>
         <item name="tabHighlightBackground">@color/secondary_alpha</item>
