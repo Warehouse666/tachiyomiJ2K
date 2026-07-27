@@ -211,6 +211,10 @@ class MangaDetailsController :
     private var chapterPopupMenu: Pair<Int, PopupMenu>? = null
     private var isPushing = true
 
+    // Prevents the favorite button's drag-to-open popup from firing underneath
+    // the categories sheet when a long press opens it mid-gesture
+    private var blockFavoriteButtonDrag = false
+
     // Tablet Layout
     var isTablet = false
     private var tabletAdapter: MangaDetailsAdapter? = null
@@ -1703,6 +1707,10 @@ class MangaDetailsController :
         if (needsToBeUnlocked()) return
         val manga = presenter.manga
         if (longPress) {
+            // The bottom sheet doesn't steal the ongoing touch stream from the button, so
+            // block the drag-to-open popup listener for the rest of this gesture to keep it
+            // from opening (and firing a menu action) underneath the sheet.
+            blockFavoriteButtonDrag = true
             showCategoriesSheet()
         } else if (!manga.favorite) {
             toggleMangaFavorite()
@@ -1714,8 +1722,10 @@ class MangaDetailsController :
         }
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun setFavButtonPopup(popupView: View) {
         if (presenter.isLockedFromSearch) {
+            popupView.setOnTouchListener(null)
             return
         }
         val manga = presenter.manga
@@ -1724,7 +1734,17 @@ class MangaDetailsController :
             return
         }
         val popup = makeFavPopup(popupView, presenter.getCategories())
-        popupView.setOnTouchListener(popup?.dragToOpenListener)
+        val dragToOpenListener = popup?.dragToOpenListener
+        popupView.setOnTouchListener { v, event ->
+            if (event.actionMasked == MotionEvent.ACTION_DOWN) {
+                blockFavoriteButtonDrag = false
+            }
+            if (blockFavoriteButtonDrag) {
+                false
+            } else {
+                dragToOpenListener?.onTouch(v, event) ?: false
+            }
+        }
     }
 
     private fun makeFavPopup(
