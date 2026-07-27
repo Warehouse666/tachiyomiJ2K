@@ -90,6 +90,7 @@ class RecentMangaHolder(
             binding.endView.updateLayoutParams<ViewGroup.LayoutParams> {
                 height = binding.recentCard.height
             }
+            (adapter.getItem(flexibleAdapterPosition) as? RecentMangaItem)?.setCorners(flexibleAdapterPosition, this, adapter)
             val transition =
                 TransitionSet()
                     .addTransition(androidx.transition.ChangeBounds())
@@ -590,7 +591,7 @@ class RecentMangaHolder(
     ) {
         useContainers(true)
         val finalCard = binding.moreChaptersLayout.children.lastOrNull() as? MaterialCardView
-        val hasSubChapters = finalCard != null
+        val hasSubChapters = finalCard != null && binding.moreChaptersLayout.isVisible
         val mainCornerRadius = itemView.resources.getDimension(R.dimen.container_main_corner)
         val subCornerRadius = itemView.resources.getDimension(R.dimen.container_sub_corner)
         val topRadius = if (top) mainCornerRadius else subCornerRadius
