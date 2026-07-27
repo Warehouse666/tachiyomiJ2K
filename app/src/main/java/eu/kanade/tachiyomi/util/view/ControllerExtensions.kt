@@ -832,7 +832,7 @@ fun Controller.setAppBarBG(
         if (activityBinding?.appBar?.isInvisible != true) {
             activity?.window?.statusBarColor =
                 context.getResourceColor(android.R.attr.statusBarColor)
-            activityBinding?.statusBar?.backgroundColor =
+            activityBinding?.statusBar?.gradientBackgroundColor =
                 context.getResourceColor(android.R.attr.statusBarColor)
         }
     } else {
@@ -846,7 +846,7 @@ fun Controller.setAppBarBG(
         if (activityBinding?.appBar?.isInvisible != true) {
             activity?.window?.statusBarColor =
                 ColorUtils.setAlphaComponent(color, (0.87f * 255).roundToInt())
-            activityBinding?.statusBar?.backgroundColor =
+            activityBinding?.statusBar?.gradientBackgroundColor =
                 ColorUtils.setAlphaComponent(color, (0.87f * 255).roundToInt())
         }
         if ((this as? FloatingSearchInterface)?.showFloatingBar() == true) {

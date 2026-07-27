@@ -122,6 +122,7 @@ import eu.kanade.tachiyomi.util.view.backgroundColor
 import eu.kanade.tachiyomi.util.view.copyToClipboard
 import eu.kanade.tachiyomi.util.view.findChild
 import eu.kanade.tachiyomi.util.view.getText
+import eu.kanade.tachiyomi.util.view.gradientBackgroundColor
 import eu.kanade.tachiyomi.util.view.isControllerVisible
 import eu.kanade.tachiyomi.util.view.previousController
 import eu.kanade.tachiyomi.util.view.requestFilePermissionsSafe
@@ -570,7 +571,7 @@ class MangaDetailsController :
                         animator.animatedValue as Float,
                     ),
                 )
-                activityBinding?.statusBar?.backgroundColor =
+                activityBinding?.statusBar?.gradientBackgroundColor =
                     if (toolbarIsColored) {
                         ColorUtils.blendARGB(
                             topColor,
@@ -584,7 +585,7 @@ class MangaDetailsController :
             cA.start()
         } else {
             activityBinding?.appBar?.setBackgroundColor(if (toolbarIsColored) scrollingColor else topColor)
-            activityBinding?.statusBar?.backgroundColor =
+            activityBinding?.statusBar?.gradientBackgroundColor =
                 if (toolbarIsColored) scrollingStatusColor else topColor
         }
     }
@@ -640,7 +641,7 @@ class MangaDetailsController :
         val scrollingColor = headerColor ?: activity!!.getResourceColor(R.attr.colorPrimaryVariant)
         val scrollingStatusColor =
             ColorUtils.setAlphaComponent(scrollingColor, (0.87f * 255).roundToInt())
-        activityBinding?.statusBar?.backgroundColor =
+        activityBinding?.statusBar?.gradientBackgroundColor =
             if (toolbarIsColored) scrollingStatusColor else topColor
         activityBinding?.appBar?.setBackgroundColor(
             if (toolbarIsColored) scrollingColor else topColor,
@@ -727,7 +728,7 @@ class MangaDetailsController :
                 if (router.backstack.last().controller !is FloatingSearchInterface) {
                     activityBinding?.appBar?.setBackgroundColor(colorSurface)
                 }
-                activityBinding?.statusBar?.backgroundColor =
+                activityBinding?.statusBar?.gradientBackgroundColor =
                     activity?.getColor(R.color.status_bar) ?: colorSurface
             }
         }

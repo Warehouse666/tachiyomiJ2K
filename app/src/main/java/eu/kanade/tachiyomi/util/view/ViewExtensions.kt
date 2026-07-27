@@ -470,6 +470,34 @@ var View.backgroundColor: Int?
         if (value != null) setBackgroundColor(value) else background = null
     }
 
+var View.gradientBackgroundColor: Int?
+    get() = (background as? GradientDrawable)?.colors?.firstOrNull()
+    set(value) {
+        background =
+            if (value != null) {
+                val topColor = if (Color.alpha(value) > 0) ColorUtils.setAlphaComponent(value, 255) else value
+                GradientDrawable(
+                    GradientDrawable.Orientation.TOP_BOTTOM,
+                    intArrayOf(
+                        topColor,
+                        ColorUtils.setAlphaComponent(
+                            topColor,
+                            if (Color.alpha(value) >
+                                0
+                            ) {
+                                204
+                            } else {
+                                0
+                            },
+                        ),
+                        ColorUtils.setAlphaComponent(topColor, 0),
+                    ),
+                )
+            } else {
+                null
+            }
+    }
+
 /**
  * Returns this ViewGroup's first descendant of specified class
  */

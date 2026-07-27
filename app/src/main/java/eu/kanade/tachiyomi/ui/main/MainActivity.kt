@@ -133,6 +133,7 @@ import eu.kanade.tachiyomi.util.view.canStillGoBack
 import eu.kanade.tachiyomi.util.view.doOnApplyWindowInsetsCompat
 import eu.kanade.tachiyomi.util.view.findChild
 import eu.kanade.tachiyomi.util.view.getItemView
+import eu.kanade.tachiyomi.util.view.gradientBackgroundColor
 import eu.kanade.tachiyomi.util.view.mainRecyclerView
 import eu.kanade.tachiyomi.util.view.snack
 import eu.kanade.tachiyomi.util.view.withFadeInTransaction
@@ -948,7 +949,7 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
     }
 
     override fun startSupportActionMode(callback: ActionMode.Callback): ActionMode? {
-        binding.statusBar.backgroundColor = getResourceColor(R.attr.colorPrimaryVariant)
+        binding.statusBar.gradientBackgroundColor = getResourceColor(R.attr.colorPrimaryVariant)
         actionMode = super.startSupportActionMode(callback)
         reEnableBackPressedCallBack()
         return actionMode
@@ -961,12 +962,12 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
     }
 
     fun setStatusBarColorTransparent(show: Boolean) {
-        binding.statusBar.backgroundColor =
+        binding.statusBar.gradientBackgroundColor =
             if (show) {
-                ColorUtils.setAlphaComponent(binding.statusBar.backgroundColor ?: Color.TRANSPARENT, 0)
+                ColorUtils.setAlphaComponent(binding.statusBar.gradientBackgroundColor ?: Color.TRANSPARENT, 0)
             } else {
                 val color = getColor(R.color.status_bar)
-                ColorUtils.setAlphaComponent(binding.statusBar.backgroundColor ?: color, Color.alpha(color))
+                ColorUtils.setAlphaComponent(binding.statusBar.gradientBackgroundColor ?: color, Color.alpha(color))
             }
     }
 
