@@ -41,6 +41,7 @@ abstract class E2EBottomSheetDialog<VB : ViewBinding>(
                 (activity as? MainActivity)?.binding?.navBar?.backgroundColor
                     ?: window.navigationBarColor
             wic.isAppearanceLightNavigationBars = isLight
+            wic.isAppearanceLightStatusBars = false
         }
         contentView.requestLayout()
     }
@@ -73,6 +74,7 @@ abstract class E2EBottomSheetDialog<VB : ViewBinding>(
         window?.let { window ->
             val wic = WindowInsetsControllerCompat(window, binding.root)
             wic.isAppearanceLightNavigationBars = isLight
+            wic.isAppearanceLightStatusBars = false
         }
     }
 
