@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bluelinelabs.conductor.ControllerChangeHandler
 import com.bluelinelabs.conductor.ControllerChangeType
+import com.google.android.material.behavior.HideViewOnScrollBehavior
 import com.google.android.material.snackbar.Snackbar
 import eu.davidea.flexibleadapter.FlexibleAdapter
 import eu.davidea.flexibleadapter.items.IFlexible
@@ -143,7 +144,7 @@ open class BrowseSourceController(
 
     override fun getSearchTitle(): String? = if (presenter.sourceIsInitialized) searchTitle(presenter.source.name) else null
 
-    // disabling for now, one day maybe it will source icons will good
+    // disabling for now, one day maybe when source icons look good
 //    override fun getBigIcon(): Drawable? {
 //        return presenter.source.icon()
 //    }
@@ -544,6 +545,19 @@ open class BrowseSourceController(
             adapter?.notifyItemChanged(lastPosition, false)
             lastPosition = -1
         }
+        if (type.isEnter) {
+            showFloatingBrowseBar()
+        }
+    }
+
+    /**
+     * Un-hides the floating browse bar if scrolled out of view.
+     */
+    private fun showFloatingBrowseBar() {
+        val behavior = HideViewOnScrollBehavior.from(binding.floatingBrowseBar)
+        if (behavior.isScrolledOut) {
+            behavior.slideIn(binding.floatingBrowseBar)
+        }
     }
 
     /**
@@ -787,6 +801,7 @@ open class BrowseSourceController(
         binding.progress.isVisible = true
         snack?.dismiss()
         snack = null
+        showFloatingBrowseBar()
     }
 
     /**
