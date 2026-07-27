@@ -21,6 +21,7 @@ import kotlin.coroutines.resumeWithException
 
 val jsonMime = "application/json; charset=utf-8".toMediaType()
 
+@Deprecated("Use suspend APIs instead", replaceWith = ReplaceWith("await()"))
 fun Call.asObservable(): Observable<Response> {
     return Observable.unsafeCreate { subscriber ->
         // Since Call is a one-shot type, clone it for each new subscriber.
@@ -57,6 +58,8 @@ fun Call.asObservable(): Observable<Response> {
     }
 }
 
+@Suppress("DEPRECATION")
+@Deprecated("Use suspend APIs instead", replaceWith = ReplaceWith("awaitSuccess()"))
 fun Call.asObservableSuccess(): Observable<Response> =
     asObservable().doOnNext { response ->
         if (!response.isSuccessful) {

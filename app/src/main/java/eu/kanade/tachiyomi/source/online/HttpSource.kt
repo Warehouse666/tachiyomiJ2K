@@ -140,6 +140,8 @@ abstract class HttpSource : CatalogueSource {
      *
      * @param page the page number to retrieve.
      */
+    @Suppress("DEPRECATION")
+    @Deprecated("Use the non-RxJava API instead", replaceWith = ReplaceWith("getPopularManga"))
     override fun fetchPopularManga(page: Int): Observable<MangasPage> =
         client
             .newCall(popularMangaRequest(page))
@@ -159,6 +161,11 @@ abstract class HttpSource : CatalogueSource {
      *
      * @param page the page number to retrieve.
      */
+    @Deprecated(
+        message =
+            "The helper functions are inherently limiting and hides the underlying implementation. " +
+                "Source developers should make their own implementation according to their needs.",
+    )
     protected open fun popularMangaRequest(page: Int): Request = throw UnsupportedOperationException()
 
     /**
@@ -166,6 +173,11 @@ abstract class HttpSource : CatalogueSource {
      *
      * @param response the response from the site.
      */
+    @Deprecated(
+        message =
+            "The helper functions are inherently limiting and hides the underlying implementation. " +
+                "Source developers should make their own implementation according to their needs.",
+    )
     protected open fun popularMangaParse(response: Response): MangasPage = throw UnsupportedOperationException()
 
     /**
@@ -176,6 +188,8 @@ abstract class HttpSource : CatalogueSource {
      * @param query the search query.
      * @param filters the list of filters to apply.
      */
+    @Suppress("DEPRECATION")
+    @Deprecated("Use the non-RxJava API instead", replaceWith = ReplaceWith("getSearchManga"))
     override fun fetchSearchManga(
         page: Int,
         query: String,
@@ -201,6 +215,11 @@ abstract class HttpSource : CatalogueSource {
      * @param query the search query.
      * @param filters the list of filters to apply.
      */
+    @Deprecated(
+        message =
+            "The helper functions are inherently limiting and hides the underlying implementation. " +
+                "Source developers should make their own implementation according to their needs.",
+    )
     protected open fun searchMangaRequest(
         page: Int,
         query: String,
@@ -212,6 +231,11 @@ abstract class HttpSource : CatalogueSource {
      *
      * @param response the response from the site.
      */
+    @Deprecated(
+        message =
+            "The helper functions are inherently limiting and hides the underlying implementation. " +
+                "Source developers should make their own implementation according to their needs.",
+    )
     protected open fun searchMangaParse(response: Response): MangasPage = throw UnsupportedOperationException()
 
     /**
@@ -219,6 +243,8 @@ abstract class HttpSource : CatalogueSource {
      *
      * @param page the page number to retrieve.
      */
+    @Suppress("DEPRECATION")
+    @Deprecated("Use the non-RxJava API instead", replaceWith = ReplaceWith("getLatestUpdates"))
     override fun fetchLatestUpdates(page: Int): Observable<MangasPage> =
         client
             .newCall(latestUpdatesRequest(page))
@@ -232,6 +258,11 @@ abstract class HttpSource : CatalogueSource {
      *
      * @param page the page number to retrieve.
      */
+    @Deprecated(
+        message =
+            "The helper functions are inherently limiting and hides the underlying implementation. " +
+                "Source developers should make their own implementation according to their needs.",
+    )
     protected open fun latestUpdatesRequest(page: Int): Request = throw UnsupportedOperationException()
 
     /**
@@ -239,6 +270,11 @@ abstract class HttpSource : CatalogueSource {
      *
      * @param response the response from the site.
      */
+    @Deprecated(
+        message =
+            "The helper functions are inherently limiting and hides the underlying implementation. " +
+                "Source developers should make their own implementation according to their needs.",
+    )
     protected open fun latestUpdatesParse(response: Response): MangasPage = throw UnsupportedOperationException()
 
     /**
@@ -251,6 +287,7 @@ abstract class HttpSource : CatalogueSource {
     @Suppress("DEPRECATION")
     override suspend fun getMangaDetails(manga: SManga): SManga = fetchMangaDetails(manga).awaitSingle()
 
+    @Suppress("DEPRECATION")
     @Deprecated("Use the non-RxJava API instead", replaceWith = ReplaceWith("getMangaDetails"))
     override fun fetchMangaDetails(manga: SManga): Observable<SManga> =
         client
@@ -266,6 +303,11 @@ abstract class HttpSource : CatalogueSource {
      *
      * @param manga the manga to be updated.
      */
+    @Deprecated(
+        message =
+            "The helper functions are inherently limiting and hides the underlying implementation. " +
+                "Source developers should make their own implementation according to their needs.",
+    )
     open fun mangaDetailsRequest(manga: SManga): Request = GET(baseUrl + manga.url, headers)
 
     /**
@@ -273,6 +315,11 @@ abstract class HttpSource : CatalogueSource {
      *
      * @param response the response from the site.
      */
+    @Deprecated(
+        message =
+            "The helper functions are inherently limiting and hides the underlying implementation. " +
+                "Source developers should make their own implementation according to their needs.",
+    )
     protected open fun mangaDetailsParse(response: Response): SManga = throw UnsupportedOperationException()
 
     /**
@@ -292,6 +339,7 @@ abstract class HttpSource : CatalogueSource {
         return fetchChapterList(manga).awaitSingle()
     }
 
+    @Suppress("DEPRECATION")
     @Deprecated("Use the non-RxJava API instead", replaceWith = ReplaceWith("getChapterList"))
     override fun fetchChapterList(manga: SManga): Observable<List<SChapter>> =
         if (manga.status != SManga.LICENSED) {
@@ -311,6 +359,11 @@ abstract class HttpSource : CatalogueSource {
      *
      * @param manga the manga to look for chapters.
      */
+    @Deprecated(
+        message =
+            "The helper functions are inherently limiting and hides the underlying implementation. " +
+                "Source developers should make their own implementation according to their needs.",
+    )
     protected open fun chapterListRequest(manga: SManga): Request = GET(baseUrl + manga.url, headers)
 
     /**
@@ -318,6 +371,11 @@ abstract class HttpSource : CatalogueSource {
      *
      * @param response the response from the site.
      */
+    @Deprecated(
+        message =
+            "The helper functions are inherently limiting and hides the underlying implementation. " +
+                "Source developers should make their own implementation according to their needs.",
+    )
     protected open fun chapterListParse(response: Response): List<SChapter> = throw UnsupportedOperationException()
 
     /**
@@ -330,6 +388,7 @@ abstract class HttpSource : CatalogueSource {
     @Suppress("DEPRECATION")
     override suspend fun getPageList(chapter: SChapter): List<Page> = fetchPageList(chapter).awaitSingle()
 
+    @Suppress("DEPRECATION")
     @Deprecated("Use the non-RxJava API instead", replaceWith = ReplaceWith("getPageList"))
     override fun fetchPageList(chapter: SChapter): Observable<List<Page>> =
         client
@@ -345,6 +404,11 @@ abstract class HttpSource : CatalogueSource {
      *
      * @param chapter the chapter whose page list has to be fetched.
      */
+    @Deprecated(
+        message =
+            "The helper functions are inherently limiting and hides the underlying implementation. " +
+                "Source developers should make their own implementation according to their needs.",
+    )
     protected open fun pageListRequest(chapter: SChapter): Request = GET(baseUrl + chapter.url, headers)
 
     /**
@@ -352,6 +416,11 @@ abstract class HttpSource : CatalogueSource {
      *
      * @param response the response from the site.
      */
+    @Deprecated(
+        message =
+            "The helper functions are inherently limiting and hides the underlying implementation. " +
+                "Source developers should make their own implementation according to their needs.",
+    )
     protected open fun pageListParse(response: Response): List<Page> = throw UnsupportedOperationException()
 
     /**
@@ -364,6 +433,7 @@ abstract class HttpSource : CatalogueSource {
     @Suppress("DEPRECATION")
     open suspend fun getImageUrl(page: Page): String = fetchImageUrl(page).awaitSingle()
 
+    @Suppress("DEPRECATION")
     @Deprecated("Use the non-RxJava API instead", replaceWith = ReplaceWith("getImageUrl"))
     open fun fetchImageUrl(page: Page): Observable<String> =
         client
@@ -377,6 +447,11 @@ abstract class HttpSource : CatalogueSource {
      *
      * @param page the chapter whose page list has to be fetched
      */
+    @Deprecated(
+        message =
+            "The helper functions are inherently limiting and hides the underlying implementation. " +
+                "Source developers should make their own implementation according to their needs.",
+    )
     protected open fun imageUrlRequest(page: Page): Request = GET(page.url, headers)
 
     /**
@@ -384,6 +459,11 @@ abstract class HttpSource : CatalogueSource {
      *
      * @param response the response from the site.
      */
+    @Deprecated(
+        message =
+            "The helper functions are inherently limiting and hides the underlying implementation. " +
+                "Source developers should make their own implementation according to their needs.",
+    )
     protected open fun imageUrlParse(response: Response): String = throw UnsupportedOperationException()
 
     /**
@@ -453,6 +533,7 @@ abstract class HttpSource : CatalogueSource {
      * @param manga the manga
      * @return url of the manga
      */
+    @Suppress("DEPRECATION")
     open fun getMangaUrl(manga: SManga): String = mangaDetailsRequest(manga).url.toString()
 
     /**
@@ -516,6 +597,7 @@ abstract class HttpSource : CatalogueSource {
      * @param chapter the chapter to be added.
      * @param manga the manga of the chapter.
      */
+    @Deprecated("All modifications should be done when constructing the chapter")
     open fun prepareNewChapter(
         chapter: SChapter,
         manga: SManga,

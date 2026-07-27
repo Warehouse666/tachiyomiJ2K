@@ -22,6 +22,7 @@ import java.util.TreeSet
  * @param source the source of the chapters.
  * @return a pair of new insertions and deletions.
  */
+@Suppress("DEPRECATION")
 fun syncChaptersWithSource(
     db: DatabaseHelper,
     rawSourceChapters: List<SChapter>,

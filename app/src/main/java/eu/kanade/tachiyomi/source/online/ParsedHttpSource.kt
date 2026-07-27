@@ -12,12 +12,15 @@ import org.jsoup.nodes.Element
 /**
  * A simple implementation for sources from a website using Jsoup, an HTML parser.
  */
+@Suppress("DEPRECATION")
+@Deprecated("No replacement")
 abstract class ParsedHttpSource : HttpSource() {
     /**
      * Parses the response from the site and returns a [MangasPage] object.
      *
      * @param response the response from the site.
      */
+    @Deprecated("No replacement")
     override fun popularMangaParse(response: Response): MangasPage {
         val document = response.asJsoup()
 
@@ -58,6 +61,7 @@ abstract class ParsedHttpSource : HttpSource() {
      *
      * @param response the response from the site.
      */
+    @Deprecated("No replacement")
     override fun searchMangaParse(response: Response): MangasPage {
         val document = response.asJsoup()
 
@@ -98,6 +102,7 @@ abstract class ParsedHttpSource : HttpSource() {
      *
      * @param response the response from the site.
      */
+    @Deprecated("No replacement")
     override fun latestUpdatesParse(response: Response): MangasPage {
         val document = response.asJsoup()
 
@@ -138,6 +143,7 @@ abstract class ParsedHttpSource : HttpSource() {
      *
      * @param response the response from the site.
      */
+    @Deprecated("No replacement")
     override fun mangaDetailsParse(response: Response): SManga = mangaDetailsParse(response.asJsoup())
 
     /**
@@ -152,6 +158,7 @@ abstract class ParsedHttpSource : HttpSource() {
      *
      * @param response the response from the site.
      */
+    @Deprecated("No replacement")
     override fun chapterListParse(response: Response): List<SChapter> {
         val document = response.asJsoup()
         return document.select(chapterListSelector()).map { chapterFromElement(it) }
@@ -174,6 +181,7 @@ abstract class ParsedHttpSource : HttpSource() {
      *
      * @param response the response from the site.
      */
+    @Deprecated("No replacement")
     override fun pageListParse(response: Response): List<Page> = pageListParse(response.asJsoup())
 
     /**
@@ -188,6 +196,7 @@ abstract class ParsedHttpSource : HttpSource() {
      *
      * @param response the response from the site.
      */
+    @Deprecated("No replacement")
     override fun imageUrlParse(response: Response): String = imageUrlParse(response.asJsoup())
 
     /**
