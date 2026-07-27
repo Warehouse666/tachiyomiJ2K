@@ -72,6 +72,7 @@ class SourceHolder(
         }
 
         binding.sourceLatest.isVisible = source.supportsLatest
+        binding.sourceDivider.isVisible = source.supportsLatest
     }
 
     override fun getFrontView(): View = binding.sourceCard
