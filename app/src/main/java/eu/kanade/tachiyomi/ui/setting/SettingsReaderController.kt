@@ -419,6 +419,26 @@ class SettingsReaderController : SettingsController() {
 
                     preferences.readWithVolumeKeys().asImmediateFlow { isVisible = it }.launchIn(viewScope)
                 }
+                multiSelectListPreferenceMat(activity) {
+                    key = Keys.readerVerticalSeekbarModes
+                    titleRes = R.string.vertical_seekbar
+                    val modes = ReadingModeType.entries.filter { it != ReadingModeType.DEFAULT }
+                    entriesRes = modes.map { it.stringRes }.toTypedArray()
+                    entryValues = modes.map { it.prefValue.toString() }
+                    defaultValue = preferences.readerVerticalSeekbarModes().defaultValue.toList()
+                }
+                switchPreference {
+                    bindTo(preferences.readerVerticalSeekbarDockLeft())
+                    titleRes = R.string.vertical_seekbar_dock_left
+                    preferences.readerVerticalSeekbarModes().asImmediateFlowIn(viewScope) { isVisible = it.isNotEmpty() }
+                }
+                intListPreference(activity) {
+                    bindTo(preferences.readerVerticalSeekbarHeightPercent())
+                    titleRes = R.string.vertical_seekbar_height
+                    entryValues = (65..100 step 5).toList()
+                    entries = entryValues.map { "$it%" }
+                    preferences.readerVerticalSeekbarModes().asImmediateFlowIn(viewScope) { isVisible = it.isNotEmpty() }
+                }
             }
 
             preferenceCategory {

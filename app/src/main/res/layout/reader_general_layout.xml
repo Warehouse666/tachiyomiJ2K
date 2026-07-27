@@ -93,5 +93,77 @@
             android:layout_marginTop="16dp"
             android:text="@string/always_show_chapter_transition"
             android:textColor="?attr/colorOnBackground" />
+
+        <com.google.android.material.textview.MaterialTextView
+            style="?textAppearanceTitleSmall"
+            android:textSize="15sp"
+            android:layout_width="match_parent"
+            android:textColor="?attr/colorSecondary"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="@string/vertical_seekbar" />
+
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="-24dp"
+            android:layout_marginEnd="-24dp"
+            android:paddingStart="24dp"
+            android:paddingEnd="24dp"
+            android:clipToPadding="false"
+            android:layout_marginTop="4dp"
+            android:scrollbars="none">
+
+            <com.google.android.material.button.MaterialButtonToggleGroup
+                android:id="@+id/vertical_seekbar_modes"
+                style="@style/Widget.Tachiyomi.MaterialButtonGroup.Connected"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:spacing="4dp"
+                android:orientation="horizontal"/>
+        </HorizontalScrollView>
+
+        <LinearLayout
+            android:id="@+id/vertical_seekbar_extra_settings"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/vertical_seekbar_height_text"
+                    style="?textAppearanceBodyMedium"
+                    android:textSize="15sp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    tools:text="@string/vertical_seekbar_height" />
+
+                <com.google.android.material.slider.Slider
+                    android:id="@+id/vertical_seekbar_height"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="12dp"
+                    android:valueFrom="65"
+                    android:valueTo="100"
+                    android:stepSize="5"
+                    tools:value="65" />
+
+            </LinearLayout>
+
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/vertical_seekbar_dock_left"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/vertical_seekbar_dock_left"
+                android:textColor="?attr/colorOnBackground" />
+        </LinearLayout>
     </LinearLayout>
 </eu.kanade.tachiyomi.ui.reader.settings.ReaderGeneralView>

@@ -34,10 +34,11 @@ import android.view.ViewGroup
 import android.view.Window
 import android.view.WindowManager
 import android.view.animation.AnimationUtils
+import android.widget.FrameLayout
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.BackEventCompat
 import androidx.activity.OnBackPressedCallback
-import androidx.activity.addCallback
 import androidx.activity.viewModels
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.content.ContextCompat
@@ -72,6 +73,7 @@ import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.slider.Slider
+import com.google.android.material.slider.SliderOrientation
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.transition.platform.MaterialContainerTransform
 import com.google.android.material.transition.platform.MaterialContainerTransformSharedElementCallback
@@ -222,6 +224,8 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
     private var lastCropRes = 0
     var manuallyShiftedPages = false
         private set
+
+    private var pendingVerticalSeekbarHeightUpdate = false
 
     val isSplitScreen: Boolean
         get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInMultiWindowMode
@@ -594,9 +598,122 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
         with(binding.readerNav) {
             listOf(leftPageText, rightPageText).forEach {
                 it.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                    val isCurrent = (viewer is R2LPagerViewer).xor(it === leftPageText)
+                    val isCurrent = (viewer is R2LPagerViewer && !binding.readerNav.pageSeekbar.isVertical).xor(it === leftPageText)
                     width = if (isDoublePage && isCurrent) 48.spToPx else 32.spToPx
                 }
+            }
+        }
+    }
+
+    /**
+     * Re-evaluates whether the current manga's reading mode should use a vertical seekbar
+     * and applies the resulting layout to the nav bar.
+     */
+    private fun reapplyVerticalSeekbarLayout() {
+        val mangaViewer = ReadingModeType.fromPreference(viewModel.getMangaReadingMode())
+        val vertical = mangaViewer.prefValue.toString() in preferences.readerVerticalSeekbarModes().get()
+        updateNavBarOrientation(vertical)
+    }
+
+    private fun updateNavBarOrientation(vertical: Boolean) {
+        // R2L only flips left/right when horizontal (rotation already handles vertical's value direction); re-swap if this call changes that.
+        val flipChanged = viewer is R2LPagerViewer && binding.readerNav.pageSeekbar.isVertical != vertical
+        val orientation = if (vertical) LinearLayout.VERTICAL else LinearLayout.HORIZONTAL
+        val dockLeft = preferences.readerVerticalSeekbarDockLeft().get()
+        with(binding.readerNav) {
+            root.orientation = orientation
+            readerSeekbar.orientation = orientation
+            pageSeekbar.setOrientation(if (vertical) SliderOrientation.VERTICAL else SliderOrientation.HORIZONTAL)
+            pageSeekbar.scaleY = if (vertical) -1f else 1f
+            binding.readerNav.pageSeekbar.isRTL =
+                if (vertical) {
+                    dockLeft
+                } else {
+                    viewer is R2LPagerViewer
+                }
+            leftChapter.rotation = if (vertical) 90f else 0f
+            rightChapter.rotation = if (vertical) 90f else 0f
+
+            readerSeekbar.updateLayoutParams<LinearLayout.LayoutParams> {
+                if (vertical) {
+                    width = LinearLayout.LayoutParams.WRAP_CONTENT
+                    height = 0
+                } else {
+                    width = 0
+                    height = LinearLayout.LayoutParams.WRAP_CONTENT
+                }
+            }
+            pageSeekbar.updateLayoutParams<LinearLayout.LayoutParams> {
+                if (vertical) {
+                    width = 40.dpToPx
+                    height = 0
+                } else {
+                    width = 0
+                    height = 40.dpToPx
+                }
+            }
+        }
+
+        binding.navLayout.updateLayoutParams<CoordinatorLayout.LayoutParams> {
+            if (vertical) {
+                width = ViewGroup.LayoutParams.WRAP_CONTENT
+                height = ViewGroup.LayoutParams.WRAP_CONTENT
+                anchorGravity = Gravity.TOP or if (dockLeft) Gravity.START else Gravity.END
+            } else {
+                width = ViewGroup.LayoutParams.MATCH_PARENT
+                height = ViewGroup.LayoutParams.WRAP_CONTENT
+                anchorGravity = Gravity.TOP
+            }
+        }
+        if (vertical) {
+            binding.readerNav.root.updatePaddingRelative(2.dpToPx, 12.dpToPx, 2.dpToPx, 12.dpToPx)
+        } else {
+            binding.readerNav.root.updatePaddingRelative(12.dpToPx, 6.dpToPx, 12.dpToPx, 6.dpToPx)
+        }
+        binding.readerNav.root.updateLayoutParams<FrameLayout.LayoutParams> {
+            width = if (vertical) FrameLayout.LayoutParams.WRAP_CONTENT else FrameLayout.LayoutParams.MATCH_PARENT
+            if (!vertical) height = FrameLayout.LayoutParams.WRAP_CONTENT
+        }
+        if (vertical) updateVerticalSeekbarHeight()
+
+        if (flipChanged) {
+            with(binding.readerNav) {
+                val alpha = leftChapter.alpha
+                leftChapter.alpha = rightChapter.alpha
+                rightChapter.alpha = alpha
+
+                val pageText = leftPageText.text
+                leftPageText.text = rightPageText.text
+                rightPageText.text = pageText
+
+                val tooltip = leftChapter.compatToolTipText
+                leftChapter.compatToolTipText = rightChapter.compatToolTipText
+                rightChapter.compatToolTipText = tooltip
+            }
+        }
+    }
+
+    // root's height may not be measured yet on first call; a persistent layout listener retries this later.
+    // The actual write is deferred to post{} (and coalesced via the pending flag) since mutating
+    // LayoutParams synchronously from a layout-change callback re-triggers a layout pass mid-layout.
+    private fun updateVerticalSeekbarHeight() {
+        if (!binding.readerNav.pageSeekbar.isVertical) return
+        if (pendingVerticalSeekbarHeightUpdate) return
+        pendingVerticalSeekbarHeightUpdate = true
+        binding.readerNav.root.post {
+            pendingVerticalSeekbarHeightUpdate = false
+            if (!binding.readerNav.pageSeekbar.isVertical) return@post
+            val rootHeight = binding.root.height
+            if (rootHeight <= 0) return@post
+            val heightPercent = preferences.readerVerticalSeekbarHeightPercent().get()
+            val availableHeight =
+                rootHeight - binding.appBar.height - (
+                    binding.chaptersSheet.root.sheetBehavior
+                        ?.peekHeight ?: 0
+                ) - 12.dpToPx
+            val newHeight = (availableHeight * heightPercent / 100).coerceAtLeast(0)
+            binding.readerNav.root.updateLayoutParams<FrameLayout.LayoutParams> {
+                if (height != newHeight) height = newHeight
             }
         }
     }
@@ -770,7 +887,7 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
     ): Boolean {
         when (keyCode) {
             KeyEvent.KEYCODE_N -> {
-                if (viewer is R2LPagerViewer) {
+                if (viewer is R2LPagerViewer && !binding.readerNav.pageSeekbar.isVertical) {
                     binding.readerNav.leftChapter.performClick()
                 } else {
                     binding.readerNav.rightChapter.performClick()
@@ -778,7 +895,7 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
                 return true
             }
             KeyEvent.KEYCODE_P -> {
-                if (viewer !is R2LPagerViewer) {
+                if (viewer !is R2LPagerViewer && !binding.readerNav.pageSeekbar.isVertical) {
                     binding.readerNav.leftChapter.performClick()
                 } else {
                     binding.readerNav.rightChapter.performClick()
@@ -935,6 +1052,26 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
                     .launchIn(scope)
             }
 
+        preferences
+            .readerVerticalSeekbarModes()
+            .asFlow()
+            .onEach { reapplyVerticalSeekbarLayout() }
+            .launchIn(scope)
+        preferences
+            .readerVerticalSeekbarDockLeft()
+            .asFlow()
+            .onEach { reapplyVerticalSeekbarLayout() }
+            .launchIn(scope)
+        preferences
+            .readerVerticalSeekbarHeightPercent()
+            .asFlow()
+            .onEach { reapplyVerticalSeekbarLayout() }
+            .launchIn(scope)
+        // appBar/chapters-sheet peek height only change alongside root's own height (insets, screen size), so only react to that.
+        binding.root.addOnLayoutChangeListener { _, _, top, _, bottom, _, oldTop, _, oldBottom ->
+            if (bottom - top != oldBottom - oldTop) updateVerticalSeekbarHeight()
+        }
+
         binding.chaptersSheet.shiftPageButton.setOnClickListener {
             shiftDoublePages()
             manuallyShiftedPages = true
@@ -1016,8 +1153,10 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
                 if (it.config.doublePages || it.config.splitPages) {
                     if (it.hasExtraPage(value.roundToInt(), viewModel.getCurrentChapter())) {
                         val invertDoublePage = (viewer as? PagerViewer)?.config?.invertDoublePages ?: false
-                        return@setLabelFormatter if (!binding.readerNav.pageSeekbar.isRTL
-                                .xor(invertDoublePage)
+                        return@setLabelFormatter if ((
+                                !binding.readerNav.pageSeekbar.isRTL ||
+                                    binding.readerNav.pageSeekbar.isVertical
+                            ).xor(invertDoublePage)
                         ) {
                             "$pageNumber-${pageNumber + 1}"
                         } else {
@@ -1111,6 +1250,7 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
                 }
             binding.chaptersSheet.chapterRecycler.updatePaddingRelative(bottom = systemInsets.bottom)
             binding.viewerContainer.requestLayout()
+            updateVerticalSeekbarHeight()
         }
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
             @Suppress("DEPRECATION")
@@ -1128,7 +1268,7 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
         }
         isScrollingThroughPagesOrChapters = true
         lifecycleScope.launch {
-            val getNextChapter = (viewer is R2LPagerViewer).xor(rightButton)
+            val getNextChapter = (viewer is R2LPagerViewer && !binding.readerNav.pageSeekbar.isVertical).xor(rightButton)
             val adjChapter = viewModel.adjacentChapter(getNextChapter)
             if (adjChapter != null) {
                 if (rightButton) {
@@ -1374,7 +1514,7 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
         viewer = newViewer
         binding.viewerContainer.addView(newViewer.getView())
 
-        if (newViewer is R2LPagerViewer) {
+        if (newViewer is R2LPagerViewer && !binding.readerNav.pageSeekbar.isVertical) {
             binding.readerNav.leftChapter.compatToolTipText = getString(R.string.next_chapter)
             binding.readerNav.rightChapter.compatToolTipText = getString(R.string.previous_chapter)
         } else {
@@ -1401,7 +1541,15 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
 
         supportActionBar?.title = manga.title
 
-        binding.readerNav.pageSeekbar.isRTL = newViewer is R2LPagerViewer
+        binding.readerNav.pageSeekbar.isRTL =
+            if (binding.readerNav.pageSeekbar.isVertical) {
+                val params =
+                    binding.navLayout.layoutParams as CoordinatorLayout.LayoutParams
+                params.anchorGravity == Gravity.TOP or Gravity.END
+            } else {
+                newViewer is R2LPagerViewer
+            }
+        reapplyVerticalSeekbarLayout()
 
         binding.pleaseWait.isVisible = true
         binding.pleaseWait.startAnimation(AnimationUtils.loadAnimation(this, R.anim.fade_in_long))
@@ -1526,7 +1674,7 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
         if (viewerChapters.nextChapter == null && viewerChapters.prevChapter == null) {
             binding.readerNav.leftChapter.isVisible = false
             binding.readerNav.rightChapter.isVisible = false
-        } else if (viewer is R2LPagerViewer) {
+        } else if (viewer is R2LPagerViewer && !binding.readerNav.pageSeekbar.isVertical) {
             binding.readerNav.leftChapter.alpha = if (viewerChapters.nextChapter != null) 1f else 0.5f
             binding.readerNav.rightChapter.alpha = if (viewerChapters.prevChapter != null) 1f else 0.5f
         } else {
@@ -1639,8 +1787,10 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
         val currentPage =
             if (hasExtraPage) {
                 val invertDoublePage = (viewer as? PagerViewer)?.config?.invertDoublePages ?: false
-                if (!binding.readerNav.pageSeekbar.isRTL
-                        .xor(invertDoublePage)
+                if ((
+                        !binding.readerNav.pageSeekbar.isRTL ||
+                            binding.readerNav.pageSeekbar.isVertical
+                    ).xor(invertDoublePage)
                 ) {
                     "${page.number}-${page.number + 1}"
                 } else {
@@ -1657,7 +1807,7 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
             }
         }
         binding.pageNumber.text = if (resources.isLTR) "$currentPage/$totalPages" else "$totalPages/$currentPage"
-        if (viewer is R2LPagerViewer) {
+        if (viewer is R2LPagerViewer && !binding.readerNav.pageSeekbar.isVertical) {
             binding.readerNav.rightPageText.text = currentPage
             binding.readerNav.leftPageText.text = totalPages
         } else {

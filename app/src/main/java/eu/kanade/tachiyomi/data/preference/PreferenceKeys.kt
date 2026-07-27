@@ -234,4 +234,10 @@ object PreferenceKeys {
     const val hideChapterTitles = "hide_chapter_titles"
 
     const val chaptersDescAsDefault = "chapters_desc_as_default"
+
+    const val readerVerticalSeekbarModes = "reader_vertical_seekbar_modes"
+
+    const val readerVerticalSeekbarDockLeft = "reader_vertical_seekbar_dock_left"
+
+    const val readerVerticalSeekbarHeightPercent = "reader_vertical_seekbar_height_percent"
 }

@@ -212,6 +212,16 @@ class PreferencesHelper(
             ReaderBottomButton.BUTTONS_DEFAULTS,
         )
 
+    fun readerVerticalSeekbarModes() =
+        flowPrefs.getStringSet(
+            Keys.readerVerticalSeekbarModes,
+            setOf(ReadingModeType.WEBTOON.prefValue.toString(), ReadingModeType.CONTINUOUS_VERTICAL.prefValue.toString()),
+        )
+
+    fun readerVerticalSeekbarDockLeft() = flowPrefs.getBoolean(Keys.readerVerticalSeekbarDockLeft, false)
+
+    fun readerVerticalSeekbarHeightPercent() = flowPrefs.getInt(Keys.readerVerticalSeekbarHeightPercent, 65)
+
     fun showNavigationOverlayNewUser() = flowPrefs.getBoolean(Keys.showNavigationOverlayNewUser, true)
 
     fun showNavigationOverlayNewUserWebtoon() = flowPrefs.getBoolean(Keys.showNavigationOverlayNewUserWebtoon, true)

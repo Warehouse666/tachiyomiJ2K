@@ -2,10 +2,16 @@ package eu.kanade.tachiyomi.ui.reader.settings
 
 import android.content.Context
 import android.util.AttributeSet
+import android.view.LayoutInflater
+import androidx.core.view.isVisible
+import com.google.android.material.button.MaterialButton
+import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.databinding.ReaderGeneralLayoutBinding
 import eu.kanade.tachiyomi.ui.reader.ReaderActivity
 import eu.kanade.tachiyomi.util.bindToPreference
+import eu.kanade.tachiyomi.util.lang.withSubtitle
 import eu.kanade.tachiyomi.widget.BaseReaderSettingsView
+import kotlin.math.roundToInt
 
 class ReaderGeneralView
     @JvmOverloads
@@ -58,6 +64,58 @@ class ReaderGeneralView
             binding.fullscreen.bindToPreference(preferences.fullscreen())
             binding.keepscreen.bindToPreference(preferences.keepScreenOn())
             binding.alwaysShowChapterTransition.bindToPreference(preferences.alwaysShowChapterTransition())
+
+            initVerticalSeekbarPreferences()
+        }
+
+        private fun initVerticalSeekbarPreferences() {
+            val modesPref = preferences.readerVerticalSeekbarModes()
+            val selectedModes = modesPref.get()
+
+            fun currentModeSelected(modes: Set<String>): Boolean {
+                val activity = context as? ReaderActivity ?: return true
+                val currentMode = ReadingModeType.fromPreference(activity.viewModel.getMangaReadingMode())
+                return currentMode.prefValue.toString() in modes
+            }
+
+            ReadingModeType.entries.filter { it != ReadingModeType.DEFAULT }.forEach { mode ->
+                val chip =
+                    LayoutInflater.from(context).inflate(
+                        R.layout.filter_button,
+                        binding.verticalSeekbarModes,
+                        false,
+                    ) as MaterialButton
+                chip.id = generateViewId()
+                chip.setText(mode.stringRes)
+                chip.isChecked = mode.prefValue.toString() in selectedModes
+                chip.addOnCheckedChangeListener { _, isChecked ->
+                    val current = modesPref.get().toMutableSet()
+                    val key = mode.prefValue.toString()
+                    if (isChecked) current.add(key) else current.remove(key)
+                    modesPref.set(current)
+                    binding.verticalSeekbarExtraSettings.isVisible = currentModeSelected(current)
+                }
+                binding.verticalSeekbarModes.addView(chip)
+            }
+            binding.verticalSeekbarExtraSettings.isVisible = currentModeSelected(selectedModes)
+
+            binding.verticalSeekbarDockLeft.bindToPreference(preferences.readerVerticalSeekbarDockLeft())
+
+            val heightPref = preferences.readerVerticalSeekbarHeightPercent()
+            binding.verticalSeekbarHeight.value = heightPref.get().toFloat()
+            binding.verticalSeekbarHeight.setLabelFormatter { value -> "${value.roundToInt()}%" }
+            updateVerticalSeekbarHeightText(heightPref.get())
+            binding.verticalSeekbarHeight.addOnChangeListener { _, value, fromUser ->
+                updateVerticalSeekbarHeightText(value.roundToInt())
+                if (fromUser) heightPref.set(value.roundToInt())
+            }
+        }
+
+        private fun updateVerticalSeekbarHeightText(percent: Int) {
+            binding.verticalSeekbarHeightText.text =
+                context
+                    .getString(R.string.vertical_seekbar_height)
+                    .withSubtitle(context, "$percent%")
         }
 
         /**

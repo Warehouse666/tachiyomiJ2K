@@ -248,6 +248,7 @@
 
     <style name="Theme.Tachiyomi.Tooltip" parent="Widget.Material3.Tooltip">
         <item name="backgroundTint">?colorSecondary</item>
+        <item name="showMarker">false</item>
         <item name="android:textColor">?colorOnSecondary</item>
     </style>
 
@@ -328,6 +329,10 @@
     </style>
 
     <style name="Widget.Tachiyomi.MaterialButtonGroup" parent="Widget.Material3Expressive.MaterialButtonGroup">
+        <item name="materialThemeOverlay">@style/ThemeOverlay.Tachiyomi.MaterialButtonGroup.Overflow</item>
+    </style>
+
+    <style name="Widget.Tachiyomi.MaterialButtonGroup.Connected" parent="Widget.Material3Expressive.MaterialButtonGroup.Connected">
         <item name="materialThemeOverlay">@style/ThemeOverlay.Tachiyomi.MaterialButtonGroup.Overflow</item>
     </style>
 
@@ -453,8 +458,7 @@
         <item name="chipStrokeWidth">1dp</item>
         <item name="android:checkable">false</item>
     </style>
-    
-    
+
     <style name="Theme.TextAppearance.Chip" parent="TextAppearance.MaterialComponents.Chip">
         <item name="android:textSize">13sp</item>
     </style>
