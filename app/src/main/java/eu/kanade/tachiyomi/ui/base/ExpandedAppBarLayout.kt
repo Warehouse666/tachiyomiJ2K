@@ -1,5 +1,6 @@
 package eu.kanade.tachiyomi.ui.base
 
+import android.animation.ValueAnimator
 import android.content.Context
 import android.content.res.Configuration
 import android.util.AttributeSet
@@ -19,6 +20,7 @@ import androidx.core.widget.TextViewCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.bluelinelabs.conductor.Controller
 import com.google.android.material.appbar.AppBarLayout
+import com.google.android.material.card.MaterialCardView
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.ui.main.FloatingSearchInterface
@@ -44,6 +46,9 @@ ExpandedAppBarLayout@JvmOverloads
     ) : AppBarLayout(context, attrs) {
         var searchToolbar: FloatingToolbar? = null
         var cardFrame: FrameLayout? = null
+        private var cardView: MaterialCardView? = null
+        private var cardShadowAnimator: ValueAnimator? = null
+        private var showingCardShadow = false
         var mainToolbar: CenteredToolbar? = null
         var bigTitleView: TextView? = null
         val preferences: PreferencesHelper by injectLazy()
@@ -131,7 +136,7 @@ ExpandedAppBarLayout@JvmOverloads
         private val compactAppBarHeight: Float
             get() {
                 val appBarHeight =
-                    if (mainToolbar?.height ?: 0 > 0) {
+                    if ((mainToolbar?.height ?: 0) > 0) {
                         mainToolbar?.height ?: 0
                     } else {
                         attrToolbarHeight
@@ -180,6 +185,7 @@ ExpandedAppBarLayout@JvmOverloads
                         else -> ToolbarState.EXPANDED
                     }
                 }
+            animateCardShadow(mainActivity?.currentToolbar == searchToolbar && tabsFrameLayout?.isVisible != true)
         }
 
         fun hideBigView(
@@ -200,6 +206,7 @@ ExpandedAppBarLayout@JvmOverloads
             super.onFinishInflate()
             bigTitleView = findViewById(R.id.big_title)
             searchToolbar = findViewById(R.id.search_toolbar)
+            cardView = findViewById(R.id.card_view)
             mainToolbar = findViewById(R.id.toolbar)
             bigView = findViewById(R.id.big_toolbar)
             cardFrame = findViewById(R.id.card_frame)
@@ -408,6 +415,8 @@ ExpandedAppBarLayout@JvmOverloads
                 }
             ) {
                 useSearchToolbarForMenu(useSearchToolbar)
+            } else {
+                animateCardShadow(mainActivity.currentToolbar == searchToolbar && tabsFrameLayout?.isVisible != true)
             }
         }
 
@@ -495,6 +504,22 @@ ExpandedAppBarLayout@JvmOverloads
                     cardFrame?.backgroundColor = null
                 }
             }
+            animateCardShadow(mainActivity.currentToolbar == searchToolbar && tabsFrameLayout?.isVisible != true)
+        }
+
+        /** Animates the search toolbar's card shadow in/out depending on if it's floating alone */
+        private fun animateCardShadow(showShadow: Boolean) {
+            if (showShadow == showingCardShadow) return
+            showingCardShadow = showShadow
+            val cardView = cardView ?: return
+            val target = if (showShadow) 2f.dpToPx else 0f
+            cardShadowAnimator?.cancel()
+            cardShadowAnimator =
+                ValueAnimator.ofFloat(cardView.cardElevation, target).apply {
+                    duration = 150L
+                    addUpdateListener { cardView.cardElevation = it.animatedValue as Float }
+                    start()
+                }
         }
     }
 
