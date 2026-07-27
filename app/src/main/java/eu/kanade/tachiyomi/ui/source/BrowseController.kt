@@ -407,7 +407,9 @@ class BrowseController :
 
     fun updateTitleAndMenu() {
         if (isControllerVisible) {
+            val activity = (activity as? MainActivity) ?: return
             activityBinding?.appBar?.isInvisible = showingExtensions
+            (activity as? MainActivity)?.setStatusBarColorTransparent(showingExtensions)
             updateSheetMenu()
         }
     }
