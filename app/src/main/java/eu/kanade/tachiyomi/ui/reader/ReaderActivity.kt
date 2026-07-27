@@ -162,6 +162,7 @@ import java.util.Locale
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.roundToInt
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Activity containing the reader of Tachiyomi. This activity is mostly a container of the
@@ -1049,7 +1050,7 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
                 currentOrientation == Configuration.ORIENTATION_LANDSCAPE && preferences.landscapeCutoutBehavior().get() == 1
             val cutOutInsets = if (isLandscapeFully) insets.displayCutout else null
             val vis = insets.isVisible(statusBars())
-            val fullscreen = preferences.fullscreen().get() && !isSplitScreen
+            val fullscreen = preferences.fullscreen().get()
             if (!isLandscapeFully) {
                 val cutoutInsets = insets.getInsetsIgnoringVisibility(displayCutout())
                 v.updatePadding(left = cutoutInsets.left, right = cutoutInsets.right)
@@ -1057,14 +1058,14 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
                 v.updatePadding(left = 0, right = 0)
             }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                if (!firstPass && lastVis != vis && fullscreen) {
+                if (!firstPass && lastVis != vis && fullscreen && !isSplitScreen) {
                     onVisibilityChange(vis)
                 }
                 firstPass = false
                 lastVis = vis
             }
             wic.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_DEFAULT
-            if (!fullscreen && sheetManageNavColor) {
+            if (!(fullscreen && !isSplitScreen) && sheetManageNavColor) {
                 window.navigationBarColor = getResourceColor(R.attr.colorSurface)
             }
             binding.appBar.updateLayoutParams<ViewGroup.MarginLayoutParams> {
@@ -1098,7 +1099,7 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
             binding.chaptersSheet.root.sheetBehavior
                 ?.peekHeight =
                 peek +
-                if (fullscreen) {
+                if (fullscreen && (!isSplitScreen || insets.isBottomTappable())) {
                     insets.getBottomGestureInsets()
                 } else {
                     val rootInsets = binding.root.rootWindowInsetsCompat ?: insets
@@ -1114,7 +1115,7 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
             @Suppress("DEPRECATION")
             binding.readerLayout.setOnSystemUiVisibilityChangeListener {
-                if (preferences.fullscreen().get()) {
+                if (preferences.fullscreen().get() && !isSplitScreen) {
                     onVisibilityChange((it and View.SYSTEM_UI_FLAG_HIDE_NAVIGATION) == 0)
                 }
             }
@@ -1288,7 +1289,7 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
                     ?.collapse()
             }
         } else {
-            if (preferences.fullscreen().get()) {
+            if (preferences.fullscreen().get() && !isSplitScreen) {
                 wic.hide(systemBars())
                 wic.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_DEFAULT
             }
@@ -1424,6 +1425,21 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
     override fun onResume() {
         super.onResume()
         viewModel.setReadStartTime()
+    }
+
+    override fun onMultiWindowModeChanged(
+        isInMultiWindowMode: Boolean,
+        newConfig: Configuration,
+    ) {
+        super.onMultiWindowModeChanged(isInMultiWindowMode, newConfig)
+        config?.setFullscreen(preferences.fullscreen().get())
+        if (isInMultiWindowMode) {
+            wic.show(systemBars())
+        } else if (!menuVisible && preferences.fullscreen().get()) {
+            wic.hide(systemBars())
+            wic.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_DEFAULT
+        }
+        binding.root.requestApplyInsets()
     }
 
     fun reloadChapters(
@@ -1954,7 +1970,7 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
             menuTemporarilyVisible = true
             coroutine =
                 scope.launchUI {
-                    delay(2000)
+                    delay(2.seconds)
                     if (window.decorView.rootWindowInsetsCompat?.isVisible(statusBars()) == true) {
                         menuTemporarilyVisible = false
                         setMenuVisibility(false)
@@ -2141,7 +2157,7 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
         /**
          * Sets the fullscreen reading mode (immersive) according to [enabled].
          */
-        private fun setFullscreen(enabled: Boolean) {
+        fun setFullscreen(enabled: Boolean) {
             WindowCompat.setDecorFitsSystemWindows(window, !enabled || isSplitScreen)
             wic.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_DEFAULT
             binding.root.rootWindowInsetsCompat?.let { setNavColor(it) }
