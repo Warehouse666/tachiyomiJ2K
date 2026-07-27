@@ -260,6 +260,7 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
                         super.onMapSharedElements(names, sharedElements)
                         return
                     }
+                    if (names.isEmpty()) return
                     val recyclerView = mangaController.binding.recycler
                     val selectedViewHolder =
                         recyclerView.findViewHolderForItemId(chapterIdToExitTo) ?: return

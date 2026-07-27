@@ -8,7 +8,6 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.view.WindowInsetsCompat.Type.ime
 import androidx.core.view.WindowInsetsCompat.Type.systemBars
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
@@ -263,15 +262,15 @@ open class BrowseSourceController(
         recycler.adapter = adapter
 
         binding.catalogueView.addView(recycler, 1)
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+            binding.floatingBrowseBar.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                bottomMargin = 8.dpToPx
+            }
+        }
         scrollViewWith(
             recycler,
             true,
             afterInsets = { insets ->
-                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
-                    binding.floatingBrowseBar.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                        bottomMargin = insets.getInsets(systemBars() or ime()).bottom + 8.dpToPx
-                    }
-                }
                 val bigToolbarHeight = fullAppBarHeight ?: 0
                 binding.progress.updateLayoutParams<ViewGroup.MarginLayoutParams> {
                     topMargin = (bigToolbarHeight + insets.getInsets(systemBars()).top) / 2
