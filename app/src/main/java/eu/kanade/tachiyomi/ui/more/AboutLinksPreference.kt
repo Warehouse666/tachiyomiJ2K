@@ -37,31 +37,31 @@ class AboutLinksPreference
             }
             holder.findViewById(R.id.btn_website).apply {
                 compatToolTipText = (contentDescription.toString())
-                setOnClickListener { context.openInBrowser("https://tachiyomi.org") }
+                setOnClickListener { context.openInBrowser("https://mihon.app") }
             }
             holder.findViewById(R.id.btn_discord).apply {
                 compatToolTipText = (contentDescription.toString())
-                setOnClickListener { context.openInBrowser("https://discord.gg/tachiyomi") }
+                setOnClickListener { context.openInBrowser("https://discord.gg/mihon") }
             }
             holder.findViewById(R.id.btn_x).apply {
                 compatToolTipText = (contentDescription.toString())
-                setOnClickListener { context.openInBrowser("https://twitter.com/tachiyomiorg") }
+                setOnClickListener { context.openInBrowser("https://x.com/mihonapp") }
             }
             holder.findViewById(R.id.btn_facebook).apply {
                 compatToolTipText = (contentDescription.toString())
-                setOnClickListener { context.openInBrowser("https://facebook.com/tachiyomiorg") }
+                setOnClickListener { context.openInBrowser("https://facebook.com/mihonapp") }
             }
             holder.findViewById(R.id.btn_reddit).apply {
                 compatToolTipText = (contentDescription.toString())
-                setOnClickListener { context.openInBrowser("https://www.reddit.com/r/Tachiyomi") }
+                setOnClickListener { context.openInBrowser("https://www.reddit.com/r/mihonapp") }
             }
             holder.findViewById(R.id.btn_github).apply {
                 compatToolTipText = (contentDescription.toString())
                 setOnClickListener { context.openInBrowser("https://github.com/Jays2Kings/tachiyomiJ2K") }
             }
-            holder.findViewById(R.id.btn_tachiyomi).apply {
+            holder.findViewById(R.id.btn_mihon).apply {
                 compatToolTipText = (contentDescription.toString())
-                setOnClickListener { context.openInBrowser("https://github.com/tachiyomiorg") }
+                setOnClickListener { context.openInBrowser("https://github.com/mihonapp") }
             }
         }
     }

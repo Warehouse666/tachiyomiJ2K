@@ -437,8 +437,8 @@ class ExtensionDetailsController(
         const val SOURCE_ID_KEY = "source_id"
         const val LASTOPENPREFERENCE_KEY = "last_open_preference"
         private const val URL_EXTENSION_BLOB =
-            "https://github.com/tachiyomiorg/tachiyomi-extensions/blob/master"
+            "https://github.com/mihonapp/mihon/blob/main"
         private const val URL_EXTENSION_COMMITS =
-            "https://github.com/tachiyomiorg/tachiyomi-extensions/commits/master"
+            "https://github.com/mihonapp/mihon/commits/main"
     }
 }

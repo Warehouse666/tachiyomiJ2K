@@ -320,4 +320,4 @@ private const val CODE_BACKUP_DIR = 503
 private const val CODE_BACKUP_CREATE = 504
 private const val CODE_BACKUP_RESTORE = 505
 
-private const val HELP_URL = "https://tachiyomi.org/docs/guides/backups"
+private const val HELP_URL = "https://mihon.app/docs/guides/backups"

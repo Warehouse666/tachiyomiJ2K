@@ -84,14 +84,14 @@
             tools:ignore="HardcodedText" />
 
         <ImageButton
-            android:id="@+id/btn_tachiyomi"
+            android:id="@+id/btn_mihon"
             android:layout_width="56dp"
             android:layout_height="56dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Tachiyomi"
+            android:contentDescription="Mihon"
             android:padding="16dp"
             android:scaleType="fitCenter"
-            android:src="@drawable/ic_tachi"
+            android:src="@drawable/ic_mihon"
             app:tint="?attr/colorAccent"
             tools:ignore="HardcodedText" />
 

@@ -132,6 +132,6 @@ class SettingsMainController :
     }
 
     private companion object {
-        private const val URL_HELP = "https://tachiyomi.org/docs/guides/troubleshooting/"
+        private const val URL_HELP = "https://mihon.app/docs/guides/troubleshooting/"
     }
 }

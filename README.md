@@ -1,10 +1,10 @@
 | Download | Contribute | Support Server |
 |-------|----------|---------|
-| [![release](https://img.shields.io/github/release/jays2kings/tachiyomi.svg?maxAge=3600&label=download)](https://github.com/jays2kings/tachiyomiJ2K/releases) | [![Translation status](https://hosted.weblate.org/widgets/tachiyomi/-/tachiyomi-j2k/svg-badge.svg)](https://hosted.weblate.org/engage/tachiyomi/?utm_source=widget) | [![Discord](https://img.shields.io/discord/349436576037732353.svg?label=discord&labelColor=7289da&color=2c2f33&style=flat)](https://discord.gg/tachiyomi) |
+| [![release](https://img.shields.io/github/release/jays2kings/tachiyomi.svg?maxAge=3600&label=download)](https://github.com/jays2kings/tachiyomiJ2K/releases) | [![Translation status](https://hosted.weblate.org/widgets/tachiyomi/-/tachiyomi-j2k/svg-badge.svg)](https://hosted.weblate.org/engage/tachiyomi/?utm_source=widget) | [![Discord](https://img.shields.io/discord/349436576037732353.svg?label=discord&labelColor=7289da&color=2c2f33&style=flat)](https://discord.gg/mihon) |
 
 
 # ![app icon](./.github/readme-images/app-icon.png)TachiyomiJ2K
-TachiyomiJ2K is a free and open source manga reader for Android 6.0 and above. Based on the original [Tachiyomi](https://github.com/tachiyomiorg/tachiyomi)
+TachiyomiJ2K is a free and open source manga reader for Android 6.0 and above. Based on the original Tachiyomi, now continued as [Mihon](https://mihon.app)
 
 ![screenshots of app](./.github/readme-images/screens.gif)
 
@@ -46,8 +46,8 @@ Please make sure to read the full guidelines. Your issue may be closed without w
 
 <details><summary>Issues</summary>
 
-1. **Before reporting a new issue, take a look at the [FAQ](https://github.com/tachiyomiorg/tachiyomi/wiki/FAQ), the [changelog](https://github.com/jays2kings/tachiyomi/releases) and the already opened [issues](https://github.com/tachiyomiorg/tachiyomi/issues).**
-2. If you are unsure, ask here: [![Discord](https://img.shields.io/discord/349436576037732353.svg)](https://discord.gg/tachiyomi)
+1. **Before reporting a new issue, take a look at the [FAQ](https://mihon.app/docs/faq/general), the [changelog](https://github.com/jays2kings/tachiyomi/releases) and the already opened [issues](https://github.com/mihonapp/mihon/issues).**
+2. If you are unsure, ask here: [![Discord](https://img.shields.io/discord/349436576037732353.svg)](https://discord.gg/mihon)
 
 </details>
 
@@ -62,10 +62,6 @@ Please make sure to read the full guidelines. Your issue may be closed without w
 * For large logs use http://pastebin.com/ (or similar)
 * Don't group unrelated requests into one issue
 
-DO: https://github.com/tachiyomiorg/tachiyomi/issues/24 https://github.com/tachiyomiorg/tachiyomi/issues/71
-
-DON'T: https://github.com/tachiyomiorg/tachiyomi/issues/75
-
 </details>
 
 <details><summary>Feature Requests</summary>
@@ -73,13 +69,13 @@ DON'T: https://github.com/tachiyomiorg/tachiyomi/issues/75
 * Write a detailed issue, explaning what it should do or how. Avoid writing just "like X app does"
 * Include screenshot (if needed)
 
-Source requests should be created at https://github.com/tachiyomiorg/tachiyomi-extensions, they do not belong in this repository.
+Source requests should be checked at https://mihon.app/docs/faq/browse/extensions, they do not belong in this repository.
 </details>
 
 ## FAQ
 
-[See our website.](https://tachiyomi.org/)
-You can also reach out to us on [Discord](https://discord.gg/tachiyomi).
+[See our website.](https://mihon.app/)
+You can also reach out to us on [Discord](https://discord.gg/mihon).
 
 ## License
 
