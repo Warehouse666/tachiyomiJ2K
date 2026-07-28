@@ -1997,7 +1997,7 @@ class MangaDetailsController :
                         menu: Menu?,
                     ): Boolean {
                         menu?.add(0, MENU_COPY_COVER, 0, android.R.string.copy)
-                        if (view.context.clipboardHasImage()) {
+                        if (manga?.favorite == true && view.context.clipboardHasImage()) {
                             menu?.add(0, MENU_PASTE_COVER, 1, android.R.string.paste)
                         }
                         return true

@@ -497,7 +497,7 @@ class FullCoverDialog(
                         menu: Menu?,
                     ): Boolean {
                         menu?.add(0, MENU_COPY, 0, android.R.string.copy)
-                        if (context.clipboardHasImage()) {
+                        if (controller.presenter.manga.favorite && context.clipboardHasImage()) {
                             menu?.add(0, MENU_PASTE, 1, android.R.string.paste)
                         }
                         return true
