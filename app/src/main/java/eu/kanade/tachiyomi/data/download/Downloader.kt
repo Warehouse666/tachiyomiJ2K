@@ -578,9 +578,12 @@ class Downloader(
         response: Response,
         file: UniFile,
     ): String {
-        // Read content type if available.
+        // Read content type if it's an image, some servers don't send the right content type.
         val mime =
-            response.body.contentType()?.let { ct -> "${ct.type}/${ct.subtype}" }
+            response.body
+                .contentType()
+                ?.takeIf { it.type == "image" }
+                ?.let { ct -> "${ct.type}/${ct.subtype}" }
                 // Else guess from the uri.
                 ?: context.contentResolver.getType(file.uri)
                 // Else read magic numbers.
