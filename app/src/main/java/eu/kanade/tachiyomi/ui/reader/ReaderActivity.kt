@@ -1237,18 +1237,18 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
             }
             binding.chaptersSheet.root.sheetBehavior
                 ?.peekHeight =
-                peek +
-                if (fullscreen && (!isSplitScreen || insets.isBottomTappable())) {
-                    insets.getBottomGestureInsets()
-                } else {
-                    val rootInsets = binding.root.rootWindowInsetsCompat ?: insets
-                    max(
-                        0,
-                        (rootInsets.getBottomGestureInsets()) -
-                            rootInsets.getInsetsIgnoringVisibility(systemBars()).bottom,
-                    )
-                }
+                peek + insets.getBottomGestureInsets()
             binding.chaptersSheet.chapterRecycler.updatePaddingRelative(bottom = systemInsets.bottom)
+            val noInsetForFullScreen = fullscreen && !isSplitScreen
+            binding.viewerContainer.updatePadding(
+                left = if (noInsetForFullScreen) 0 else systemInsets.left,
+                top = if (noInsetForFullScreen) 0 else systemInsets.top,
+                right = if (noInsetForFullScreen) 0 else systemInsets.right,
+                bottom = if (noInsetForFullScreen) 0 else systemInsets.bottom,
+            )
+            binding.pageNumber.updateLayoutParams<CoordinatorLayout.LayoutParams> {
+                bottomMargin = if (noInsetForFullScreen) 0 else systemInsets.bottom
+            }
             binding.viewerContainer.requestLayout()
             updateVerticalSeekbarHeight()
         }
@@ -1580,7 +1580,7 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
         newConfig: Configuration,
     ) {
         super.onMultiWindowModeChanged(isInMultiWindowMode, newConfig)
-        config?.setFullscreen(preferences.fullscreen().get())
+        config?.setFullscreen()
         if (isInMultiWindowMode) {
             wic.show(systemBars())
         } else if (!menuVisible && preferences.fullscreen().get()) {
@@ -2259,7 +2259,7 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
                 .onEach { setCutoutMode() }
                 .launchIn(scope)
 
-            preferences.fullscreen().asImmediateFlowIn(scope) { setFullscreen(it) }
+            preferences.fullscreen().asImmediateFlowIn(scope) { setFullscreen() }
 
             preferences.keepScreenOn().asImmediateFlowIn(scope) { setKeepScreenOn(it) }
 
@@ -2305,12 +2305,13 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
         }
 
         /**
-         * Sets the fullscreen reading mode (immersive) according to [enabled].
+         * Sets the fullscreen reading mode (immersive)
          */
-        fun setFullscreen(enabled: Boolean) {
-            WindowCompat.setDecorFitsSystemWindows(window, !enabled || isSplitScreen)
+        fun setFullscreen() {
+            WindowCompat.setDecorFitsSystemWindows(window, false)
             wic.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_DEFAULT
             binding.root.rootWindowInsetsCompat?.let { setNavColor(it) }
+            binding.root.requestApplyInsets()
         }
 
         /**
