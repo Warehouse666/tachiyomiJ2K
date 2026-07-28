@@ -124,6 +124,12 @@ class SettingsAppearanceController : SettingsController() {
                     titleRes = R.string.theme_buttons_based_on_cover
                     defaultValue = true
                 }
+                switchPreference {
+                    key = Keys.renderDescriptionImages
+                    titleRes = R.string.render_description_images
+                    summaryRes = R.string.render_description_images_summary
+                    defaultValue = true
+                }
             }
 
             preferenceCategory {

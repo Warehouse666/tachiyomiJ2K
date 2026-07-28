@@ -503,6 +503,8 @@ class PreferencesHelper(
 
     fun themeMangaDetails() = prefs.getBoolean(Keys.themeMangaDetails, true)
 
+    fun renderDescriptionImages() = flowPrefs.getBoolean(Keys.renderDescriptionImages, true)
+
     fun useLargeToolbar() = flowPrefs.getBoolean("use_large_toolbar", true)
 
     fun dohProvider() = prefs.getInt(Keys.dohProvider, -1)

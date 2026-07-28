@@ -209,6 +209,8 @@ object PreferenceKeys {
 
     const val themeMangaDetails = "theme_manga_details"
 
+    const val renderDescriptionImages = "render_description_images"
+
     const val incognitoMode = "incognito_mode"
 
     const val sideNavMode = "side_nav_mode"

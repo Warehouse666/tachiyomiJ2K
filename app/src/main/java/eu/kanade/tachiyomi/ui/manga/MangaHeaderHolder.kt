@@ -7,6 +7,7 @@ import android.graphics.RenderEffect
 import android.graphics.Shader
 import android.graphics.drawable.BitmapDrawable
 import android.os.Build
+import android.text.method.LinkMovementMethod
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
@@ -42,6 +43,10 @@ import eu.kanade.tachiyomi.util.lang.toNormalized
 import eu.kanade.tachiyomi.util.system.getResourceColor
 import eu.kanade.tachiyomi.util.system.isInNightMode
 import eu.kanade.tachiyomi.util.system.isLTR
+import io.noties.markwon.Markwon
+import io.noties.markwon.SoftBreakAddsNewLinePlugin
+import io.noties.markwon.image.coil.CoilImagesPlugin
+import io.noties.markwon.linkify.LinkifyPlugin
 
 @SuppressLint("ClickableViewAccessibility")
 class MangaHeaderHolder(
@@ -157,6 +162,7 @@ class MangaHeaderHolder(
                 true
             }
             mangaSummary.customSelectionActionModeCallback = adapter.delegate.customActionMode(mangaSummary)
+            mangaSummary.movementMethod = LinkMovementMethod.getInstance()
             applyBlur()
             mangaCover.setOnClickListener { adapter.delegate.zoomImageFromThumb(coverCard) }
             mangaCover.setOnLongClickListener { view ->
@@ -271,6 +277,17 @@ class MangaHeaderHolder(
         }
     }
 
+    private fun markwon(): Markwon =
+        Markwon
+            .builder(itemView.context)
+            .usePlugin(LinkifyPlugin.create())
+            .usePlugin(SoftBreakAddsNewLinePlugin.create())
+            .apply {
+                if (adapter.preferences.renderDescriptionImages().get()) {
+                    usePlugin(CoilImagesPlugin.create(itemView.context))
+                }
+            }.build()
+
     private fun setDescription() {
         if (binding != null) {
             val desc =
@@ -288,8 +305,11 @@ class MangaHeaderHolder(
                             ),
                             "\n",
                         )
-                    else -> desc.trim()
+                    else -> markwon().toMarkdown(desc.trim())
                 }
+            // setTextIsSelectable() resets the movement method, so it must be re-applied
+            // after every text/selectable change or link taps fall through to the row click.
+            binding.mangaSummary.movementMethod = LinkMovementMethod.getInstance()
         }
     }
 
@@ -578,6 +598,7 @@ class MangaHeaderHolder(
     fun clearDescFocus() {
         binding ?: return
         binding.mangaSummary.setTextIsSelectable(false)
+        binding.mangaSummary.movementMethod = LinkMovementMethod.getInstance()
         binding.mangaSummary.clearFocus()
     }
 
