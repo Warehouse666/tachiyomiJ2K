@@ -41,7 +41,7 @@ class SourceHolder(
                         append(LocaleHelper.getSourceDisplayName(source.lang, itemView.context))
                         append("  ")
                         color(itemView.context.getResourceColor(R.attr.colorError)) {
-                            append(itemView.context.getString(R.string.obsolete).uppercase())
+                            append(itemView.context.getString(R.string.orphaned).uppercase())
                         }
                     }
                 else -> LocaleHelper.getSourceDisplayName(source.lang, itemView.context)

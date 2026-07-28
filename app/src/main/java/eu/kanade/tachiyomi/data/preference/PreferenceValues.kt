@@ -38,7 +38,7 @@ object PreferenceValues {
     ) {
         Alphabetically(0, R.string.alphabetically),
         MostEntries(1, R.string.most_entries),
-        Obsolete(2, R.string.obsolete),
+        Obsolete(2, R.string.orphaned),
         ;
 
         companion object {
