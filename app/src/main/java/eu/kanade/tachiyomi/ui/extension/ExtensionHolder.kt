@@ -104,6 +104,8 @@ class ExtensionHolder(
         binding.lang.text = LocaleHelper.getDisplayName(extension.lang)
         binding.warning.text =
             when {
+                (extension as? Extension.Installed)?.isObsolete == true ->
+                    itemView.context.getString(R.string.orphaned)
                 extension.isNsfw -> itemView.context.getString(R.string.nsfw_short)
                 else -> ""
             }.uppercase(Locale.ROOT)

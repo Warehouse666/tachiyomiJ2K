@@ -334,7 +334,8 @@
     <string name="ext_installer_summary">Allows extensions to be installed without user prompts and enables automatic updates for devices under Android 12</string>
     <string name="untrusted_extension">Untrusted extension</string>
     <string name="untrusted_extension_message">Malicious extensions can read any stored login credentials or execute arbitrary code.\n\nBy trusting this extension, you accept these risks.</string>
-    <string name="obsolete_extension_message">This extension is no longer available.</string>
+    <string name="orphaned">Orphaned</string>
+    <string name="obsolete_extension_message">This extension is not associated with any store. It will not receive updates, may not function properly, and can cause issues with the app. Uninstalling it is recommended.</string>
     <string name="extension_api_error">Failed to fetch available extensions</string>
     <string name="version_">Version: %1$s</string>
     <string name="language_">Language: %1$s</string>
