@@ -11,6 +11,7 @@ import eu.kanade.tachiyomi.ui.reader.ReaderActivity
 import eu.kanade.tachiyomi.util.bindToPreference
 import eu.kanade.tachiyomi.util.lang.withSubtitle
 import eu.kanade.tachiyomi.widget.BaseReaderSettingsView
+import kotlin.collections.toMutableSet
 import kotlin.math.roundToInt
 
 class ReaderGeneralView
@@ -34,6 +35,8 @@ class ReaderGeneralView
                 } else {
                     initPagerPreferences()
                 }
+                val selectedModes = preferences.readerVerticalSeekbarModes().get()
+                binding.verticalSeekbarExtraSettings.isVisible = currentModeSelected(selectedModes)
             }
             binding.viewerSeries.setSelection(
                 (context as? ReaderActivity)?.viewModel?.state?.value?.manga?.readingModeType?.let {
@@ -68,15 +71,15 @@ class ReaderGeneralView
             initVerticalSeekbarPreferences()
         }
 
+        fun currentModeSelected(modes: Set<String>): Boolean {
+            val activity = context as? ReaderActivity ?: return true
+            val currentMode = ReadingModeType.fromPreference(activity.viewModel.getMangaReadingMode())
+            return currentMode.prefValue.toString() in modes
+        }
+
         private fun initVerticalSeekbarPreferences() {
             val modesPref = preferences.readerVerticalSeekbarModes()
             val selectedModes = modesPref.get()
-
-            fun currentModeSelected(modes: Set<String>): Boolean {
-                val activity = context as? ReaderActivity ?: return true
-                val currentMode = ReadingModeType.fromPreference(activity.viewModel.getMangaReadingMode())
-                return currentMode.prefValue.toString() in modes
-            }
 
             ReadingModeType.entries.filter { it != ReadingModeType.DEFAULT }.forEach { mode ->
                 val chip =
