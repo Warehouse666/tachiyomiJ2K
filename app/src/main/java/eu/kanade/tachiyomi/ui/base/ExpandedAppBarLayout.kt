@@ -512,7 +512,7 @@ ExpandedAppBarLayout@JvmOverloads
             if (showShadow == showingCardShadow) return
             showingCardShadow = showShadow
             val cardView = cardView ?: return
-            val target = if (showShadow) 2f.dpToPx else 0f
+            val target = if (showShadow) 4f.dpToPx else 0f
             cardShadowAnimator?.cancel()
             cardShadowAnimator =
                 ValueAnimator.ofFloat(cardView.cardElevation, target).apply {
