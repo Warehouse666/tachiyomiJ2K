@@ -493,9 +493,9 @@
     <string name="always_show_chapter_transition">Always show chapter transition</string>
     <string name="if_disabled_transition_will_skip">If disabled, the transition page will be
         skipped if the next chapter is loaded</string>
-    <string name="vertical_seekbar">Use vertical seekbar for</string>
-    <string name="vertical_seekbar_dock_left">Place vertical seekbar</string>
-    <string name="vertical_seekbar_height">Vertical seekbar height</string>
+    <string name="vertical_seekbar">Use vertical progress bar for</string>
+    <string name="vertical_seekbar_dock_left">Place vertical bar</string>
+    <string name="vertical_seekbar_height">Vertical bar height</string>
     <string name="pref_webtoon_side_padding">Side padding</string>
     <string name="l_nav">L shaped</string>
     <string name="kindlish_nav">Kindle-ish</string>
