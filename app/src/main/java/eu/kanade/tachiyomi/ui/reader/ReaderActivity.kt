@@ -612,9 +612,35 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
      * and applies the resulting layout to the nav bar.
      */
     private fun reapplyVerticalSeekbarLayout() {
+        updateNavBarOrientation(wantsVerticalSeekbar())
+    }
+
+    // Only flips orientation if the size-gated result actually differs from what's currently applied;
+    // otherwise just refreshes the height (cheap, already-debounced) to avoid requestLayout churn on
+    // every resize/inset tick when nothing about vertical-vs-horizontal actually needs to change.
+    private fun reapplyVerticalSeekbarLayoutIfSizeChanged() {
+        val vertical = wantsVerticalSeekbar()
+        if (vertical != binding.readerNav.pageSeekbar.isVertical) {
+            updateNavBarOrientation(vertical)
+        } else if (vertical) {
+            updateVerticalSeekbarHeight()
+        }
+    }
+
+    private fun wantsVerticalSeekbar(): Boolean {
         val mangaViewer = ReadingModeType.fromPreference(viewModel.getMangaReadingMode())
-        val vertical = mangaViewer.prefValue.toString() in preferences.readerVerticalSeekbarModes().get()
-        updateNavBarOrientation(vertical)
+        val modeWantsVertical = mangaViewer.prefValue.toString() in preferences.readerVerticalSeekbarModes().get()
+        return modeWantsVertical && hasEnoughHeightForVerticalSeekbar()
+    }
+
+    // Split-screen/multi-window can shrink the reader well below a usable vertical-bar height; fall
+    // back to the horizontal bar in that case without touching the underlying preference.
+    private fun hasEnoughHeightForVerticalSeekbar(): Boolean {
+        val rootHeight = binding.root.height
+        if (rootHeight <= 0) return true
+        val insets = binding.root.rootWindowInsetsCompat?.ignoredSystemInsets
+        val availableHeight = rootHeight - (insets?.top ?: 0) - (insets?.bottom ?: 0)
+        return availableHeight > 300.dpToPx
     }
 
     private fun updateNavBarOrientation(vertical: Boolean) {
@@ -1071,7 +1097,7 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
             .launchIn(scope)
         // appBar/chapters-sheet peek height only change alongside root's own height (insets, screen size), so only react to that.
         binding.root.addOnLayoutChangeListener { _, _, top, _, bottom, _, oldTop, _, oldBottom ->
-            if (bottom - top != oldBottom - oldTop) updateVerticalSeekbarHeight()
+            if (bottom - top != oldBottom - oldTop) reapplyVerticalSeekbarLayoutIfSizeChanged()
         }
 
         binding.chaptersSheet.shiftPageButton.setOnClickListener {
@@ -1252,7 +1278,7 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
                 bottomMargin = if (noInsetForFullScreen) 0 else systemInsets.bottom
             }
             binding.viewerContainer.requestLayout()
-            updateVerticalSeekbarHeight()
+            reapplyVerticalSeekbarLayoutIfSizeChanged()
         }
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
             @Suppress("DEPRECATION")

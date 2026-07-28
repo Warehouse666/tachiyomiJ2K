@@ -414,7 +414,7 @@ class SettingsReaderController : SettingsController() {
                 sliderPreference {
                     bindTo(preferences.readerVerticalSeekbarHeightPercent())
                     titleRes = R.string.vertical_seekbar_height
-                    entryValues = (65..100 step 5).toList()
+                    entryValues = (60..100 step 5).toList()
                     valueFormatter = { "$it%" }
                     preferences.readerVerticalSeekbarModes().asImmediateFlowIn(viewScope) { isVisible = it.isNotEmpty() }
                 }

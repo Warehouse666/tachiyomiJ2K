@@ -150,7 +150,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginStart="12dp"
-                    android:valueFrom="65"
+                    android:valueFrom="60"
                     android:valueTo="100"
                     android:stepSize="5"
                     tools:value="65" />
