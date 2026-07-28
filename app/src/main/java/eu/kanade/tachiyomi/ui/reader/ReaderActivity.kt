@@ -208,6 +208,8 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
 
     var sheetManageNavColor = false
 
+    private var themeLightStatusBars = false
+
     private val wic by lazy { WindowInsetsControllerCompat(window, binding.root) }
     private var lastVis = false
 
@@ -307,12 +309,12 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
         binding = ReaderActivityBinding.inflate(layoutInflater)
         setContentView(binding.root)
         val a = obtainStyledAttributes(intArrayOf(android.R.attr.windowLightStatusBar))
-        val lightStatusBar = a.getBoolean(0, false)
+        themeLightStatusBars = a.getBoolean(0, false)
         a.recycle()
         setCutoutMode()
 
-        wic.isAppearanceLightStatusBars = lightStatusBar
-        wic.isAppearanceLightNavigationBars = lightStatusBar
+        wic.isAppearanceLightStatusBars = themeLightStatusBars
+        wic.isAppearanceLightNavigationBars = themeLightStatusBars
 
         binding.appBar.setBackgroundColor(contextCompatColor(R.color.surface_alpha))
         ViewCompat.setBackgroundTintList(
@@ -1401,6 +1403,8 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
             snackbar?.dismiss()
             wic.show(systemBars())
             binding.appBar.isVisible = true
+            wic.isAppearanceLightStatusBars = themeLightStatusBars
+            wic.isAppearanceLightNavigationBars = themeLightStatusBars
 
             if (binding.chaptersSheet.chaptersBottomSheet.sheetBehavior
                     .isExpanded()
@@ -1432,6 +1436,11 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
             if (preferences.fullscreen().get() && !isSplitScreen) {
                 wic.hide(systemBars())
                 wic.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_DEFAULT
+            } else if (viewer is WebtoonViewer) {
+                // Unlike paged viewers, the webtoon viewer doesn't extend its background into the
+                // status/nav bar areas, so the reader's black background shows through there instead.
+                wic.isAppearanceLightStatusBars = false
+                wic.isAppearanceLightNavigationBars = false
             }
 
             if (animate && binding.appBar.isVisible) {
