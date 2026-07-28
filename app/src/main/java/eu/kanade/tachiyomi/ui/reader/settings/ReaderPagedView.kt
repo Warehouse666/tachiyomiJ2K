@@ -15,7 +15,9 @@ import eu.kanade.tachiyomi.databinding.ReaderPagedLayoutBinding
 import eu.kanade.tachiyomi.ui.reader.ReaderActivity
 import eu.kanade.tachiyomi.util.bindToPreference
 import eu.kanade.tachiyomi.util.lang.addBetaTag
+import eu.kanade.tachiyomi.util.lang.withSubtitle
 import eu.kanade.tachiyomi.widget.BaseReaderSettingsView
+import kotlin.math.roundToInt
 
 class ReaderPagedView
     @JvmOverloads
@@ -60,10 +62,14 @@ class ReaderPagedView
                 val isWebtoonView = ReadingModeType.isWebtoonType(mangaViewer)
                 val hasMargins = mangaViewer == ReadingModeType.CONTINUOUS_VERTICAL.flagValue
                 cropBordersWebtoon.bindToPreference(if (hasMargins) preferences.cropBorders() else preferences.cropBordersWebtoon())
-                webtoonSidePadding.bindToIntPreference(
-                    preferences.webtoonSidePadding(),
-                    R.array.webtoon_side_padding_values,
-                )
+                val sidePaddingPref = preferences.webtoonSidePadding()
+                binding.webtoonSidePaddingSlider.value = sidePaddingPref.get().toFloat()
+                binding.webtoonSidePaddingSlider.setLabelFormatter { value -> percentText(value.roundToInt()) }
+                updateVerticalSeekbarHeightText(sidePaddingPref.get())
+                binding.webtoonSidePaddingSlider.addOnChangeListener { _, value, fromUser ->
+                    updateVerticalSeekbarHeightText(value.roundToInt())
+                    if (fromUser) sidePaddingPref.set(value.roundToInt())
+                }
                 webtoonEnableZoomOut.bindToPreference(preferences.webtoonEnableZoomOut())
                 webtoonNav.bindToPreference(preferences.navigationModeWebtoon())
                 webtoonInvert.bindToPreference(preferences.webtoonNavInverted())
@@ -73,6 +79,15 @@ class ReaderPagedView
                 updatePagedGroup(!isWebtoonView)
             }
         }
+
+        private fun updateVerticalSeekbarHeightText(percent: Int) {
+            binding.webtoonSidePadding.text =
+                context
+                    .getString(R.string.pref_webtoon_side_padding)
+                    .withSubtitle(context, percentText(percent))
+        }
+
+        private fun percentText(percent: Int) = if (percent == 0) context.getString(R.string.none) else "$percent%"
 
         fun updatePrefs() {
             val mangaViewer = activity.viewModel.getMangaReadingMode()
@@ -96,7 +111,7 @@ class ReaderPagedView
             ).forEach { it.isVisible = show }
             listOf(
                 binding.cropBordersWebtoon,
-                binding.webtoonSidePadding,
+                binding.webtoonSidePaddingLayout,
                 binding.webtoonEnableZoomOut,
                 binding.webtoonNav,
                 binding.webtoonInvert,

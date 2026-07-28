@@ -62,14 +62,6 @@ class SettingsReaderController : SettingsController() {
                     titleRes = R.string.animate_page_transitions
                     defaultValue = true
                 }
-                intListPreference(activity) {
-                    key = Keys.preloadSize
-                    titleRes = R.string.page_preload_amount
-                    entryValues = listOf(4, 6, 8, 10, 12, 14, 16, 20)
-                    entries = entryValues.map { context.resources.getQuantityString(R.plurals.pages_plural, it, it) }
-                    defaultValue = 6
-                    summaryRes = R.string.amount_of_pages_to_preload
-                }
                 multiSelectListPreferenceMat(activity) {
                     key = Keys.readerBottomButtons
                     titleRes = R.string.display_buttons_bottom_reader
@@ -366,20 +358,11 @@ class SettingsReaderController : SettingsController() {
                     defaultValue = false
                 }
 
-                intListPreference(activity) {
-                    key = Keys.webtoonSidePadding
+                sliderPreference {
+                    bindTo(preferences.webtoonSidePadding())
                     titleRes = R.string.pref_webtoon_side_padding
-                    entriesRes =
-                        arrayOf(
-                            R.string.webtoon_side_padding_0,
-                            R.string.webtoon_side_padding_5,
-                            R.string.webtoon_side_padding_10,
-                            R.string.webtoon_side_padding_15,
-                            R.string.webtoon_side_padding_20,
-                            R.string.webtoon_side_padding_25,
-                        )
-                    entryValues = listOf(0, 5, 10, 15, 20, 25)
-                    defaultValue = "0"
+                    entryValues = (0..25 step 5).toList()
+                    valueFormatter = { if (it == 0) context.getString(R.string.none) else "$it%" }
                 }
 
                 intListPreference(activity) {
@@ -426,18 +409,33 @@ class SettingsReaderController : SettingsController() {
                     entriesRes = modes.map { it.stringRes }.toTypedArray()
                     entryValues = modes.map { it.prefValue.toString() }
                     defaultValue = preferences.readerVerticalSeekbarModes().defaultValue.toList()
+                    noSelectionRes = R.string.none
                 }
-                switchPreference {
-                    bindTo(preferences.readerVerticalSeekbarDockLeft())
-                    titleRes = R.string.vertical_seekbar_dock_left
-                    preferences.readerVerticalSeekbarModes().asImmediateFlowIn(viewScope) { isVisible = it.isNotEmpty() }
-                }
-                intListPreference(activity) {
+                sliderPreference {
                     bindTo(preferences.readerVerticalSeekbarHeightPercent())
                     titleRes = R.string.vertical_seekbar_height
                     entryValues = (65..100 step 5).toList()
-                    entries = entryValues.map { "$it%" }
+                    valueFormatter = { "$it%" }
                     preferences.readerVerticalSeekbarModes().asImmediateFlowIn(viewScope) { isVisible = it.isNotEmpty() }
+                }
+                twoButtonPreference {
+                    bindTo(preferences.readerVerticalSeekbarDockLeft())
+                    titleRes = R.string.vertical_seekbar_dock_left
+                    startTextRes = R.string.left
+                    endTextRes = R.string.right
+                    preferences.readerVerticalSeekbarModes().asImmediateFlowIn(viewScope) { isVisible = it.isNotEmpty() }
+                }
+            }
+
+            preferenceCategory {
+                titleRes = R.string.downloading
+
+                sliderPreference {
+                    bindTo(preferences.preloadSize())
+                    titleRes = R.string.page_preload_amount
+                    summaryRes = R.string.amount_of_pages_to_preload
+                    entryValues = (4..20 step 2).toList()
+                    valueFormatter = { context.resources.getQuantityString(R.plurals.pages_plural, it, it) }
                 }
             }
 

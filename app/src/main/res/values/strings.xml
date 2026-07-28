@@ -492,15 +492,9 @@
     <string name="if_disabled_transition_will_skip">If disabled, the transition page will be
         skipped if the next chapter is loaded</string>
     <string name="vertical_seekbar">Use vertical seekbar for</string>
-    <string name="vertical_seekbar_dock_left">Place vertical seekbar on the left side</string>
+    <string name="vertical_seekbar_dock_left">Place vertical seekbar</string>
     <string name="vertical_seekbar_height">Vertical seekbar height</string>
     <string name="pref_webtoon_side_padding">Side padding</string>
-    <string name="webtoon_side_padding_0">None</string>
-    <string name="webtoon_side_padding_5">5%</string>
-    <string name="webtoon_side_padding_10">10%</string>
-    <string name="webtoon_side_padding_15">15%</string>
-    <string name="webtoon_side_padding_20">20%</string>
-    <string name="webtoon_side_padding_25">25%</string>
     <string name="l_nav">L shaped</string>
     <string name="kindlish_nav">Kindle-ish</string>
     <string name="edge_nav">Edge</string>

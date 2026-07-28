@@ -99,8 +99,6 @@ class ReaderGeneralView
             }
             binding.verticalSeekbarExtraSettings.isVisible = currentModeSelected(selectedModes)
 
-            binding.verticalSeekbarDockLeft.bindToPreference(preferences.readerVerticalSeekbarDockLeft())
-
             val heightPref = preferences.readerVerticalSeekbarHeightPercent()
             binding.verticalSeekbarHeight.value = heightPref.get().toFloat()
             binding.verticalSeekbarHeight.setLabelFormatter { value -> "${value.roundToInt()}%" }
@@ -108,6 +106,15 @@ class ReaderGeneralView
             binding.verticalSeekbarHeight.addOnChangeListener { _, value, fromUser ->
                 updateVerticalSeekbarHeightText(value.roundToInt())
                 if (fromUser) heightPref.set(value.roundToInt())
+            }
+
+            val dockLeftPref = preferences.readerVerticalSeekbarDockLeft()
+            binding.verticalSeekbarPlacement.check(
+                if (dockLeftPref.get()) binding.placeLeftButton.id else binding.placeRightButton.id,
+            )
+            binding.verticalSeekbarPlacement.addOnButtonCheckedListener { _, checkedId, isChecked ->
+                if (!isChecked) return@addOnButtonCheckedListener
+                dockLeftPref.set(checkedId == binding.placeLeftButton.id)
             }
         }
 

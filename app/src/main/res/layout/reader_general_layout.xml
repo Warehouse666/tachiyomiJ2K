@@ -157,13 +157,49 @@
 
             </LinearLayout>
 
-            <com.google.android.material.materialswitch.MaterialSwitch
-                android:id="@+id/vertical_seekbar_dock_left"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="@string/vertical_seekbar_dock_left"
-                android:textColor="?attr/colorOnBackground" />
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/place_vertical_seekbar_text"
+                    style="?textAppearanceBodyMedium"
+                    android:textSize="15sp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/vertical_seekbar_dock_left" />
+
+                <com.google.android.material.button.MaterialButtonToggleGroup
+                    android:id="@+id/vertical_seekbar_placement"
+                    style="@style/Widget.Tachiyomi.MaterialButtonGroup.Connected"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    app:singleSelection="true"
+                    app:selectionRequired="true"
+                    android:layout_height="wrap_content"
+                    android:gravity="end"
+                    android:layout_marginStart="12dp"
+                    android:spacing="4dp"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/place_left_button"
+                        app:toggleCheckedStateOnClick="true"
+                        style="@style/Widget.Tachiyomi.Button.OutlinedButton.Icon"
+                        android:layout_marginEnd="4dp"
+                        tools:checked="true"
+                        android:text="@string/left" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/place_right_button"
+                        app:toggleCheckedStateOnClick="true"
+                        style="@style/Widget.Tachiyomi.Button.OutlinedButton.Icon"
+                        android:layout_marginEnd="4dp"
+                        tools:checked="false"
+                        android:text="@string/right" />
+                </com.google.android.material.button.MaterialButtonToggleGroup>
+            </LinearLayout>
         </LinearLayout>
     </LinearLayout>
 </eu.kanade.tachiyomi.ui.reader.settings.ReaderGeneralView>

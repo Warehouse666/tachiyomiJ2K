@@ -27,7 +27,9 @@ import eu.kanade.tachiyomi.widget.preference.EditTextResetPreference
 import eu.kanade.tachiyomi.widget.preference.IntListMatPreference
 import eu.kanade.tachiyomi.widget.preference.ListMatPreference
 import eu.kanade.tachiyomi.widget.preference.MultiListMatPreference
+import eu.kanade.tachiyomi.widget.preference.SliderPreference
 import eu.kanade.tachiyomi.widget.preference.TriStateListPreference
+import eu.kanade.tachiyomi.widget.preference.TwoButtonPreference
 import com.fredporciuncula.flow.preferences.Preference as FlowPreference
 
 @DslMarker
@@ -80,6 +82,12 @@ inline fun PreferenceGroup.triStateListPreference(
     activity: Activity?,
     block: (@DSL TriStateListPreference).() -> Unit,
 ): TriStateListPreference = initThenAdd(TriStateListPreference(activity, context), block)
+
+inline fun PreferenceGroup.twoButtonPreference(block: (@DSL TwoButtonPreference).() -> Unit): TwoButtonPreference =
+    initThenAdd(TwoButtonPreference(context), block)
+
+inline fun PreferenceGroup.sliderPreference(block: (@DSL SliderPreference).() -> Unit): SliderPreference =
+    initThenAdd(SliderPreference(context), block)
 
 inline fun PreferenceScreen.preferenceCategory(block: (@DSL PreferenceCategory).() -> Unit): PreferenceCategory =
     addThenInit(AdaptiveTitlePreferenceCategory(context), block)
