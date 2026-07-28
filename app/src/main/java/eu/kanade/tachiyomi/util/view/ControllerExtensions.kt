@@ -293,7 +293,8 @@ fun <T> Controller.liftAppbarWith(
                     activityBinding?.appBar?.setToolbarModeBy(this@liftAppbarWith)
                     activityBinding?.appBar?.useTabsInPreLayout = false
                     colorToolbar(isToolbarColored)
-                    activityBinding?.appBar?.updateAppBarAfterY(recycler)
+                    // since liftAppbarWith never drags the app bar, just pass null
+                    activityBinding?.appBar?.updateAppBarAfterY(null)
                 }
             }
         },
