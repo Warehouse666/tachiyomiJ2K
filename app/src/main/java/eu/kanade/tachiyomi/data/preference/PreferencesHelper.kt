@@ -7,12 +7,14 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.preference.PreferenceManager
 import com.fredporciuncula.flow.preferences.FlowSharedPreferences
 import com.fredporciuncula.flow.preferences.Preference
+import com.fredporciuncula.flow.preferences.Serializer
 import com.google.android.material.color.DynamicColors
 import eu.kanade.tachiyomi.BuildConfig
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.data.updater.AppDownloadInstallJob
 import eu.kanade.tachiyomi.extension.model.InstalledExtensionsOrder
+import eu.kanade.tachiyomi.extension.model.RepoMetadata
 import eu.kanade.tachiyomi.extension.util.ExtensionInstaller
 import eu.kanade.tachiyomi.network.NetworkHelper
 import eu.kanade.tachiyomi.ui.library.LibraryItem
@@ -30,6 +32,9 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import java.io.File
 import java.text.DateFormat
 import java.text.SimpleDateFormat
@@ -330,6 +335,27 @@ class PreferencesHelper(
     fun automaticExtUpdates() = flowPrefs.getBoolean(Keys.automaticExtUpdates, true)
 
     fun extensionRepos() = flowPrefs.getStringSet("extension_repos", emptySet())
+
+    /**
+     * Cached display metadata (proper name, website, discord) for extension repos, keyed by
+     * the repo's base URL. Populated as a side effect whenever a repo's store metadata is
+     * fetched, since the legacy index.min.json format carries none of this itself.
+     */
+    fun extensionRepoMetadata() =
+        flowPrefs.getObject(
+            "extension_repo_metadata",
+            object : Serializer<Map<String, RepoMetadata>> {
+                override fun serialize(value: Map<String, RepoMetadata>): String = Json.encodeToString(value)
+
+                override fun deserialize(serialized: String): Map<String, RepoMetadata> =
+                    try {
+                        Json.decodeFromString(serialized)
+                    } catch (e: Exception) {
+                        emptyMap()
+                    }
+            },
+            emptyMap(),
+        )
 
     fun installedExtensionsOrder() = flowPrefs.getInt(Keys.installedExtensionsOrder, InstalledExtensionsOrder.Name.value)
 

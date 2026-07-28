@@ -1,6 +1,7 @@
 package eu.kanade.tachiyomi.ui.source.browse.repos
 
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
+import eu.kanade.tachiyomi.extension.api.ExtensionApi
 import eu.kanade.tachiyomi.ui.base.presenter.BaseCoroutinePresenter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -9,6 +10,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
+import kotlin.coroutines.cancellation.CancellationException
 
 /**
  * Presenter of [RepoController]. Used to manage the repos for the extensions.
@@ -27,10 +29,10 @@ class RepoPresenter(
             preferences
                 .extensionRepos()
                 .get()
-                .map { "$it/index.min.json" }
+                .map { "$it/index.pb" }
                 .sorted()
                 .toSet()
-        set(value) = preferences.extensionRepos().set(value.map { it.removeSuffix("/index.min.json") }.toSet())
+        set(value) = preferences.extensionRepos().set(value.map { it.toRepoBaseUrl() }.toSet())
 
     /**
      * Called when the presenter is created.
@@ -43,33 +45,78 @@ class RepoPresenter(
         }
     }
 
-    fun getReposWithCreate(): List<RepoItem> = (listOf(CREATE_REPO_ITEM) + repos).map(::RepoItem)
+    fun getReposWithCreate(): List<RepoItem> {
+        val metadataByBaseUrl = preferences.extensionRepoMetadata().get()
+        return (listOf(CREATE_REPO_ITEM) + repos).map { repo ->
+            RepoItem(repo, if (repo == CREATE_REPO_ITEM) null else metadataByBaseUrl[repo.toRepoBaseUrl()])
+        }
+    }
 
-    fun getRepoUrl(repo: String): String =
-        githubRepoRegex
+    fun getRepoUrl(repo: String): String {
+        val website = preferences.extensionRepoMetadata().get()[repo.toRepoBaseUrl()]?.website
+        if (!website.isNullOrBlank()) return website
+
+        return githubRepoRegex
             .find(repo)
             ?.let {
                 val (user, repoName) = it.destructured
                 "https://github.com/$user/$repoName"
             } ?: repo
+    }
+
+    fun getDiscordUrl(repo: String): String? = preferences.extensionRepoMetadata().get()[repo.toRepoBaseUrl()]?.discordUrl
+
+    private fun String.toRepoBaseUrl(): String = removeSuffix("/index.pb").removeSuffix("/index.min.json")
 
     /**
-     * Creates and adds a new repo to the database.
-     *
-     * @param name The name of the repo to create.
+     * Returns true if the URL is shaped like a repo index URL. A fast, offline check run
+     * before [createOrRenameRepo] bothers hitting the network.
      */
-    fun createRepo(name: String): Boolean {
-        if (isInvalidRepo(name)) return false
+    fun isValidRepoFormat(name: String): Boolean = name.matches(repoRegex)
 
-        // Do not allow duplicate repos.
-        if (repoExists(name)) {
-            controller.onRepoExistsError()
-            return true
+    /**
+     * Validates a repo over the network and, if reachable, adds it (or renames [oldRepo] to
+     * it). Mirrors mihon's add flow: the repo is only saved once the fetch succeeds, so a
+     * bad URL never ends up in the list.
+     *
+     * @param oldRepo The repo being renamed, or null when creating a new one.
+     * @param newName The new repo URL.
+     * @param onResult Called on the main thread with whether the repo was saved.
+     */
+    fun createOrRenameRepo(
+        oldRepo: String?,
+        newName: String,
+        onResult: (success: Boolean) -> Unit,
+    ) {
+        if (oldRepo != null && oldRepo.equals(newName, true)) {
+            onResult(true)
+            return
         }
 
-        repos += name
-        controller.updateRepos()
-        return true
+        if (repoExists(newName)) {
+            controller.onRepoExistsError()
+            onResult(false)
+            return
+        }
+
+        scope.launch(Dispatchers.IO) {
+            try {
+                ExtensionApi().validateRepo(newName.toRepoBaseUrl())
+                oldRepo?.let {
+                    repos -= it
+                    preferences.extensionRepoMetadata().set(preferences.extensionRepoMetadata().get() - it.toRepoBaseUrl())
+                }
+                repos += newName
+                withContext(Dispatchers.Main) { onResult(true) }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Throwable) {
+                withContext(Dispatchers.Main) {
+                    controller.onRepoUnreachableError()
+                    onResult(false)
+                }
+            }
+        }
     }
 
     /**
@@ -80,35 +127,8 @@ class RepoPresenter(
     fun deleteRepo(repo: String?) {
         val safeRepo = repo ?: return
         repos -= safeRepo
+        preferences.extensionRepoMetadata().set(preferences.extensionRepoMetadata().get() - safeRepo.toRepoBaseUrl())
         controller.updateRepos()
-    }
-
-    /**
-     * Renames a repo.
-     *
-     * @param repo The repo to rename.
-     * @param name The new name of the repo.
-     */
-    fun renameRepo(
-        repo: String,
-        name: String,
-    ): Boolean {
-        if (!repo.equals(name, true)) {
-            if (isInvalidRepo(name)) return false
-            repos -= repo
-            repos += name
-            controller.updateRepos()
-        }
-        return true
-    }
-
-    private fun isInvalidRepo(name: String): Boolean {
-        // Do not allow invalid formats
-        if (!name.matches(repoRegex)) {
-            controller.onRepoInvalidNameError()
-            return true
-        }
-        return false
     }
 
     /**
@@ -117,7 +137,7 @@ class RepoPresenter(
     private fun repoExists(name: String): Boolean = repos.any { it.equals(name, true) }
 
     companion object {
-        private val repoRegex = """^https://.*/index\.min\.json$""".toRegex()
+        private val repoRegex = """^https://.*/index\.(min\.json|pb)$""".toRegex()
         private val githubRepoRegex = """https://(?:raw.githubusercontent.com|github.com)/(.+?)/(.+?)/.+""".toRegex()
         const val CREATE_REPO_ITEM = "create_repo"
     }

@@ -33,9 +33,13 @@ class RepoController(
         Bundle().apply {
             putString(REPO_URL, repoUrl)
         },
-    ) {
-        presenter.createRepo(repoUrl)
-    }
+    )
+
+    /**
+     * URL to prefill into the "create repo" row once the list is first shown, awaiting the
+     * user's confirmation rather than being added automatically.
+     */
+    private var pendingRepoUrl: String? = bundle?.getString(REPO_URL)
 
     /**
      * Adapter containing repo items.
@@ -103,8 +107,20 @@ class RepoController(
      *
      */
     fun updateRepos() {
-        adapter?.updateDataSet(presenter.getReposWithCreate())
-        adapter?.addItem(0, InfoRepoMessage())
+        val repoAdapter = adapter
+        repoAdapter?.updateDataSet(presenter.getReposWithCreate())
+        repoAdapter?.addItem(0, InfoRepoMessage())
+
+        val url = pendingRepoUrl ?: return
+        pendingRepoUrl = null
+        if (repoAdapter == null) return
+        val createPosition =
+            (0 until repoAdapter.itemCount)
+                .firstOrNull { (repoAdapter.getItem(it) as? RepoItem)?.repo == RepoPresenter.CREATE_REPO_ITEM }
+        if (createPosition != null) {
+            repoAdapter.pendingUrl = url
+            repoAdapter.resetEditing(createPosition)
+        }
     }
 
     /**
@@ -133,6 +149,14 @@ class RepoController(
         }
     }
 
+    override fun onDiscordClick(position: Int) {
+        val repo = (adapter?.getItem(position) as? RepoItem)?.repo ?: return
+        val discordUrl = presenter.getDiscordUrl(repo) ?: return
+        if (isNotOnline()) return
+
+        activity?.openInBrowser(discordUrl.toUri())
+    }
+
     private fun isNotOnline(showSnackbar: Boolean = true): Boolean {
         if (activity == null || !activity!!.isOnline()) {
             if (showSnackbar) view?.snack(R.string.no_network_connection)
@@ -144,16 +168,26 @@ class RepoController(
     override fun onRepoRename(
         position: Int,
         newName: String,
-    ): Boolean {
-        val repo = (adapter?.getItem(position) as? RepoItem)?.repo ?: return false
+    ) {
+        val item = adapter?.getItem(position) as? RepoItem ?: return
         if (newName.isBlank()) {
             activity?.toast(R.string.repo_cannot_be_blank)
-            return false
+            return
         }
-        if (repo == RepoPresenter.CREATE_REPO_ITEM) {
-            return (presenter.createRepo(newName))
+        if (!presenter.isValidRepoFormat(newName)) {
+            onRepoInvalidNameError()
+            return
         }
-        return (presenter.renameRepo(repo, newName))
+
+        val oldRepo = item.repo.takeIf { it != RepoPresenter.CREATE_REPO_ITEM }
+        adapter?.setLoading(position, true)
+        presenter.createOrRenameRepo(oldRepo, newName) { success ->
+            if (success) {
+                updateRepos()
+            } else {
+                adapter?.setLoading(position, false)
+            }
+        }
     }
 
     override fun onItemDelete(position: Int) {
@@ -163,7 +197,7 @@ class RepoController(
             .setMessage(
                 activity!!.getString(
                     R.string.delete_repo_confirmation,
-                    (adapter!!.getItem(position) as RepoItem).repo,
+                    (adapter!!.getItem(position) as RepoItem).let { it.metadata?.name ?: it.repo },
                 ),
             ).setPositiveButton(R.string.delete) { _, _ ->
                 deleteRepo(position)
@@ -214,6 +248,13 @@ class RepoController(
      */
     fun onRepoInvalidNameError() {
         activity?.toast(R.string.invalid_repo_name)
+    }
+
+    /**
+     * Called from the presenter when a repo couldn't be reached or parsed.
+     */
+    fun onRepoUnreachableError() {
+        activity?.toast(R.string.error_repo_unreachable)
     }
 
     companion object {

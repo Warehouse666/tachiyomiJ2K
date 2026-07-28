@@ -1171,9 +1171,10 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
                 }
             }
             Intent.ACTION_VIEW -> {
-                // Deep link to add extension repo
-                if (intent.scheme == "tachiyomi" && intent.data?.host == "add-repo") {
+                // Deep link to add extension store
+                if (intent.isAddExtensionRepoIntent()) {
                     intent.data?.getQueryParameter("url")?.let { repoUrl ->
+                        if (!router.hasRootController()) goToStartingTab()
                         router.popToRoot()
                         router.pushController(RepoController(repoUrl).withFadeTransaction())
                     }
@@ -1183,6 +1184,10 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
         }
         return true
     }
+
+    private fun Intent.isAddExtensionRepoIntent(): Boolean =
+        (scheme == "tachiyomi" && data?.host == "add-repo") ||
+            (scheme == "mihon" && data?.host == "extension-store")
 
     override fun onProvideAssistContent(outContent: AssistContent) {
         super.onProvideAssistContent(outContent)

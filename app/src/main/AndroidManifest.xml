@@ -60,7 +60,7 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            <!-- Deep link to add repos -->
+            <!-- Legacy deep link to add extension store -->
             <intent-filter android:label="@string/action_add_repo">
                 <action android:name="android.intent.action.VIEW" />
 
@@ -69,6 +69,16 @@
 
                 <data android:scheme="tachiyomi" />
                 <data android:host="add-repo" />
+            </intent-filter>
+            <!-- Deep link to add extension store -->
+            <intent-filter android:label="@string/action_add_repo">
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="mihon" />
+                <data android:host="extension-store" />
             </intent-filter>
             <meta-data android:name="android.app.searchable" android:resource="@xml/searchable"/>
         </activity>

@@ -6,12 +6,14 @@ import eu.davidea.flexibleadapter.FlexibleAdapter
 import eu.davidea.flexibleadapter.items.AbstractFlexibleItem
 import eu.davidea.flexibleadapter.items.IFlexible
 import eu.kanade.tachiyomi.R
+import eu.kanade.tachiyomi.extension.model.RepoMetadata
 
 /**
  * Repo item for a recycler view.
  */
 class RepoItem(
     val repo: String,
+    val metadata: RepoMetadata? = null,
 ) : AbstractFlexibleItem<RepoHolder>() {
     /**
      * Whether this item is currently selected.
@@ -19,9 +21,14 @@ class RepoItem(
     var isEditing = false
 
     /**
+     * Whether this item's repo is being validated over the network right now.
+     */
+    var isLoading = false
+
+    /**
      * Returns the layout resource for this item.
      */
-    override fun getLayoutRes(): Int = R.layout.categories_item
+    override fun getLayoutRes(): Int = R.layout.repo_item
 
     /**
      * Returns a new view holder for this item.
@@ -48,8 +55,9 @@ class RepoItem(
         position: Int,
         payloads: List<Any?>?,
     ) {
-        holder.bind(repo)
+        holder.bind(repo, metadata)
         holder.isEditing(isEditing)
+        holder.setLoading(isLoading)
     }
 
     /**
