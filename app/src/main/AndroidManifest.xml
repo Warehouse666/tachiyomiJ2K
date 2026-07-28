@@ -213,6 +213,36 @@
                     android:scheme="tachiyomi" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".ui.setting.track.HikkaLoginActivity"
+            android:label="Hikka"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:host="hikka-auth"
+                    android:scheme="tachiyomij2k" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".ui.setting.track.MangaBakaLoginActivity"
+            android:label="MangaBaka"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:host="mangabaka-auth"
+                    android:scheme="tachiyomij2k" />
+            </intent-filter>
+        </activity>
 
         <activity
             android:name=".extension.util.ExtensionInstallActivity"

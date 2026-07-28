@@ -3,9 +3,11 @@ package eu.kanade.tachiyomi.data.track
 import android.content.Context
 import eu.kanade.tachiyomi.data.track.anilist.Anilist
 import eu.kanade.tachiyomi.data.track.bangumi.Bangumi
+import eu.kanade.tachiyomi.data.track.hikka.Hikka
 import eu.kanade.tachiyomi.data.track.kavita.Kavita
 import eu.kanade.tachiyomi.data.track.kitsu.Kitsu
 import eu.kanade.tachiyomi.data.track.komga.Komga
+import eu.kanade.tachiyomi.data.track.mangabaka.MangaBaka
 import eu.kanade.tachiyomi.data.track.mangaupdates.MangaUpdates
 import eu.kanade.tachiyomi.data.track.myanimelist.MyAnimeList
 import eu.kanade.tachiyomi.data.track.shikimori.Shikimori
@@ -24,6 +26,8 @@ class TrackManager(
         const val MANGA_UPDATES = 7
         const val KAVITA = 8
         const val SUWAYOMI = 9
+        const val HIKKA = 10
+        const val MANGABAKA = 11
     }
 
     val myAnimeList = MyAnimeList(context, MYANIMELIST)
@@ -35,8 +39,23 @@ class TrackManager(
     val mangaUpdates = MangaUpdates(context, MANGA_UPDATES)
     val kavita = Kavita(context, KAVITA)
     val suwayomi = Suwayomi(context, SUWAYOMI)
+    val hikka = Hikka(context, HIKKA)
+    val mangaBaka = MangaBaka(context, MANGABAKA)
 
-    val services = listOf(myAnimeList, aniList, kitsu, shikimori, bangumi, komga, mangaUpdates, kavita, suwayomi)
+    val services =
+        listOf(
+            myAnimeList,
+            aniList,
+            kitsu,
+            shikimori,
+            bangumi,
+            komga,
+            mangaUpdates,
+            kavita,
+            suwayomi,
+            hikka,
+            mangaBaka,
+        )
 
     fun getService(id: Int) = services.find { it.id == id }
 

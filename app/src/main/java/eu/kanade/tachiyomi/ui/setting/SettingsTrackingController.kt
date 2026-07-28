@@ -11,6 +11,8 @@ import eu.kanade.tachiyomi.data.track.TrackPreferences
 import eu.kanade.tachiyomi.data.track.TrackService
 import eu.kanade.tachiyomi.data.track.anilist.AnilistApi
 import eu.kanade.tachiyomi.data.track.bangumi.BangumiApi
+import eu.kanade.tachiyomi.data.track.hikka.HikkaApi
+import eu.kanade.tachiyomi.data.track.mangabaka.MangaBakaApi
 import eu.kanade.tachiyomi.data.track.myanimelist.MyAnimeListApi
 import eu.kanade.tachiyomi.data.track.shikimori.ShikimoriApi
 import eu.kanade.tachiyomi.source.SourceManager
@@ -99,6 +101,12 @@ class SettingsTrackingController :
                 trackPreference(trackManager.bangumi) {
                     activity?.openInBrowser(BangumiApi.authUrl(), trackManager.bangumi.getLogoColor(), true)
                 }
+                trackPreference(trackManager.hikka) {
+                    activity?.openInBrowser(HikkaApi.authUrl(), trackManager.hikka.getLogoColor(), true)
+                }
+                trackPreference(trackManager.mangaBaka) {
+                    activity?.openInBrowser(MangaBakaApi.authUrl(), trackManager.mangaBaka.getLogoColor(), true)
+                }
                 infoPreference(R.string.tracking_info)
             }
             preferenceCategory {
@@ -153,6 +161,8 @@ class SettingsTrackingController :
         updatePreference(trackManager.aniList)
         updatePreference(trackManager.shikimori)
         updatePreference(trackManager.bangumi)
+        updatePreference(trackManager.hikka)
+        updatePreference(trackManager.mangaBaka)
     }
 
     private fun updatePreference(service: TrackService) {

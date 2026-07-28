@@ -3,6 +3,7 @@ package eu.kanade.tachiyomi.data.track
 import eu.kanade.tachiyomi.data.preference.Preference
 import eu.kanade.tachiyomi.data.preference.PreferenceStore
 import eu.kanade.tachiyomi.data.track.anilist.Anilist
+import eu.kanade.tachiyomi.data.track.mangabaka.MangaBaka
 
 class TrackPreferences(
     private val preferenceStore: PreferenceStore,
@@ -23,6 +24,8 @@ class TrackPreferences(
     fun trackToken(sync: TrackService) = preferenceStore.getString(trackToken(sync.id), "")
 
     fun anilistScoreType() = preferenceStore.getString("anilist_score_type", Anilist.POINT_10)
+
+    fun mangabakaScoreType() = preferenceStore.getString("mangabaka_score_type", MangaBaka.STEP_1)
 
     fun autoUpdateTrack() = preferenceStore.getBoolean("pref_auto_update_manga_sync_key", true)
 

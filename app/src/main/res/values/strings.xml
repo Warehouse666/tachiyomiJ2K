@@ -619,6 +619,7 @@
     <string name="want_to_read">Want to Read</string>
     <string name="paused">Paused</string>
     <string name="rereading">Rereading</string>
+    <string name="considering">Considering</string>
     <string name="reading_list">Reading List</string>
     <string name="wish_list">Wish List</string>
     <string name="complete_list">Complete List</string>
@@ -648,6 +649,8 @@
     <string name="komga" translatable="false">Komga</string>
     <string name="kavita" translatable="false">Kavita</string>
     <string name="suwayomi" translatable="false">Suwayomi</string>
+    <string name="hikka" translatable="false">Hikka</string>
+    <string name="mangabaka" translatable="false">MangaBaka</string>
     <string name="update_tracking_scoring_type">Update %1$s\'s scoring type</string>
     <string name="scoring_type_updated">Scoring type updated</string>
     <string name="could_not_update_scoring_">Could not update scoring type: %1$s</string>
