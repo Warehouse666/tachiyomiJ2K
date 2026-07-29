@@ -1138,10 +1138,14 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
                 } else {
                     router.popToRoot()
                 }
+                val runUpdateAll = intent.getBooleanExtra(EXTRA_UPDATE_ALL_EXTENSIONS, false)
                 nav.post {
                     val controller =
                         router.backstack.firstOrNull()?.controller as? BrowseController
                     controller?.showSheet()
+                    if (runUpdateAll) {
+                        controller?.updateAllPendingExtensions()
+                    }
                 }
             }
             SHORTCUT_MANGA -> {
@@ -1730,6 +1734,7 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
         const val SHORTCUT_SOURCE = "eu.kanade.tachiyomi.SHOW_SOURCE"
         const val SHORTCUT_READER_SETTINGS = "eu.kanade.tachiyomi.READER_SETTINGS"
         const val SHORTCUT_EXTENSIONS = "eu.kanade.tachiyomi.EXTENSIONS"
+        const val EXTRA_UPDATE_ALL_EXTENSIONS = "eu.kanade.tachiyomi.UPDATE_ALL_EXTENSIONS"
 
         const val INTENT_SEARCH = "eu.kanade.tachiyomi.SEARCH"
         const val INTENT_SEARCH_QUERY = "query"

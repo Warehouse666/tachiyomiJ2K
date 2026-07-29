@@ -142,7 +142,7 @@ class ExtensionUpdateJob(
                         extensions.size == extensionsList.size
                     ) {
                         val pendingIntent =
-                            NotificationReceiver.startExtensionUpdatePendingJob(context, extensions)
+                            NotificationReceiver.openExtensionsAndUpdateAllPendingActivity(context)
                         addAction(
                             R.drawable.ic_file_download_24dp,
                             context.getString(R.string.update_all),

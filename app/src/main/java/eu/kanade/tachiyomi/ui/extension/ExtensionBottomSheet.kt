@@ -187,6 +187,10 @@ class ExtensionBottomSheet
             }
         }
 
+        fun updateAllPendingExtensions() {
+            presenter.updateAllPendingExtensions()
+        }
+
         fun updateExtTitle() {
             val extCount = presenter.getExtensionUpdateCount()
             if (extCount > 0) {

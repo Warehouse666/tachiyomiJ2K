@@ -6,7 +6,6 @@ import android.content.ClipData
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import androidx.core.content.IntentCompat
 import eu.kanade.tachiyomi.data.backup.BackupRestoreJob
 import eu.kanade.tachiyomi.data.database.DatabaseHelper
 import eu.kanade.tachiyomi.data.database.models.Chapter
@@ -17,8 +16,6 @@ import eu.kanade.tachiyomi.data.library.LibraryUpdateJob
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.data.updater.AppDownloadInstallJob
 import eu.kanade.tachiyomi.extension.ExtensionInstallerJob
-import eu.kanade.tachiyomi.extension.ExtensionManager
-import eu.kanade.tachiyomi.extension.model.Extension
 import eu.kanade.tachiyomi.source.SourceManager
 import eu.kanade.tachiyomi.ui.main.MainActivity
 import eu.kanade.tachiyomi.ui.manga.MangaDetailsController
@@ -32,7 +29,6 @@ import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import uy.kohesive.injekt.injectLazy
 import java.io.File
-import java.util.ArrayList
 import eu.kanade.tachiyomi.BuildConfig.APPLICATION_ID as ID
 
 /**
@@ -71,7 +67,6 @@ class NotificationReceiver : BroadcastReceiver() {
             // Cancel library update and dismiss notification
             ACTION_CANCEL_LIBRARY_UPDATE -> cancelLibraryUpdate(context)
             ACTION_CANCEL_EXTENSION_UPDATE -> cancelExtensionUpdate(context)
-            ACTION_START_EXTENSION_INSTALL -> startExtensionUpdater(context, intent)
             ACTION_CANCEL_UPDATE_DOWNLOAD -> cancelDownloadUpdate(context)
             ACTION_START_APP_UPDATE -> startAppUpdate(context, intent)
             ACTION_CANCEL_RESTORE -> cancelRestoreUpdate(context)
@@ -210,19 +205,6 @@ class NotificationReceiver : BroadcastReceiver() {
         ExtensionInstallerJob.stop(context)
     }
 
-    private fun startExtensionUpdater(
-        context: Context,
-        intent: Intent,
-    ) {
-        val extensions =
-            IntentCompat.getParcelableArrayListExtra(
-                intent,
-                ExtensionInstallerJob.KEY_EXTENSION,
-                ExtensionManager.ExtensionInfo::class.java,
-            ) as? ArrayList<ExtensionManager.ExtensionInfo> ?: return
-        ExtensionInstallerJob.startJob(context, extensions, 1)
-    }
-
     /**
      * Method called when user wants to mark as read
      *
@@ -292,8 +274,6 @@ class NotificationReceiver : BroadcastReceiver() {
 
         // Called to cancel extension update.
         private const val ACTION_CANCEL_EXTENSION_UPDATE = "$ID.$NAME.CANCEL_EXTENSION_UPDATE"
-
-        private const val ACTION_START_EXTENSION_INSTALL = "$ID.$NAME.START_EXTENSION_INSTALL"
 
         private const val ACTION_CANCEL_UPDATE_DOWNLOAD = "$ID.$NAME.CANCEL_UPDATE_DOWNLOAD"
 
@@ -649,20 +629,26 @@ class NotificationReceiver : BroadcastReceiver() {
             return PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         }
 
-        internal fun startExtensionUpdatePendingJob(
-            context: Context,
-            extensions: List<Extension.Available>,
-        ): PendingIntent {
-            val intent =
-                Intent(context, NotificationReceiver::class.java).apply {
-                    val info = extensions.map(ExtensionManager::ExtensionInfo)
-                    action = ACTION_START_EXTENSION_INSTALL
-                    putParcelableArrayListExtra(ExtensionInstallerJob.KEY_EXTENSION, ArrayList(info))
-                }
-            return PendingIntent.getBroadcast(
+        /**
+         * Returns [PendingIntent] that opens the extensions controller and immediately runs
+         * "update all". Installing extensions in the background can require showing UI (e.g. the
+         * system package installer prompt for extensions not installed by this app), which is
+         * blocked by background activity launch restrictions unless triggered by a direct user
+         * gesture like this notification tap - so update-all always happens with the app in the
+         * foreground rather than from a background job.
+         *
+         * @param context context of application
+         */
+        internal fun openExtensionsAndUpdateAllPendingActivity(context: Context): PendingIntent {
+            val newIntent =
+                Intent(context, MainActivity::class.java)
+                    .setAction(MainActivity.SHORTCUT_EXTENSIONS)
+                    .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                    .putExtra(MainActivity.EXTRA_UPDATE_ALL_EXTENSIONS, true)
+            return PendingIntent.getActivity(
                 context,
                 0,
-                intent,
+                newIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
             )
         }

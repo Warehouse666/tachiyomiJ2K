@@ -107,6 +107,7 @@ class ExtensionInstallerJob(
         emitScope.launch { list.forEach { extensionManager.setPending(it.pkgName) } }
         var installed = 0
         val installedExtensions = mutableListOf<ExtensionManager.ExtensionInfo>()
+        val failedExtensions = mutableListOf<ExtensionManager.ExtensionInfo>()
         val requestSemaphore = Semaphore(3)
         coroutineScope {
             job =
@@ -120,12 +121,19 @@ class ExtensionInstallerJob(
                                         .collect {
                                             if (it.first.isCompleted()) {
                                                 activeInstalls.remove(extension.pkgName)
-                                                installedExtensions.add(extension)
-                                                installed++
-                                                val prefCount = preferences.extensionUpdatesCount().get()
-                                                preferences
-                                                    .extensionUpdatesCount()
-                                                    .set(max(prefCount - 1, 0))
+                                                if (it.first == InstallStep.Installed) {
+                                                    installedExtensions.add(extension)
+                                                    installed++
+                                                    val prefCount = preferences.extensionUpdatesCount().get()
+                                                    preferences
+                                                        .extensionUpdatesCount()
+                                                        .set(max(prefCount - 1, 0))
+                                                } else {
+                                                    // Keep this extension counted as a pending update so it
+                                                    // isn't silently dropped - the re-check triggered below
+                                                    // will surface it again in the updates notification.
+                                                    failedExtensions.add(extension)
+                                                }
                                             }
                                             notifier.showProgressNotification(installed, list.size)
                                             if (activeInstalls.isEmpty() || isStopped) {
@@ -141,7 +149,7 @@ class ExtensionInstallerJob(
         if (showUpdatedNotification && installedExtensions.size > 0) {
             notifier.showUpdatedNotification(installedExtensions, preferences.hideNotificationContent())
         }
-        if (reRunUpdateCheck || installedExtensions.size != list.size) {
+        if (reRunUpdateCheck || failedExtensions.isNotEmpty()) {
             ExtensionUpdateJob.runJobAgain(context, NetworkType.CONNECTED, false)
         }
 

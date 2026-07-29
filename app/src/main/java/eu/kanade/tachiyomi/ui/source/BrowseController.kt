@@ -507,6 +507,11 @@ class BrowseController :
             ?.expand()
     }
 
+    fun updateAllPendingExtensions() {
+        if (!isBindingInitialized) return
+        binding.bottomSheet.root.updateAllPendingExtensions()
+    }
+
     override fun hideSheet() {
         if (!isBindingInitialized) return
         binding.bottomSheet.root.sheetBehavior

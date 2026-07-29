@@ -20,6 +20,7 @@ import eu.kanade.tachiyomi.extension.util.ExtensionInstallBroadcast.Companion.PA
 import eu.kanade.tachiyomi.extension.util.ExtensionInstallBroadcast.Companion.packageInstallStep
 import eu.kanade.tachiyomi.util.system.DeviceUtil
 import eu.kanade.tachiyomi.util.system.activityOptionsBackgroundOptions
+import eu.kanade.tachiyomi.util.system.isAppInForeground
 import eu.kanade.tachiyomi.util.system.toast
 import uy.kohesive.injekt.injectLazy
 
@@ -104,11 +105,19 @@ class ExtensionInstallBroadcast : BroadcastReceiver() {
                 val extensionManager: ExtensionManager by injectLazy()
                 when (val status = extras.getInt(PackageInstaller.EXTRA_STATUS)) {
                     PackageInstaller.STATUS_PENDING_USER_ACTION -> {
-                        val confirmIntent = extras[Intent.EXTRA_INTENT] as? Intent
-                        if (context is Activity) {
-                            context.startActivity(confirmIntent)
-                        } else {
-                            context.startActivity(confirmIntent?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                        val confirmIntent = extras[Intent.EXTRA_INTENT] as? Intent ?: return
+                        when {
+                            context is Activity -> context.startActivity(confirmIntent)
+                            context.isAppInForeground() ->
+                                context.startActivity(confirmIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                            else -> {
+                                // A background BroadcastReceiver can't launch this confirmation screen
+                                // directly - background activity launch restrictions silently drop it.
+                                // Treat it like a failed install instead: the extension keeps its
+                                // pending update and gets surfaced again in the next "extension
+                                // updates available" notification, which the user can act on directly.
+                                extensionManager.setInstallationResult(downloadId, false)
+                            }
                         }
                     }
                     PackageInstaller.STATUS_SUCCESS -> {

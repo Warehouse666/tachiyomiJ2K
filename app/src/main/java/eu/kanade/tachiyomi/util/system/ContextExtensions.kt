@@ -1,5 +1,6 @@
 package eu.kanade.tachiyomi.util.system
 
+import android.app.ActivityManager
 import android.app.ActivityOptions
 import android.app.LocaleManager
 import android.app.Notification
@@ -543,6 +544,20 @@ val Context.systemLangContext: Context
         configuration.setLocale(systemLocale)
         return createConfigurationContext(configuration)
     }
+
+/**
+ * Whether this app's process currently has a visible/foregrounded UI. Background activity
+ * launch restrictions block startActivity() calls made while this is false, so callers that
+ * might run from a background context (workers, broadcast receivers) should check this first
+ * and fall back to a user-initiated trigger (e.g. a notification tap) otherwise.
+ */
+fun Context.isAppInForeground(): Boolean {
+    val activityManager = getSystemService<ActivityManager>() ?: return false
+    val processName = packageName
+    return activityManager.runningAppProcesses.orEmpty().any {
+        it.processName == processName && it.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND
+    }
+}
 
 fun activityOptionsBackgroundOptions(always: Boolean = true): ActivityOptions? {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {

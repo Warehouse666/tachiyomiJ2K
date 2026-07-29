@@ -268,6 +268,10 @@ class ExtensionBottomPresenter : BaseMigrationPresenter<ExtensionBottomSheet>() 
         installExtension(availableExt)
     }
 
+    fun updateAllPendingExtensions() {
+        updateExtensions(extensionManager.installedExtensionsFlow.value.filter { it.hasUpdate })
+    }
+
     fun updateExtensions(extensions: List<Extension.Installed>) {
         if (extensions.isEmpty()) return
         val context = view?.context ?: return
