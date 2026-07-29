@@ -112,11 +112,7 @@ class DownloadButton
                     binding.downloadProgress.isVisible = true
                     binding.downloadBorder.setImageDrawable(borderCircle)
                     binding.downloadProgress.isIndeterminate = false
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                        binding.downloadProgress.setProgress(progress, isAnimating)
-                    } else {
-                        binding.downloadProgress.progress = progress
-                    }
+                    binding.downloadProgress.setProgress(progress, isAnimating)
                     binding.downloadProgress.trackColor = progressBGColor
                     binding.downloadProgress.setIndicatorColor(downloadedColor)
                     binding.downloadIcon.drawable.setTint(disabledColor)

@@ -229,9 +229,6 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
 
     private var pendingVerticalSeekbarHeightUpdate = false
 
-    val isSplitScreen: Boolean
-        get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInMultiWindowMode
-
     private var didTransitionFromChapter = false
     private var visibleChapterRange = longArrayOf()
     private var backPressedCallback: OnBackPressedCallback? = null
@@ -1225,14 +1222,14 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
                 v.updatePadding(left = 0, right = 0)
             }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                if (!firstPass && lastVis != vis && fullscreen && !isSplitScreen) {
+                if (!firstPass && lastVis != vis && fullscreen && !isInMultiWindowMode) {
                     onVisibilityChange(vis)
                 }
                 firstPass = false
                 lastVis = vis
             }
             wic.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_DEFAULT
-            if (!(fullscreen && !isSplitScreen) && sheetManageNavColor) {
+            if (!(fullscreen && !isInMultiWindowMode) && sheetManageNavColor) {
                 window.navigationBarColor = getResourceColor(R.attr.colorSurface)
             }
             binding.appBar.updateLayoutParams<ViewGroup.MarginLayoutParams> {
@@ -1267,7 +1264,7 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
                 ?.peekHeight =
                 peek + insets.getBottomGestureInsets()
             binding.chaptersSheet.chapterRecycler.updatePaddingRelative(bottom = systemInsets.bottom)
-            val noInsetForFullScreen = fullscreen && !isSplitScreen
+            val noInsetForFullScreen = fullscreen && !isInMultiWindowMode
             binding.viewerContainer.updatePadding(
                 left = if (noInsetForFullScreen) 0 else systemInsets.left,
                 top = if (noInsetForFullScreen) 0 else systemInsets.top,
@@ -1283,7 +1280,7 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
             @Suppress("DEPRECATION")
             binding.readerLayout.setOnSystemUiVisibilityChangeListener {
-                if (preferences.fullscreen().get() && !isSplitScreen) {
+                if (preferences.fullscreen().get() && !isInMultiWindowMode) {
                     onVisibilityChange((it and View.SYSTEM_UI_FLAG_HIDE_NAVIGATION) == 0)
                 }
             }
@@ -1334,7 +1331,7 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
     fun setNavColor(insets: WindowInsetsCompat) {
         sheetManageNavColor =
             when {
-                isSplitScreen -> {
+                isInMultiWindowMode -> {
                     window.statusBarColor = getResourceColor(R.attr.colorPrimaryVariant)
                     window.navigationBarColor = getResourceColor(R.attr.colorPrimaryVariant)
                     false
@@ -1459,7 +1456,7 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
                     ?.collapse()
             }
         } else {
-            if (preferences.fullscreen().get() && !isSplitScreen) {
+            if (preferences.fullscreen().get() && !isInMultiWindowMode) {
                 wic.hide(systemBars())
                 wic.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_DEFAULT
             } else if (viewer is WebtoonViewer) {

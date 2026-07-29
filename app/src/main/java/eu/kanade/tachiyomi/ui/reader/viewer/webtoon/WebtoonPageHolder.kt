@@ -3,7 +3,6 @@ package eu.kanade.tachiyomi.ui.reader.viewer.webtoon
 import android.annotation.SuppressLint
 import android.content.res.Resources
 import android.graphics.Color
-import android.os.Build
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -155,13 +154,7 @@ class WebtoonPageHolder(
         val page = page ?: return
         progressJob =
             scope.launch {
-                page.progressFlow.collectLatest { value ->
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                        progressBar.setProgress(value, true)
-                    } else {
-                        progressBar.progress = value
-                    }
-                }
+                page.progressFlow.collectLatest { progressBar.setProgress(it, true) }
             }
     }
 

@@ -1,7 +1,6 @@
 package eu.kanade.tachiyomi.ui.download
 
 import android.animation.ValueAnimator
-import android.os.Build
 import android.view.View
 import androidx.appcompat.widget.PopupMenu
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -83,11 +82,7 @@ class DownloadHolder(
             binding.downloadProgress.isIndeterminate = false
             setWave(DownloadJob.isRunning(binding.downloadProgress.context), animate)
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            binding.downloadProgress.setProgress(download.pageProgress, animate)
-        } else {
-            binding.downloadProgress.progress = download.pageProgress
-        }
+        binding.downloadProgress.setProgress(download.pageProgress, animate)
     }
 
     fun setWave(

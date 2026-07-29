@@ -532,14 +532,11 @@ val Context.systemLangContext: Context
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 getSystemService<LocaleManager>()?.systemLocales?.get(0)
             } else {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                    Resources
-                        .getSystem()
-                        .configuration.locales
-                        .get(0)
-                } else {
-                    return this
-                } ?: Locale.getDefault()
+                Resources
+                    .getSystem()
+                    .configuration.locales
+                    .get(0)
+                    ?: Locale.getDefault()
             }
         configuration.setLocale(systemLocale)
         return createConfigurationContext(configuration)

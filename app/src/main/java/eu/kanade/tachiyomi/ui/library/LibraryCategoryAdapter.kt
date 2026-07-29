@@ -172,17 +172,9 @@ class LibraryCategoryAdapter(
     }
 
     private fun getFirstChar(string: String): String {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            val chars = string.codePoints().toArray().firstOrNull() ?: return ""
-            val char = Character.toChars(chars)
-            return String(char).uppercase(Locale.US)
-        } else {
-            return string
-                .toCharArray()
-                .firstOrNull()
-                ?.toString()
-                ?.uppercase(Locale.US) ?: ""
-        }
+        val chars = string.codePoints().toArray().firstOrNull() ?: return ""
+        val char = Character.toChars(chars)
+        return String(char).uppercase(Locale.US)
     }
 
     override fun onCreateBubbleText(position: Int): String {

@@ -347,7 +347,6 @@ open class ReaderPageImageView
             val bottomCutoutInset: Float,
             val scaleTypeIsFullFit: Boolean,
             val isFullscreen: Boolean,
-            val isSplitScreen: Boolean,
             val insets: WindowInsets?,
         )
     }

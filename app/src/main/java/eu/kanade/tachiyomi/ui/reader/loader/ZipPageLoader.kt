@@ -18,12 +18,7 @@ class ZipPageLoader(
     /**
      * The zip file to load pages from.
      */
-    private val zip =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            ZipFile(file, StandardCharsets.ISO_8859_1)
-        } else {
-            ZipFile(file)
-        }
+    private val zip = ZipFile(file, StandardCharsets.ISO_8859_1)
 
     /**
      * Recycles this loader and the open zip.

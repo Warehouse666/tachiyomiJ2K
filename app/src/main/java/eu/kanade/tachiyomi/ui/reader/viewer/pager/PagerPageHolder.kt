@@ -346,13 +346,13 @@ class PagerPageHolder(
 
                     val rootInsets = viewer.activity.window.decorView.rootWindowInsets
                     val topInsets =
-                        if (viewer.activity.isSplitScreen) {
+                        if (viewer.activity.isInMultiWindowMode) {
                             0f
                         } else {
                             rootInsets?.topCutoutInset()?.toFloat() ?: 0f
                         }
                     val bottomInsets =
-                        if (viewer.activity.isSplitScreen) {
+                        if (viewer.activity.isInMultiWindowMode) {
                             0f
                         } else {
                             rootInsets?.bottomCutoutInset()?.toFloat() ?: 0f
@@ -576,7 +576,6 @@ class PagerPageHolder(
                             Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q &&
                                 viewer.config.isFullscreen &&
                                 !viewer.activity.isInMultiWindowMode,
-                        isSplitScreen = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && viewer.activity.isInMultiWindowMode,
                         insets = viewer.activity.window.decorView.rootWindowInsets,
                     ),
                 hingeGapSize = viewer.config.hingeGapSize,
@@ -889,11 +888,7 @@ class PagerPageHolder(
 
     fun setProgress(progress: Int) {
         val scaledProgress = 85 * progress / 100 + 10
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            progressBar.setProgress(scaledProgress, true)
-        } else {
-            progressBar.progress = scaledProgress
-        }
+        progressBar.setProgress(scaledProgress, true)
     }
 
     private fun setExtraPageBitmap(
