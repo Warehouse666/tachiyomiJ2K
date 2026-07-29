@@ -371,7 +371,14 @@ class ExtensionDetailsController(
                 is EditTextPreference ->
                     EditTextResetPreference(activity, context).apply {
                         dialogSummary = preference.dialogMessage
-                        onPreferenceChangeListener = preference.onPreferenceChangeListener
+                        onChange {
+                            if (preference.callChangeListener(it)) {
+                                preference.text = it as? String
+                                true
+                            } else {
+                                false
+                            }
+                        }
                     }
 
                 is ListPreference ->
