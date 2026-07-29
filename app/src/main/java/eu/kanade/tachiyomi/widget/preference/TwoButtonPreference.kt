@@ -24,9 +24,11 @@ class TwoButtonPreference
 
         @StringRes var endTextRes: Int = 0
         private var defValue: Boolean = false
+        var inverted = false
 
         init {
             widgetLayoutResource = R.layout.preference_widget_button_toggle_group
+            isSelectable = false
         }
 
         override fun onSetInitialValue(defaultValue: Any?) {
@@ -43,12 +45,12 @@ class TwoButtonPreference
             endButton.setText(endTextRes)
 
             val current = sharedPreferences?.getBoolean(key, defValue) ?: defValue
-            group.check(if (current) startButton.id else endButton.id)
+            group.check(if (current.xor(inverted)) endButton.id else startButton.id)
 
             group.clearOnButtonCheckedListeners()
             group.addOnButtonCheckedListener { _, checkedId, isChecked ->
                 if (!isChecked) return@addOnButtonCheckedListener
-                val value = checkedId == startButton.id
+                val value = (checkedId == endButton.id).xor(inverted)
                 if (callChangeListener(value) && isPersistent) {
                     sharedPreferences?.edit { putBoolean(key, value) }
                 }

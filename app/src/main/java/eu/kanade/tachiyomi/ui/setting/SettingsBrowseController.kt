@@ -118,9 +118,11 @@ class SettingsBrowseController : SettingsController() {
 
             preferenceCategory {
                 titleRes = R.string.pref_global_search
-                switchPreference {
-                    key = PreferenceKeys.onlySearchPinned
-                    titleRes = R.string.only_search_pinned_when
+                twoButtonPreference {
+                    bindTo(preferences.onlySearchPinned())
+                    titleRes = R.string.sources_to_search
+                    startTextRes = R.string.all_enabled
+                    endTextRes = R.string.pinned_only
                 }
             }
 

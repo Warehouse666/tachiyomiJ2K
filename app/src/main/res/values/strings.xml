@@ -909,6 +909,7 @@
     <string name="notify_extension_updated">Notify extension has been updated</string>
     <string name="some_extensions_may_not_update">Some extensions may not be auto-updated if they were installed outside this app</string>
     <string name="only_search_pinned_when">Only search pinned sources</string>
+    <string name="sources_to_search">Sources to search</string>
     <string name="hide_in_library_items">Hide entries already in library</string>
     <string name="match_pinned_sources">Match pinned sources</string>
     <string name="match_enabled_sources">Match enabled sources</string>
@@ -1088,6 +1089,7 @@
     <string name="add_to_">Add to %1$s</string>
     <string name="added_to_">Added to %1$s</string>
     <string name="all">All</string>
+    <string name="all_enabled">All enabled</string>
     <string name="alphabetically">Alphabetically</string>
     <string name="always">Always</string>
     <string name="always_ask">Always ask</string>
@@ -1169,6 +1171,7 @@
     <string name="picture_saved">Picture saved</string>
     <string name="pin">Pin</string>
     <string name="pinned">Pinned</string>
+    <string name="pinned_only">Pinned only</string>
     <string name="preview">Preview</string>
     <string name="previous">Previous</string>
     <string name="remove">Remove</string>

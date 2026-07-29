@@ -28,6 +28,7 @@ class SliderPreference
 
         init {
             layoutResource = R.layout.preference_slider
+            isSelectable = false
         }
 
         override fun onSetInitialValue(defaultValue: Any?) {
