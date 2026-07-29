@@ -127,7 +127,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="10dp"
-        app:icon="@drawable/ic_arrow_forward_24dp"
+        app:icon="@drawable/ic_swap_calls_24dp"
         android:text="@string/migrate"
         app:layout_anchor="@id/constraint_layout"
         app:layout_anchorGravity="bottom|end"
