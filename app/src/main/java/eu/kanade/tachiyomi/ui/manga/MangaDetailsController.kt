@@ -144,6 +144,7 @@ import java.io.IOException
 import java.util.Locale
 import kotlin.math.max
 import kotlin.math.roundToInt
+import kotlin.time.Duration.Companion.seconds
 
 class MangaDetailsController :
     BaseCoroutineController<MangaDetailsControllerBinding, MangaDetailsPresenter>,
@@ -270,8 +271,7 @@ class MangaDetailsController :
                         ColorUtils.blendARGB(
                             it,
                             context.contextCompatColor(R.color.colorOnDownloadBadgeDayNight),
-                            (if (!context.isInNightMode()) luminance else -(luminance - 1))
-                                .toFloat() * if (context.isInNightMode()) 0.33f else 0.5f,
+                            (if (!context.isInNightMode()) luminance else -(luminance - 1)) * if (context.isInNightMode()) 0.33f else 0.5f,
                         )
                     } else {
                         it
@@ -639,14 +639,13 @@ class MangaDetailsController :
     }
 
     private fun setStatusBarAndToolbar() {
-        val topColor = Color.TRANSPARENT
         val scrollingColor = headerColor ?: activity!!.getResourceColor(R.attr.colorPrimaryVariant)
         val scrollingStatusColor =
             ColorUtils.setAlphaComponent(scrollingColor, (0.87f * 255).roundToInt())
         activityBinding?.statusBar?.gradientBackgroundColor =
-            if (toolbarIsColored) scrollingStatusColor else topColor
+            if (toolbarIsColored) scrollingStatusColor else Color.TRANSPARENT
         activityBinding?.appBar?.setBackgroundColor(
-            if (toolbarIsColored) scrollingColor else topColor,
+            if (toolbarIsColored) scrollingColor else Color.TRANSPARENT,
         )
     }
 
@@ -691,7 +690,7 @@ class MangaDetailsController :
         runBlocking {
             val itemAnimator = binding.recycler.itemAnimator
             val chapters =
-                withTimeoutOrNull(1000) { presenter.getChaptersNow() } ?: return@runBlocking
+                withTimeoutOrNull(1.seconds) { presenter.getChaptersNow() } ?: return@runBlocking
             binding.recycler.itemAnimator = null
             tabletAdapter?.notifyItemChanged(0)
             adapter?.setChapters(chapters)
@@ -1330,7 +1329,7 @@ class MangaDetailsController :
         val url =
             try {
                 source.getMangaUrl(presenter.manga)
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 return
             }
 

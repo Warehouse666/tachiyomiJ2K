@@ -1,7 +1,6 @@
 package eu.kanade.tachiyomi.ui.manga
 
 import android.app.Application
-import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Environment
 import coil.Coil
@@ -68,9 +67,6 @@ import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import uy.kohesive.injekt.injectLazy
 import java.io.File
-import java.io.FileOutputStream
-import java.io.OutputStream
-import java.util.Date
 import java.util.Locale
 
 class MangaDetailsPresenter(
@@ -127,7 +123,7 @@ class MangaDetailsPresenter(
         downloadManager.addListener(this)
         LibraryUpdateJob.updateFlow
             .filter { it == manga.id }
-            .onEach(::onUpdateManga)
+            .onEach { fetchChapters() }
             .launchIn(presenterScope)
         tracks = db.getTracks(manga).executeAsBlocking()
         if (manga.isLocal()) {
@@ -718,21 +714,6 @@ class MangaDetailsPresenter(
         asyncUpdateMangaAndChapters()
     }
 
-    fun toggleFavorite(): Boolean {
-        manga.favorite = !manga.favorite
-
-        when (manga.favorite) {
-            true -> {
-                manga.date_added = Date().time
-            }
-            false -> manga.date_added = 0
-        }
-
-        db.insertManga(manga).executeAsBlocking()
-        view?.updateHeader()
-        return manga.favorite
-    }
-
     /**
      * Get user categories.
      *
@@ -749,8 +730,6 @@ class MangaDetailsPresenter(
         }
     }
 
-    private fun onUpdateManga(mangaId: Long?) = fetchChapters()
-
     fun shareManga() {
         val context = Injekt.get<Application>()
 
@@ -766,24 +745,6 @@ class MangaDetailsPresenter(
             } catch (_: java.lang.Exception) {
             }
         }
-    }
-
-    private fun saveImage(
-        cover: Bitmap,
-        directory: File,
-        manga: Manga,
-    ): File? {
-        directory.mkdirs()
-
-        // Build destination file.
-        val filename = DiskUtil.buildValidFilename("${manga.title} - Cover.jpg")
-
-        val destFile = File(directory, filename)
-        val stream: OutputStream = FileOutputStream(destFile)
-        cover.compress(Bitmap.CompressFormat.JPEG, 75, stream)
-        stream.flush()
-        stream.close()
-        return destFile
     }
 
     fun updateManga(
@@ -896,7 +857,7 @@ class MangaDetailsPresenter(
             val destDir = File(coverCache.context.cacheDir, "shared_image")
             val file = saveCover(destDir)
             file
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             null
         }
 
@@ -920,7 +881,7 @@ class MangaDetailsPresenter(
             val file = saveCover(directory)
             DiskUtil.scanMedia(preferences.context, file)
             true
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             false
         }
 

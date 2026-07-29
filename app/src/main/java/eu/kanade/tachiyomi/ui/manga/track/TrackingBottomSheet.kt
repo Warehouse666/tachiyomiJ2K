@@ -233,7 +233,7 @@ class TrackingBottomSheet(
                         controller.presenter.registerTracking(track, item.service)
                     }
                         ?: withUIContext { controller.view?.context?.toast(R.string.no_match_found) }
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                     withUIContext { controller.view?.context?.toast(R.string.no_match_found) }
                 }
             }
@@ -396,14 +396,6 @@ class TrackingBottomSheet(
             presenter.registerTracking(selectedItem, searchingItem.service)
         }
         hideSearchView()
-    }
-
-    override fun onBackPressed() {
-        if (searchingItem != null) {
-            hideSearchView()
-        } else {
-            super.onBackPressed()
-        }
     }
 
     override fun onStatusClick(position: Int) {

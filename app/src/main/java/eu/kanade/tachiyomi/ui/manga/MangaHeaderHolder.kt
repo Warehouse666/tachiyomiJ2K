@@ -235,7 +235,7 @@ class MangaHeaderHolder(
     private fun collapseDesc(animated: Boolean = false) {
         binding ?: return
         if (isTablet || !canCollapse) return
-        binding.moreButtonGroup.isVisible = !isTablet
+        binding.moreButtonGroup.isVisible = true
         if (animated) {
             androidx.transition.TransitionManager.endTransitions(adapter.controller.binding.recycler)
             val animVector =
@@ -268,7 +268,7 @@ class MangaHeaderHolder(
         binding.mangaSummary.isClickable = true
         binding.mangaSummary.maxLines = 3
         setDescription()
-        binding.mangaGenresTags.isVisible = isTablet
+        binding.mangaGenresTags.isVisible = false
         binding.lessButton.isVisible = false
         binding.title.maxLines = 4
         binding.mangaAuthor.maxLines = 2

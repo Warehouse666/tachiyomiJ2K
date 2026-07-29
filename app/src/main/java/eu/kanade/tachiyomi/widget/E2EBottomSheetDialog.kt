@@ -8,8 +8,6 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import eu.kanade.tachiyomi.ui.main.MainActivity
-import eu.kanade.tachiyomi.util.view.backgroundColor
 
 /**
  * Edge to Edge BottomSheetDialog that uses a custom theme and settings to extend pass the nav bar
@@ -37,9 +35,6 @@ abstract class E2EBottomSheetDialog<VB : ViewBinding>(
         isLight = aWic.isAppearanceLightStatusBars
         window?.let { window ->
             val wic = WindowInsetsControllerCompat(window, binding.root)
-            window.navigationBarColor =
-                (activity as? MainActivity)?.binding?.navBar?.backgroundColor
-                    ?: window.navigationBarColor
             wic.isAppearanceLightNavigationBars = isLight
             wic.isAppearanceLightStatusBars = false
         }

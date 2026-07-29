@@ -188,7 +188,7 @@ class ChapterHolder(
         }
         if (locked) {
             isVisible = false
-            return
+            return@with
         }
         isVisible = !localSource
         setDownloadStatus(status, progress, animated)

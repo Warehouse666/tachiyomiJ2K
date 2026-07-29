@@ -518,7 +518,6 @@ class LibraryPresenter(
                     if (service != null) {
                         val hasServiceTrack = tracks.any { it.sync_id == service.id }
                         if (!hasServiceTrack) return false
-                        if (filterTracked == STATE_EXCLUDE) return false
                     }
                 }
             } else if (filterTracked == STATE_EXCLUDE) {
