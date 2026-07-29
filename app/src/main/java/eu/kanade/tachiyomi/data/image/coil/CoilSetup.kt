@@ -39,7 +39,9 @@ class CoilSetup(
                     memoryCache { MemoryCache.Builder(context).maxSizePercent(0.40).build() }
                     crossfade(true)
                     allowRgb565(context.getSystemService<ActivityManager>()!!.isLowRamDevice)
-                    allowHardware(true)
+                    // Android 8.0/8.1 crash when a hardware bitmap is drawn to the software
+                    // https://github.com/coil-kt/coil/issues/159
+                    allowHardware(Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
                 }.build()
         Coil.setImageLoader(imageLoader)
     }
