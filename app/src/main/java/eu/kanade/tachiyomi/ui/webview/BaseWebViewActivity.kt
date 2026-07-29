@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.app.assist.AssistContent
 import android.content.res.Configuration
 import android.graphics.Color
-import android.os.Build
 import android.os.Bundle
 import android.util.TypedValue
 import android.view.View
@@ -101,12 +100,7 @@ open class BaseWebViewActivity : BaseActivity<WebviewActivityBinding>() {
             /*if (getResourceColor(android.R.attr.statusBarColor) != Color.TRANSPARENT)
                 window.statusBarColor = Color.BLACK
             else window.statusBarColor = getResourceColor(R.attr.colorPrimary)*/
-            window.navigationBarColor =
-                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-                    Color.BLACK
-                } else {
-                    getResourceColor(R.attr.colorPrimaryVariant)
-                }
+            window.navigationBarColor = getResourceColor(R.attr.colorPrimaryVariant)
             v.setPadding(
                 insets.getInsets(systemBars()).left,
                 insets.getInsets(systemBars()).top,
@@ -228,7 +222,7 @@ open class BaseWebViewActivity : BaseActivity<WebviewActivityBinding>() {
         binding.swipeRefresh.setProgressBackgroundColorSchemeColor(colorPrimaryVariant)
 
         window.navigationBarColor =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O || !lightMode) {
+            if (!lightMode) {
                 colorPrimaryVariant
             } else {
                 Color.BLACK

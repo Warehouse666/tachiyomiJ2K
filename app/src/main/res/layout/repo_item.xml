@@ -33,6 +33,7 @@
             android:layout_height="@dimen/material_component_lists_single_line_with_avatar_height"
             android:layout_marginEnd="4dp"
             android:scaleType="center"
+            android:tooltipText="@string/discord"
             app:icon="@drawable/ic_discord_24dp"
             android:contentDescription="@string/discord"
             app:tint="?attr/colorOnBackground"

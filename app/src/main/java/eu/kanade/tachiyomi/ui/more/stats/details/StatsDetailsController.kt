@@ -51,7 +51,6 @@ import eu.kanade.tachiyomi.util.system.toLocalCalendar
 import eu.kanade.tachiyomi.util.system.toUtcCalendar
 import eu.kanade.tachiyomi.util.system.withIOContext
 import eu.kanade.tachiyomi.util.view.backgroundColor
-import eu.kanade.tachiyomi.util.view.compatToolTipText
 import eu.kanade.tachiyomi.util.view.doOnApplyWindowInsetsCompat
 import eu.kanade.tachiyomi.util.view.isControllerVisible
 import eu.kanade.tachiyomi.util.view.liftAppbarWith
@@ -112,7 +111,7 @@ class StatsDetailsController :
             }
             chartLinearLayout?.statSort?.isVisible = false
 
-            statsClearButtonContainer.compatToolTipText = activity?.getString(R.string.clear_filters)
+            statsClearButtonContainer.tooltipText = activity?.getString(R.string.clear_filters)
             statsClearButtonContainer.setOnClickListener {
                 resetFilters()
                 searchView.clearFocus()

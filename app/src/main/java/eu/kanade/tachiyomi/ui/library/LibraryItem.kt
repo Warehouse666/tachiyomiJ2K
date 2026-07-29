@@ -21,7 +21,6 @@ import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.databinding.MangaGridItemBinding
 import eu.kanade.tachiyomi.source.SourceManager
 import eu.kanade.tachiyomi.util.system.dpToPx
-import eu.kanade.tachiyomi.util.view.compatToolTipText
 import eu.kanade.tachiyomi.widget.AutofitRecyclerView
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
@@ -134,7 +133,7 @@ class LibraryItem(
         val layoutParams = holder.itemView.layoutParams as? StaggeredGridLayoutManager.LayoutParams
         layoutParams?.isFullSpan = manga.isBlank()
         if (libraryLayout == LAYOUT_COVER_ONLY_GRID) {
-            holder.itemView.compatToolTipText = manga.title
+            holder.itemView.tooltipText = manga.title
         }
     }
 

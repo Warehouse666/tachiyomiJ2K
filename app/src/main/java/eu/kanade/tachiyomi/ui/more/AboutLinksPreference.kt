@@ -10,7 +10,6 @@ import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.util.system.dpToPx
 import eu.kanade.tachiyomi.util.system.openInBrowser
 import eu.kanade.tachiyomi.util.view.checkHeightThen
-import eu.kanade.tachiyomi.util.view.compatToolTipText
 
 class AboutLinksPreference
     @JvmOverloads
@@ -36,31 +35,31 @@ class AboutLinksPreference
                 }
             }
             holder.findViewById(R.id.btn_website).apply {
-                compatToolTipText = (contentDescription.toString())
+                tooltipText = contentDescription
                 setOnClickListener { context.openInBrowser("https://mihon.app") }
             }
             holder.findViewById(R.id.btn_discord).apply {
-                compatToolTipText = (contentDescription.toString())
+                tooltipText = contentDescription
                 setOnClickListener { context.openInBrowser("https://discord.gg/mihon") }
             }
             holder.findViewById(R.id.btn_x).apply {
-                compatToolTipText = (contentDescription.toString())
+                tooltipText = contentDescription
                 setOnClickListener { context.openInBrowser("https://x.com/mihonapp") }
             }
             holder.findViewById(R.id.btn_facebook).apply {
-                compatToolTipText = (contentDescription.toString())
+                tooltipText = contentDescription
                 setOnClickListener { context.openInBrowser("https://facebook.com/mihonapp") }
             }
             holder.findViewById(R.id.btn_reddit).apply {
-                compatToolTipText = (contentDescription.toString())
+                tooltipText = contentDescription
                 setOnClickListener { context.openInBrowser("https://www.reddit.com/r/mihonapp") }
             }
             holder.findViewById(R.id.btn_github).apply {
-                compatToolTipText = (contentDescription.toString())
+                tooltipText = contentDescription
                 setOnClickListener { context.openInBrowser("https://github.com/Jays2Kings/tachiyomiJ2K") }
             }
             holder.findViewById(R.id.btn_mihon).apply {
-                compatToolTipText = (contentDescription.toString())
+                tooltipText = contentDescription
                 setOnClickListener { context.openInBrowser("https://github.com/mihonapp") }
             }
         }

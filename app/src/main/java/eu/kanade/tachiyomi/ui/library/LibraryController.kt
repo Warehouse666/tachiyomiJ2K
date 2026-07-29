@@ -12,6 +12,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Parcelable
 import android.util.TypedValue
+import android.view.GestureDetector
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.Menu
@@ -29,7 +30,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.ActionMode
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.animation.doOnEnd
-import androidx.core.view.GestureDetectorCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsAnimationCompat
 import androidx.core.view.WindowInsetsCompat
@@ -105,7 +105,6 @@ import eu.kanade.tachiyomi.util.system.openInBrowser
 import eu.kanade.tachiyomi.util.system.rootWindowInsetsCompat
 import eu.kanade.tachiyomi.util.view.activityBinding
 import eu.kanade.tachiyomi.util.view.collapse
-import eu.kanade.tachiyomi.util.view.compatToolTipText
 import eu.kanade.tachiyomi.util.view.expand
 import eu.kanade.tachiyomi.util.view.fullAppBarHeight
 import eu.kanade.tachiyomi.util.view.getItemView
@@ -134,6 +133,7 @@ import kotlin.math.max
 import kotlin.math.roundToInt
 import kotlin.random.Random
 import kotlin.random.nextInt
+import kotlin.time.Duration.Companion.milliseconds
 
 open class LibraryController(
     bundle: Bundle? = null,
@@ -170,7 +170,7 @@ open class LibraryController(
     var singleCategory: Boolean = false
         private set
     var hopperAnimation: ValueAnimator? = null
-    var catGestureDetector: GestureDetectorCompat? = null
+    var catGestureDetector: GestureDetector? = null
 
     /**
      * Library search query.
@@ -669,7 +669,7 @@ open class LibraryController(
             )
 
         viewScope.launchUI {
-            delay(50)
+            delay(50.milliseconds)
             updateHopperY()
         }
         setSwipeRefresh()
@@ -795,7 +795,8 @@ open class LibraryController(
                 true
             }.show()
         }
-        catGestureDetector = GestureDetectorCompat(binding.root.context, LibraryCategoryGestureDetector(this))
+        catGestureDetector =
+            GestureDetector(binding.root.context, LibraryCategoryGestureDetector(this))
 
         binding.roundedCategoryHopper.categoryButton.setOnLongClickListener {
             when (preferences.hopperLongPressAction().get()) {
@@ -831,7 +832,7 @@ open class LibraryController(
         }
         hopperGravity = gravityPref
 
-        val gestureDetector = GestureDetectorCompat(binding.root.context, LibraryGestureDetector(this))
+        val gestureDetector = GestureDetector(binding.root.context, LibraryGestureDetector(this))
         with(binding.roundedCategoryHopper) {
             listOf(categoryHopperLayout, upCategory, downCategory, categoryButton).forEach {
                 it.setOnTouchListener { _, event ->
@@ -1202,7 +1203,7 @@ open class LibraryController(
                         android.R.integer.config_shortAnimTime,
                     ).toLong()
             viewScope.launchUI {
-                delay(time / 2)
+                delay((time / 2).milliseconds)
                 binding.libraryGridRecycler.recycler.translationX = 0f
             }
         }
@@ -1247,7 +1248,7 @@ open class LibraryController(
                 binding.libraryGridRecycler.recycler.viewTreeObserver
                     .addOnGlobalLayoutListener(staggeredObserver)
                 viewScope.launchUI {
-                    delay(500)
+                    delay(500.milliseconds)
                     removeStaggeredObserver()
                     if (!isControllerVisible) return@launchUI
                     if (activeC > 0) {
@@ -1361,7 +1362,7 @@ open class LibraryController(
         (activity as? MainActivity)?.apply {
             reEnableBackPressedCallBack()
             if (show && !binding.appBar.compactSearchMode && binding.appBar.useLargeToolbar) {
-                binding.appBar.compactSearchMode = binding.appBar.useLargeToolbar && show
+                binding.appBar.compactSearchMode = binding.appBar.useLargeToolbar
                 if (binding.appBar.compactSearchMode) {
                     setFloatingToolbar(true)
                     mainRecycler.requestApplyInsets()
@@ -1495,7 +1496,7 @@ open class LibraryController(
         binding.libraryGridRecycler.recycler.scrollToPositionWithOffset(position, 0)
     }
 
-    fun search(query: String?): Boolean {
+    fun search(query: String?) {
         val isShowAllCategoriesSet = preferences.showAllCategories().get()
         if (!query.isNullOrBlank() && this.query.isBlank() && !isShowAllCategoriesSet) {
             presenter.forceShowAllCategories = preferences.showAllCategoriesWhenSearchingSingleCategory().get()
@@ -1525,11 +1526,10 @@ open class LibraryController(
             adapter.removeAllScrollableHeaders()
         }
         adapter.setFilter(query)
-        if (presenter.allLibraryItems.isEmpty()) return true
+        if (presenter.allLibraryItems.isEmpty()) return
         viewScope.launchUI {
             adapter.performFilterAsync()
         }
-        return true
     }
 
     @SuppressLint("NotifyDataSetChanged")
@@ -1556,7 +1556,7 @@ open class LibraryController(
                     adapter.mode = SelectableAdapter.Mode.MULTI
                 }
                 launchUI {
-                    delay(100)
+                    delay(100.milliseconds)
                     adapter.isLongPressDragEnabled = false
                 }
                 positions.forEach { position ->
@@ -1801,7 +1801,7 @@ open class LibraryController(
         val libraryItems =
             getSectionItems(adapter.getSectionHeader(position), item)
                 .filterIsInstance<LibraryItem>()
-        val mangaIds = libraryItems.mapNotNull { (it as? LibraryItem)?.manga?.id }
+        val mangaIds = libraryItems.mapNotNull { it.manga.id }
         if (newHeader?.category?.id == item.manga.category) {
             presenter.rearrangeCategory(item.manga.category, mangaIds)
         } else {
@@ -1946,7 +1946,7 @@ open class LibraryController(
                 adapter
                     .getSectionItems(item)
                     .filterIsInstance<LibraryItem>()
-            val mangaIds = libraryItems.mapNotNull { (it as? LibraryItem)?.manga?.id }
+            val mangaIds = libraryItems.mapNotNull { it.manga.id }
             presenter.rearrangeCategory(catId, mangaIds)
         } else {
             presenter.sortCategory(catId, sortBy)
@@ -2012,6 +2012,7 @@ open class LibraryController(
                         .isExpanded()
             )
 
+    @Deprecated("Deprecated in Java")
     override fun handleBack(): Boolean {
         if (binding.recyclerCover.isClickable) {
             showCategories(false)
@@ -2053,7 +2054,7 @@ open class LibraryController(
                 setImageResource(R.drawable.ic_show_all_categories_24dp)
                 background = context.getResourceDrawable(R.attr.selectableItemBackgroundBorderless)
                 imageTintList = ColorStateList.valueOf(context.getResourceColor(R.attr.actionBarTintColor))
-                compatToolTipText = resources?.getText(R.string.show_all_categories)
+                tooltipText = resources?.getText(R.string.show_all_categories)
             }
         }!!
 
@@ -2075,6 +2076,7 @@ open class LibraryController(
                 showCategories(false)
             }
             search(it)
+            true
         }
     }
 

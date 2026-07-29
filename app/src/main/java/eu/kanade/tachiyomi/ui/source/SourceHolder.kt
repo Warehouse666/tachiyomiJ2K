@@ -10,7 +10,6 @@ import eu.kanade.tachiyomi.source.icon
 import eu.kanade.tachiyomi.ui.base.holder.BaseFlexibleViewHolder
 import eu.kanade.tachiyomi.util.system.cardColor
 import eu.kanade.tachiyomi.util.system.getResourceColor
-import eu.kanade.tachiyomi.util.view.compatToolTipText
 import eu.kanade.tachiyomi.util.view.makeContainerShape
 
 class SourceHolder(
@@ -51,7 +50,7 @@ class SourceHolder(
                         },
                     ),
                 )
-            compatToolTipText = context.getString(if (isPinned) R.string.unpin else R.string.pin)
+            tooltipText = context.getString(if (isPinned) R.string.unpin else R.string.pin)
             contentDescription = context.getString(if (isPinned) R.string.unpin else R.string.pin)
             setIconResource(
                 if (isPinned) {

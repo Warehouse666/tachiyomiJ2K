@@ -366,12 +366,6 @@ fun Int.numberOfRowsForValue(rawValue: Float): Int {
     return max(1, (dpWidth / trueSize).roundToInt())
 }
 
-var View.compatToolTipText: CharSequence?
-    get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) tooltipText else ""
-    set(value) {
-        ViewCompat.setTooltipText(this, value)
-    }
-
 @SuppressLint("RestrictedApi")
 inline fun View.popupMenu(
     items: List<Pair<Int, Int>>,

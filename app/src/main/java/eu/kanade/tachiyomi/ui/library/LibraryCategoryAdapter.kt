@@ -1,6 +1,5 @@
 package eu.kanade.tachiyomi.ui.library
 
-import android.os.Build
 import android.view.HapticFeedbackConstants
 import android.view.View
 import eu.davidea.flexibleadapter.FlexibleAdapter

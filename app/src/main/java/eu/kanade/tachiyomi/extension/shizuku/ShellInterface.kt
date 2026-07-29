@@ -105,16 +105,9 @@ class ShellInterface : IShellInterface.Stub() {
             }.use { output ->
                 apk.createInputStream().use { input -> input.copyTo(output) }
             }
-
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O) {
-            session::class.java
-                .getMethod("commit", IntentSender::class.java, Boolean::class.java)
-                .invoke(session, intentSender, false)
-        } else {
-            session::class.java
-                .getMethod("commit", IntentSender::class.java)
-                .invoke(session, intentSender)
-        }
+        session::class.java
+            .getMethod("commit", IntentSender::class.java, Boolean::class.java)
+            .invoke(session, intentSender, false)
     }
 
     override fun destroy() {

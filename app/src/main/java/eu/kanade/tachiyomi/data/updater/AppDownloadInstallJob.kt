@@ -79,10 +79,7 @@ class AppDownloadInstallJob(
         val idleRun = inputData.getBoolean(IDLE_RUN, false)
         val url: String
         if (idleRun) {
-            if (
-                Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
-                !context.packageManager.canRequestPackageInstalls()
-            ) {
+            if (!context.packageManager.canRequestPackageInstalls()) {
                 return Result.failure()
             }
             if (preferences.appShouldAutoUpdate() == ONLY_ON_UNMETERED &&

@@ -8,7 +8,6 @@ import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.ui.library.LibraryController
 import eu.kanade.tachiyomi.ui.setting.SettingsLibraryController
 import eu.kanade.tachiyomi.util.system.contextCompatDrawable
-import eu.kanade.tachiyomi.util.view.compatToolTipText
 import eu.kanade.tachiyomi.util.view.withFadeTransaction
 import eu.kanade.tachiyomi.widget.TabbedBottomSheetDialog
 
@@ -37,7 +36,7 @@ open class TabbedLibraryDisplaySheet(
         }
         displayView.mainView = controller.view
         binding.menu.isVisible = controller !is SettingsLibraryController
-        binding.menu.compatToolTipText = context.getString(R.string.more_library_settings)
+        binding.menu.tooltipText = context.getString(R.string.more_library_settings)
         binding.menu.setImageDrawable(context.contextCompatDrawable(R.drawable.ic_outline_settings_24dp))
         binding.menu.setOnClickListener {
             controller.router.pushController(SettingsLibraryController().withFadeTransaction())

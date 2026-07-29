@@ -224,13 +224,9 @@ internal object ExtensionLoader {
     ): Long =
         try {
             if (!extension.isShared) {
-                val file = ExtensionLoader.privateExtensionFile(context, extension.pkgName)
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    val attr = Files.readAttributes(file.toPath(), BasicFileAttributes::class.java)
-                    attr.creationTime().toMillis()
-                } else {
-                    file.lastModified()
-                }
+                val file = privateExtensionFile(context, extension.pkgName)
+                val attr = Files.readAttributes(file.toPath(), BasicFileAttributes::class.java)
+                attr.creationTime().toMillis()
             } else {
                 context.packageManager.getPackageInfo(extension.pkgName, 0).firstInstallTime
             }
@@ -244,7 +240,7 @@ internal object ExtensionLoader {
     ): Long =
         try {
             if (!extension.isShared) {
-                ExtensionLoader.privateExtensionFile(context, extension.pkgName).lastModified()
+                privateExtensionFile(context, extension.pkgName).lastModified()
             } else {
                 context.packageManager.getPackageInfo(extension.pkgName, 0).lastUpdateTime
             }

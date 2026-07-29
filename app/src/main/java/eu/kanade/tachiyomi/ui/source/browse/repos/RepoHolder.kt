@@ -17,7 +17,6 @@ import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.databinding.RepoItemBinding
 import eu.kanade.tachiyomi.extension.model.RepoMetadata
 import eu.kanade.tachiyomi.util.system.getResourceColor
-import eu.kanade.tachiyomi.util.view.compatToolTipText
 
 /**
  * Holder used to display repo items.
@@ -38,7 +37,6 @@ class RepoHolder(
         binding.discordButton.setOnClickListener {
             adapter.repoItemListener.onDiscordClick(flexibleAdapterPosition)
         }
-        binding.discordButton.compatToolTipText = itemView.context.getString(R.string.discord)
     }
 
     private var createRepo = false
@@ -105,7 +103,7 @@ class RepoHolder(
             if (!createRepo) {
                 binding.openStoreButton.icon =
                     ContextCompat.getDrawable(itemView.context, R.drawable.ic_delete_24dp)
-                binding.openStoreButton.compatToolTipText = itemView.context.getString(R.string.delete)
+                binding.openStoreButton.tooltipText = itemView.context.getString(R.string.delete)
                 binding.openStoreButton.setOnClickListener {
                     adapter.repoItemListener.onItemDelete(flexibleAdapterPosition)
                     hideKeyboard()
@@ -116,7 +114,7 @@ class RepoHolder(
                 binding.openStoreButton.setOnClickListener {
                     adapter.repoItemListener.onLogoClick(flexibleAdapterPosition)
                 }
-                binding.openStoreButton.compatToolTipText = itemView.context.getString(R.string.website)
+                binding.openStoreButton.tooltipText = itemView.context.getString(R.string.website)
                 binding.editButton.icon =
                     ContextCompat.getDrawable(itemView.context, R.drawable.ic_edit_24dp)
             } else {

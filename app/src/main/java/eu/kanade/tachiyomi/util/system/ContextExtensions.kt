@@ -460,12 +460,7 @@ val Context.cardColor: Int
 fun Context.isOnline(): Boolean {
     val networkCapabilities = connectivityManager.activeNetwork ?: return false
     val actNw = connectivityManager.getNetworkCapabilities(networkCapabilities) ?: return false
-    val maxTransport =
-        when {
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1 -> NetworkCapabilities.TRANSPORT_LOWPAN
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.O -> NetworkCapabilities.TRANSPORT_WIFI_AWARE
-            else -> NetworkCapabilities.TRANSPORT_VPN
-        }
+    val maxTransport = NetworkCapabilities.TRANSPORT_LOWPAN
     return (NetworkCapabilities.TRANSPORT_CELLULAR..maxTransport).any(actNw::hasTransport)
 }
 

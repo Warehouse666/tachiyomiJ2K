@@ -70,7 +70,6 @@ import eu.kanade.tachiyomi.util.system.spToPx
 import eu.kanade.tachiyomi.util.system.toInt
 import eu.kanade.tachiyomi.util.view.activityBinding
 import eu.kanade.tachiyomi.util.view.collapse
-import eu.kanade.tachiyomi.util.view.compatToolTipText
 import eu.kanade.tachiyomi.util.view.expand
 import eu.kanade.tachiyomi.util.view.fullAppBarHeight
 import eu.kanade.tachiyomi.util.view.hide
@@ -1054,7 +1053,7 @@ class RecentsController(
                     RecentsViewType.entries.forEach { viewType ->
                         tabs.addTab(
                             tabs.newTab().setText(viewType.stringRes).also { tab ->
-                                tab.view.compatToolTipText = null
+                                tab.view.tooltipText = null
                             },
                             viewType == selectedTab,
                         )

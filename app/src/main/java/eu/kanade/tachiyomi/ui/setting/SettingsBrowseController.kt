@@ -2,7 +2,6 @@ package eu.kanade.tachiyomi.ui.setting
 
 import android.app.Activity
 import android.content.Intent
-import android.os.Build
 import android.provider.Settings
 import androidx.preference.PreferenceScreen
 import androidx.preference.SwitchPreferenceCompat
@@ -81,34 +80,30 @@ class SettingsBrowseController : SettingsController() {
                             null
                         }
                     val switchPref =
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                            switchPreference {
-                                key = "notify_ext_updated"
-                                isPersistent = false
-                                titleRes = R.string.notify_extension_updated
-                                isChecked =
-                                    Notifications.isNotificationChannelEnabled(
-                                        context,
-                                        Notifications.CHANNEL_EXT_UPDATED,
-                                    )
-                                updatedExtNotifPref = this
-                                onChange {
-                                    false
-                                }
-                                onClick {
-                                    val intent =
-                                        Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS).apply {
-                                            putExtra(Settings.EXTRA_APP_PACKAGE, BuildConfig.APPLICATION_ID)
-                                            putExtra(
-                                                Settings.EXTRA_CHANNEL_ID,
-                                                Notifications.CHANNEL_EXT_UPDATED,
-                                            )
-                                        }
-                                    startActivity(intent)
-                                }
+                        switchPreference {
+                            key = "notify_ext_updated"
+                            isPersistent = false
+                            titleRes = R.string.notify_extension_updated
+                            isChecked =
+                                Notifications.isNotificationChannelEnabled(
+                                    context,
+                                    Notifications.CHANNEL_EXT_UPDATED,
+                                )
+                            updatedExtNotifPref = this
+                            onChange {
+                                false
                             }
-                        } else {
-                            null
+                            onClick {
+                                val intent =
+                                    Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS).apply {
+                                        putExtra(Settings.EXTRA_APP_PACKAGE, BuildConfig.APPLICATION_ID)
+                                        putExtra(
+                                            Settings.EXTRA_CHANNEL_ID,
+                                            Notifications.CHANNEL_EXT_UPDATED,
+                                        )
+                                    }
+                                startActivity(intent)
+                            }
                         }
                     preferences.automaticExtUpdates().asImmediateFlowIn(viewScope) { value ->
                         arrayOf(intPref, infoPref, switchPref).forEach { it?.isVisible = value }
