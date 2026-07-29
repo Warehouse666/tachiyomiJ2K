@@ -11,6 +11,10 @@ import timber.log.Timber
 object WebViewUtil {
     const val MINIMUM_WEBVIEW_VERSION = 114
 
+    private const val CHROME_PACKAGE = "com.android.chrome"
+    private const val YOUTUBE_FOR_TV_PACKAGE = "com.google.android.youtube.tv"
+    private const val SYSTEM_SETTINGS_PACKAGE = "com.android.settings"
+
     fun supportsWebView(context: Context): Boolean {
         try {
             // May throw android.webkit.WebViewFactory$MissingWebViewPackageException if WebView
@@ -23,6 +27,21 @@ object WebViewUtil {
 
         return context.packageManager.hasSystemFeature(PackageManager.FEATURE_WEBVIEW)
     }
+
+    fun spoofedPackageName(context: Context): String =
+        runCatching { context.packageManager.getPackageInfo(CHROME_PACKAGE, 0) }
+            .recoverCatching { context.packageManager.getPackageInfo(SYSTEM_SETTINGS_PACKAGE, 0) }
+            .recoverCatching { context.packageManager.getPackageInfo(YOUTUBE_FOR_TV_PACKAGE, 0) }
+            .fold(
+                onSuccess = { it.packageName },
+                onFailure = {
+                    @Suppress("DEPRECATION")
+                    context.packageManager
+                        .getInstalledPackages(0)
+                        .random()
+                        .packageName
+                },
+            )
 }
 
 fun WebView.isOutdated(): Boolean = getWebViewMajorVersion() < WebViewUtil.MINIMUM_WEBVIEW_VERSION
