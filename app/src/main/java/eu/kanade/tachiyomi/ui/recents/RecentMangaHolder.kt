@@ -49,6 +49,7 @@ class RecentMangaHolder(
 
     private val isUpdates get() = adapter.viewType.isUpdates
     private val isSmallUpdates get() = isUpdates && !adapter.showUpdatedTime
+    var extraChapterMaxSize = 10
 
     init {
         binding.recentCard.setCardBackgroundColor(itemView.context.cardColor)
@@ -271,6 +272,7 @@ class RecentMangaHolder(
             binding.moreChaptersLayout.removeAllViews()
             var hasSameChapter = false
             if (item.mch.extraChapters.isNotEmpty()) {
+                extraChapterMaxSize = if (adapter.viewType.isHistory) 20 else 10
                 item.mch.extraChapters.shorterList().forEach { chapter ->
                     val binding =
                         RecentSubChapterItemBinding.inflate(
@@ -380,7 +382,12 @@ class RecentMangaHolder(
         }
     }
 
-    private fun <T> List<T>.shorterList(): List<T?> = if (size > 21) take(10) + null + takeLast(10) else this
+    private fun <T> List<T>.shorterList(): List<T?> =
+        if (size > extraChapterMaxSize + 1) {
+            take(extraChapterMaxSize / 2) + null + takeLast(extraChapterMaxSize / 2)
+        } else {
+            this
+        }
 
     @SuppressLint("ClickableViewAccessibility")
     private fun RecentSubChapterItemBinding.configureBlankView(count: Int) {
@@ -411,7 +418,7 @@ class RecentMangaHolder(
     ) {
         root.setCardBackgroundColor(root.context.cardColor)
         if (chapter?.id == null) {
-            configureBlankView(item.mch.extraChapters.size - 20)
+            configureBlankView(item.mch.extraChapters.size - extraChapterMaxSize)
             return
         }
         textLayout.updateLayoutParams<ConstraintLayout.LayoutParams> {
