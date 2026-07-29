@@ -41,7 +41,6 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.getSystemService
 import androidx.core.graphics.ColorUtils
 import androidx.core.net.toUri
-import androidx.core.view.GestureDetectorCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -152,6 +151,7 @@ import java.util.concurrent.TimeUnit
 import kotlin.math.abs
 import kotlin.math.min
 import kotlin.math.roundToLong
+import kotlin.time.Duration.Companion.seconds
 
 @SuppressLint("ResourceType")
 open class MainActivity : BaseActivity<MainActivityBinding>() {
@@ -159,7 +159,7 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
 
     protected val searchDrawable by lazy { contextCompatDrawable(R.drawable.ic_search_24dp) }
     protected val backDrawable by lazy { contextCompatDrawable(R.drawable.ic_arrow_back_24dp) }
-    private var gestureDetector: GestureDetectorCompat? = null
+    private var gestureDetector: GestureDetector? = null
 
     private var snackBar: Snackbar? = null
     private var extraViewForUndo: View? = null
@@ -210,7 +210,7 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
         this.snackBar = snackBar
         canDismissSnackBar = false
         launchUI {
-            delay(1000)
+            delay(1.seconds)
             if (this@MainActivity.snackBar == snackBar) {
                 canDismissSnackBar = true
             }
@@ -270,7 +270,7 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
         )
         window.sharedElementsUseOverlay = false
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O_MR1) {
-            // needed as the xml does not work for this
+            // needed as the XML does not work for this
             val wic = WindowInsetsControllerCompat(window, window.decorView)
             val isLightMode = resources.getBoolean(R.bool.isLightMode)
             wic.isAppearanceLightStatusBars = isLightMode
@@ -380,7 +380,7 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
             finish()
             return
         }
-        gestureDetector = GestureDetectorCompat(this, GestureListener())
+        gestureDetector = GestureDetector(this, GestureListener())
         binding = MainActivityBinding.inflate(layoutInflater)
 
         setContentView(binding.root)
@@ -876,10 +876,8 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
             binding.cardFrame.isVisible = showSearchBar
         }
         val bgColor = binding.appBar.backgroundColor ?: Color.TRANSPARENT
-        if (changeBG && (if (solidBG) bgColor == Color.TRANSPARENT else false)) {
-            binding.appBar.setBackgroundColor(
-                if (show && !solidBG) Color.TRANSPARENT else getResourceColor(R.attr.colorSurface),
-            )
+        if (changeBG && solidBG && bgColor == Color.TRANSPARENT) {
+            binding.appBar.setBackgroundColor(getResourceColor(R.attr.colorSurface))
         }
         setupSearchTBMenu(binding.toolbar.menu)
         if (currentToolbar != binding.searchToolbar) {
@@ -1192,7 +1190,7 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
                 val url =
                     try {
                         source.getMangaUrl(controller.presenter.manga)
-                    } catch (e: Exception) {
+                    } catch (_: Exception) {
                         return
                     }
                 outContent.webUri = url.toUri()
@@ -1242,6 +1240,7 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
         super.finish()
     }
 
+    @Suppress("DEPRECATION")
     protected open fun backPress() {
         val controller = router.backstack.lastOrNull()?.controller
         if (if (router.backstackSize == 1) controller?.handleBack() != true else !router.handleBack()) {
@@ -1282,12 +1281,6 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
 
     private fun goToStartingTab() {
         nav.selectedItemId = startingTab()
-    }
-
-    fun goToTab(
-        @IdRes id: Int,
-    ) {
-        nav.selectedItemId = id
     }
 
     private fun setRoot(
