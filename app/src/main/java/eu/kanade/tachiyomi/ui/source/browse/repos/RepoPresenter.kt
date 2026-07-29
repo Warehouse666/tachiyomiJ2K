@@ -22,17 +22,17 @@ class RepoPresenter(
     private var scope = CoroutineScope(Job() + Dispatchers.Default)
 
     /**
-     * List containing repos.
+     * List containing repos, keyed by their literal index URL (whatever the user entered or a
+     * repo.json pointer resolved to) - no filename or path pattern is assumed.
      */
     private var repos: Set<String>
         get() =
             preferences
                 .extensionRepos()
                 .get()
-                .map { "$it/index.pb" }
                 .sorted()
                 .toSet()
-        set(value) = preferences.extensionRepos().set(value.map { it.toRepoBaseUrl() }.toSet())
+        set(value) = preferences.extensionRepos().set(value)
 
     /**
      * Called when the presenter is created.
@@ -45,15 +45,45 @@ class RepoPresenter(
         }
     }
 
+    /**
+     * Re-fetches each of [reposToRefresh] so its cached display metadata (name/website/
+     * Discord) is current. Metadata is only ever populated as a side effect of actually
+     * fetching a repo's index, so a newly added/renamed repo would otherwise sit with no
+     * metadata until some unrelated extension sync happened to run - see
+     * [createOrRenameRepo]. Also self-heals a repo still stored in the old bare-base-URL
+     * format. Not run on every screen open: any repo already added gets the same treatment
+     * as a side effect of the normal extension-list sync, same as mihon relies on its own
+     * background refresh rather than eagerly refetching every store when this screen opens.
+     *
+     * Doesn't touch the UI itself - callers decide when to render, since [createOrRenameRepo]
+     * wants this done before its row's loading spinner stops, not as a second visible update
+     * after it already showed the bare URL.
+     */
+    private suspend fun refreshRepoMetadata(reposToRefresh: Set<String>) {
+        for (repo in reposToRefresh) {
+            try {
+                val resolvedUrl = ExtensionApi().validateRepo(repo)
+                if (resolvedUrl != repo) {
+                    repos -= repo
+                    repos += resolvedUrl
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Throwable) {
+                // Repo is unreachable right now; leave it as-is and try again next visit.
+            }
+        }
+    }
+
     fun getReposWithCreate(): List<RepoItem> {
-        val metadataByBaseUrl = preferences.extensionRepoMetadata().get()
+        val metadataByUrl = preferences.extensionRepoMetadata().get()
         return (listOf(CREATE_REPO_ITEM) + repos).map { repo ->
-            RepoItem(repo, if (repo == CREATE_REPO_ITEM) null else metadataByBaseUrl[repo.toRepoBaseUrl()])
+            RepoItem(repo, if (repo == CREATE_REPO_ITEM) null else metadataByUrl[repo])
         }
     }
 
     fun getRepoUrl(repo: String): String {
-        val website = preferences.extensionRepoMetadata().get()[repo.toRepoBaseUrl()]?.website
+        val website = preferences.extensionRepoMetadata().get()[repo]?.website
         if (!website.isNullOrBlank()) return website
 
         return githubRepoRegex
@@ -64,13 +94,13 @@ class RepoPresenter(
             } ?: repo
     }
 
-    fun getDiscordUrl(repo: String): String? = preferences.extensionRepoMetadata().get()[repo.toRepoBaseUrl()]?.discordUrl
-
-    private fun String.toRepoBaseUrl(): String = removeSuffix("/index.pb").removeSuffix("/index.min.json")
+    fun getDiscordUrl(repo: String): String? = preferences.extensionRepoMetadata().get()[repo]?.discordUrl
 
     /**
-     * Returns true if the URL is shaped like a repo index URL. A fast, offline check run
-     * before [createOrRenameRepo] bothers hitting the network.
+     * Returns true if the URL is at least shaped like a URL. Deliberately doesn't require any
+     * particular filename or path pattern - a repo's index can be served from anywhere, and
+     * the real validation happens in [createOrRenameRepo] by actually fetching it. This is
+     * just a fast, offline check to catch obvious typos before bothering the network.
      */
     fun isValidRepoFormat(name: String): Boolean = name.matches(repoRegex)
 
@@ -101,12 +131,18 @@ class RepoPresenter(
 
         scope.launch(Dispatchers.IO) {
             try {
-                ExtensionApi().validateRepo(newName.toRepoBaseUrl())
+                val resolvedUrl = ExtensionApi().validateRepo(newName)
                 oldRepo?.let {
                     repos -= it
-                    preferences.extensionRepoMetadata().set(preferences.extensionRepoMetadata().get() - it.toRepoBaseUrl())
+                    preferences.extensionRepoMetadata().set(preferences.extensionRepoMetadata().get() - it)
                 }
-                repos += newName
+                repos += resolvedUrl
+                // validateRepo() above already fetched and saved metadata for resolvedUrl, but
+                // re-fetching it fresh (mirroring what getRepos() does) is what reliably
+                // surfaces it. Done before onResult so the row keeps its loading spinner
+                // through this too, instead of showing the bare URL first and updating again
+                // once metadata lands.
+                refreshRepoMetadata(setOf(resolvedUrl))
                 withContext(Dispatchers.Main) { onResult(true) }
             } catch (e: CancellationException) {
                 throw e
@@ -127,7 +163,7 @@ class RepoPresenter(
     fun deleteRepo(repo: String?) {
         val safeRepo = repo ?: return
         repos -= safeRepo
-        preferences.extensionRepoMetadata().set(preferences.extensionRepoMetadata().get() - safeRepo.toRepoBaseUrl())
+        preferences.extensionRepoMetadata().set(preferences.extensionRepoMetadata().get() - safeRepo)
         controller.updateRepos()
     }
 
@@ -137,7 +173,7 @@ class RepoPresenter(
     private fun repoExists(name: String): Boolean = repos.any { it.equals(name, true) }
 
     companion object {
-        private val repoRegex = """^https://.*/index\.(min\.json|pb)$""".toRegex()
+        private val repoRegex = """^https://\S+$""".toRegex()
         private val githubRepoRegex = """https://(?:raw.githubusercontent.com|github.com)/(.+?)/(.+?)/.+""".toRegex()
         const val CREATE_REPO_ITEM = "create_repo"
     }

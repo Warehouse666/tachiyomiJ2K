@@ -368,7 +368,7 @@
 
     <!-- Extension Stores -->
     <string name="action_add_repo">Add store</string>
-    <string name="action_add_repo_message">Add additional stores to Tachiyomi. This should be a URL that ends with \"index.pb\" or \"index.min.json\"</string>
+    <string name="action_add_repo_message">Add additional stores to Tachiyomi. This should be the URL to the store\'s index file</string>
     <string name="extension_repos">Extension stores</string>
     <plurals name="num_repos">
         <item quantity="one">%d store</item>

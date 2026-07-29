@@ -338,8 +338,9 @@ class PreferencesHelper(
 
     /**
      * Cached display metadata (proper name, website, discord) for extension repos, keyed by
-     * the repo's base URL. Populated as a side effect whenever a repo's store metadata is
-     * fetched, since the legacy index.min.json format carries none of this itself.
+     * the repo's literal index URL (exactly as stored in [extensionRepos]). Populated as a
+     * side effect whenever a repo's store metadata is fetched, since the legacy
+     * index.min.json format carries none of this itself.
      */
     fun extensionRepoMetadata() =
         flowPrefs.getObject(
