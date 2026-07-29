@@ -34,7 +34,7 @@ class ReaderSlider
             bottom: Int,
         ) {
             super.onLayout(changed, left, top, right, bottom)
-            if (Build.VERSION.SDK_INT >= 29 && changed) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && changed) {
                 boundingBox.set(left, top, right, bottom)
                 systemGestureExclusionRects = exclusions
             }

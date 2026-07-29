@@ -286,7 +286,7 @@ class ReaderFilterView
             bottom: Int,
         ) {
             super.onLayout(changed, left, top, right, bottom)
-            if (Build.VERSION.SDK_INT >= 29 && changed) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && changed) {
                 with(binding.brightnessSlider) {
                     boundingBox.set(this.left, this.top, this.right, this.bottom)
                     this.systemGestureExclusionRects = exclusions
