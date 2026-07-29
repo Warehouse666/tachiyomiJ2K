@@ -2,7 +2,6 @@ package eu.kanade.tachiyomi.ui.more
 
 import android.app.Dialog
 import android.content.res.ColorStateList
-import android.graphics.Color
 import android.view.ViewGroup
 import androidx.core.graphics.ColorUtils
 import androidx.core.text.buildSpannedString
@@ -134,7 +133,6 @@ class OverflowDialog(
             marginEnd = 14.dpToPx + insets.end(context.resources.isLTR)
         }
         window?.let { window ->
-            window.navigationBarColor = Color.TRANSPARENT
             window.decorView.fitsSystemWindows = true
             val wic = WindowInsetsControllerCompat(window, window.decorView)
             wic.isAppearanceLightStatusBars = false

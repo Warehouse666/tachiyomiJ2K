@@ -79,16 +79,14 @@
         <item name="actionBarTintColor">?attr/colorOnBackground</item>
         <item name="tabBarIconColor">?attr/colorSecondary</item>
         <item name="tabBarIconInactive">@color/colorPrimaryInactive</item>
-        <!-- No android:statusBarColor: the gradient status bar view (main_activity.xml)
-             already paints this area on top of the window, and Android 15+ forces the
-             system status bar transparent regardless -->
-        <item name="android:navigationBarColor">#B3000000</item>
+        <item name="android:navigationBarColor">#00000000</item>
+        <item name="android:statusBarColor">#00000000</item>
         <item name="android:colorEdgeEffect">?attr/colorSecondary</item>
         <item name="tabHighlightBackground">@color/secondary_alpha</item>
         <item name="mainActionBarSize">56dp</item>
 
         <item name="android:windowLightStatusBar">@bool/isLightMode</item>
-        <item name="android:windowLightNavigationBar" tools:targetApi="27">@bool/isLightMode</item>
+        <item name="android:windowLightNavigationBar">@bool/isLightMode</item>
     </style>
 
     <style name="Theme.Tachiyomi" parent="Theme.Base"/>
@@ -228,10 +226,10 @@
     <!--===============-->
     <style name="Theme.Splash" parent="Theme.Tachiyomi">
         <item name="android:windowBackground">@drawable/splash_background</item>
-        <item name="android:statusBarColor">@color/splashBackground</item>
-        <item name="android:navigationBarColor">@color/splashBackground</item>
+        <item name="android:statusBarColor">#00000000</item>
+        <item name="android:navigationBarColor">#00000000</item>
         <item name="android:windowLightStatusBar">false</item>
-        <item name="android:windowLightNavigationBar" tools:targetApi="27">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
     </style>
 
     <style name="Theme.OSS" parent="Theme.Tachiyomi.Monet">

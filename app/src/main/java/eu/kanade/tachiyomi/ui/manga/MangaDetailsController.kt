@@ -333,13 +333,11 @@ class MangaDetailsController :
                 (colorToUse ?: manga?.vibrantCoverColor)?.let { color ->
                     val newColor =
                         makeColorFrom(color, context.getResourceColor(R.attr.colorPrimaryVariant))
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1 || context.isInNightMode()) {
-                        activityBinding?.navBar?.backgroundColor =
-                            ColorUtils.setAlphaComponent(
-                                newColor,
-                                Color.alpha(activityBinding?.navBar?.backgroundColor ?: Color.BLACK),
-                            )
-                    }
+                    activityBinding?.navBar?.backgroundColor =
+                        ColorUtils.setAlphaComponent(
+                            newColor,
+                            Color.alpha(activityBinding?.navBar?.backgroundColor ?: Color.BLACK),
+                        )
                     newColor
                 }
             } else {

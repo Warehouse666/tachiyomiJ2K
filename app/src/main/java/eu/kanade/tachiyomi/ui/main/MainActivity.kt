@@ -117,7 +117,6 @@ import eu.kanade.tachiyomi.util.system.hasSideNavBar
 import eu.kanade.tachiyomi.util.system.ignoredDisplayCutout
 import eu.kanade.tachiyomi.util.system.ignoredSystemInsets
 import eu.kanade.tachiyomi.util.system.isBottomTappable
-import eu.kanade.tachiyomi.util.system.isInNightMode
 import eu.kanade.tachiyomi.util.system.isLTR
 import eu.kanade.tachiyomi.util.system.isTablet
 import eu.kanade.tachiyomi.util.system.launchIO
@@ -270,6 +269,13 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
             },
         )
         window.sharedElementsUseOverlay = false
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O_MR1) {
+            // needed as the xml does not work for this
+            val wic = WindowInsetsControllerCompat(window, window.decorView)
+            val isLightMode = resources.getBoolean(R.bool.isLightMode)
+            wic.isAppearanceLightStatusBars = isLightMode
+            wic.isAppearanceLightNavigationBars = isLightMode
+        }
 
         super.onCreate(savedInstanceState)
         backPressedCallback =
@@ -915,19 +921,6 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
         if (insets == null) return
         binding.navBar.backgroundColor =
             when {
-                Build.VERSION.SDK_INT < Build.VERSION_CODES.O_MR1 -> {
-                    // basically if in landscape on a phone, solid black bar
-                    // otherwise translucent dark theme or black if light theme
-                    when {
-                        insets.hasSideNavBar() -> Color.BLACK
-                        isInNightMode() ->
-                            ColorUtils.setAlphaComponent(
-                                getResourceColor(R.attr.colorPrimaryVariant),
-                                179,
-                            )
-                        else -> Color.argb(179, 0, 0, 0)
-                    }
-                }
                 // if the android q+ device has gesture nav, transparent nav bar
                 // this is here in case some crazy with a notch uses landscape
                 insets.isBottomTappable() -> {
@@ -945,8 +938,6 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
                     )
                 }
             }
-        window.navigationBarColor = Color.TRANSPARENT
-        window.statusBarColor = Color.TRANSPARENT
     }
 
     override fun startSupportActionMode(callback: ActionMode.Callback): ActionMode? {

@@ -23,6 +23,7 @@ import android.os.Bundle
 import android.text.TextUtils
 import android.text.style.DynamicDrawableSpan
 import android.text.style.ImageSpan
+import android.view.GestureDetector
 import android.view.Gravity
 import android.view.HapticFeedbackConstants
 import android.view.KeyEvent
@@ -42,19 +43,21 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.content.ContextCompat
+import androidx.core.content.withStyledAttributes
 import androidx.core.graphics.ColorUtils
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.text.buildSpannedString
 import androidx.core.text.inSpans
 import androidx.core.transition.addListener
-import androidx.core.view.GestureDetectorCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsCompat.Type.displayCutout
+import androidx.core.view.WindowInsetsCompat.Type.navigationBars
 import androidx.core.view.WindowInsetsCompat.Type.statusBars
 import androidx.core.view.WindowInsetsCompat.Type.systemBars
+import androidx.core.view.WindowInsetsCompat.Type.tappableElement
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.children
 import androidx.core.view.isInvisible
@@ -120,7 +123,6 @@ import eu.kanade.tachiyomi.util.system.getResourceColor
 import eu.kanade.tachiyomi.util.system.hasSideNavBar
 import eu.kanade.tachiyomi.util.system.ignoredSystemInsets
 import eu.kanade.tachiyomi.util.system.isBottomTappable
-import eu.kanade.tachiyomi.util.system.isInNightMode
 import eu.kanade.tachiyomi.util.system.isLTR
 import eu.kanade.tachiyomi.util.system.isTablet
 import eu.kanade.tachiyomi.util.system.launchIO
@@ -132,8 +134,8 @@ import eu.kanade.tachiyomi.util.system.rootWindowInsetsCompat
 import eu.kanade.tachiyomi.util.system.spToPx
 import eu.kanade.tachiyomi.util.system.toast
 import eu.kanade.tachiyomi.util.system.withUIContext
+import eu.kanade.tachiyomi.util.view.backgroundColor
 import eu.kanade.tachiyomi.util.view.collapse
-import eu.kanade.tachiyomi.util.view.compatToolTipText
 import eu.kanade.tachiyomi.util.view.doOnApplyWindowInsetsCompat
 import eu.kanade.tachiyomi.util.view.hide
 import eu.kanade.tachiyomi.util.view.isCollapsed
@@ -164,6 +166,7 @@ import java.util.Locale
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.roundToInt
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 /**
@@ -305,9 +308,9 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
         super.onCreate(savedInstanceState)
         binding = ReaderActivityBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        val a = obtainStyledAttributes(intArrayOf(android.R.attr.windowLightStatusBar))
-        themeLightStatusBars = a.getBoolean(0, false)
-        a.recycle()
+        withStyledAttributes(null, intArrayOf(android.R.attr.windowLightStatusBar)) {
+            themeLightStatusBars = getBoolean(0, false)
+        }
         setCutoutMode()
 
         wic.isAppearanceLightStatusBars = themeLightStatusBars
@@ -711,9 +714,9 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
                 leftPageText.text = rightPageText.text
                 rightPageText.text = pageText
 
-                val tooltip = leftChapter.compatToolTipText
-                leftChapter.compatToolTipText = rightChapter.compatToolTipText
-                rightChapter.compatToolTipText = tooltip
+                val tooltip = leftChapter.tooltipText
+                leftChapter.tooltipText = rightChapter.tooltipText
+                rightChapter.tooltipText = tooltip
             }
         }
     }
@@ -736,7 +739,7 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
                     binding.chaptersSheet.root.sheetBehavior
                         ?.peekHeight ?: 0
                 ) - 12.dpToPx
-            val newHeight = (availableHeight * heightPercent / 100).coerceAtLeast(0)
+            val newHeight = (availableHeight * heightPercent / 100).coerceAtLeast(200.dpToPx)
             binding.readerNav.root.updateLayoutParams<FrameLayout.LayoutParams> {
                 if (height != newHeight) height = newHeight
             }
@@ -770,7 +773,7 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
                 drawable?.start()
                 lastCropRes = drawableRes
             }
-            compatToolTipText =
+            tooltipText =
                 getString(
                     if (enabled) {
                         R.string.remove_crop
@@ -813,24 +816,18 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
 
     private fun updateSums() {
         with(binding.chaptersSheet) {
-            var sum = 1f
-            listOf(
-                chaptersButton,
-                webviewButton,
-                readingMode,
-                rotationSheetButton,
-                cropBordersSheetButton,
-                doublePage,
-                shiftPageButton,
-            ).forEachIndexed { index, button ->
-//                if (button.isVisible && button.parent == null) {
-//                    buttonGroup.addView(button, index)
-//                } else if (!button.isVisible) {
-//                    buttonGroup.removeView(button)
-//                }
-                sum += if (button.isVisible) 1f else 0f
-            }
-            buttonGroup.weightSum = sum
+            val visibleButtons =
+                listOf(
+                    chaptersButton,
+                    webviewButton,
+                    readingMode,
+                    rotationSheetButton,
+                    cropBordersSheetButton,
+                    doublePage,
+                    shiftPageButton,
+                ).count { it.isVisible }
+            // Plus one for the always visible settings button
+            buttonGroup.weightSum = 1f + visibleButtons
         }
     }
 
@@ -984,7 +981,6 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
                 200,
             )
         binding.appBar.setBackgroundColor(primaryColor)
-        window.statusBarColor = Color.TRANSPARENT
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         binding.toolbar.navigationIcon?.setTint(getResourceColor(R.attr.actionBarTintColor))
         binding.toolbar.setNavigationOnClickListener {
@@ -1028,7 +1024,7 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
             }
 
             with(rotationSheetButton) {
-                compatToolTipText = getString(R.string.rotation)
+                tooltipText = getString(R.string.rotation)
 
                 setOnClickListener {
                     popupMenu(
@@ -1117,7 +1113,7 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
             false
         }
         val readerNavGestureDetector = ReaderNavGestureDetector(this)
-        val gestureDetector = GestureDetectorCompat(this, readerNavGestureDetector)
+        val gestureDetector = GestureDetector(this, readerNavGestureDetector)
         with(binding.readerNav) {
             binding.readerNav.pageSeekbar.addOnSliderTouchListener(
                 object : Slider.OnSliderTouchListener {
@@ -1164,8 +1160,7 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
                 val prevValue = (viewer as? PagerViewer)?.pager?.currentItem ?: -1
                 moveToPageIndex(value.roundToInt())
                 val newValue = (viewer as? PagerViewer)?.pager?.currentItem ?: -1
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1 &&
-                    ((prevValue > -1 && newValue != prevValue) || viewer !is PagerViewer)
+                if (((prevValue > -1 && newValue != prevValue) || viewer !is PagerViewer)
                 ) {
                     binding.readerNav.pageSeekbar.performHapticFeedback(HapticFeedbackConstants.TEXT_HANDLE_MOVE)
                 }
@@ -1208,7 +1203,7 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
         var firstPass = true
         binding.readerLayout.doOnApplyWindowInsetsCompat { v, insets, _ ->
             setNavColor(insets)
-            val systemInsets = insets.ignoredSystemInsets
+            val systemInsets = insets.getInsetsIgnoringVisibility(systemBars())
             val currentOrientation = resources.configuration.orientation
             val isLandscapeFully =
                 currentOrientation == Configuration.ORIENTATION_LANDSCAPE && preferences.landscapeCutoutBehavior().get() == 1
@@ -1230,7 +1225,28 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
             }
             wic.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_DEFAULT
             if (!(fullscreen && !isInMultiWindowMode) && sheetManageNavColor) {
-                window.navigationBarColor = getResourceColor(R.attr.colorSurface)
+                binding.navBar.backgroundColor = getResourceColor(R.attr.colorSurface)
+            }
+            binding.navBar.isVisible = insets.isVisible(navigationBars())
+            if (insets.hasSideNavBar()) {
+                val tappableElement = insets.getInsetsIgnoringVisibility(tappableElement())
+                val navOnLeft = tappableElement.left > tappableElement.right
+                binding.navBar.updateLayoutParams<CoordinatorLayout.LayoutParams> {
+                    val newGravity = if (navOnLeft) Gravity.LEFT else Gravity.RIGHT
+                    if (gravity != newGravity) {
+                        gravity = newGravity
+                        height = ViewGroup.LayoutParams.MATCH_PARENT
+                    }
+                    width = if (navOnLeft) tappableElement.left else tappableElement.right
+                }
+            } else {
+                binding.navBar.updateLayoutParams<CoordinatorLayout.LayoutParams> {
+                    if (gravity != Gravity.BOTTOM) {
+                        gravity = Gravity.BOTTOM
+                        width = ViewGroup.LayoutParams.MATCH_PARENT
+                    }
+                    height = insets.getInsetsIgnoringVisibility(tappableElement()).bottom
+                }
             }
             binding.appBar.updateLayoutParams<ViewGroup.MarginLayoutParams> {
                 leftMargin = systemInsets.left
@@ -1329,35 +1345,26 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
     }
 
     fun setNavColor(insets: WindowInsetsCompat) {
+        // Status bar is always transparent; navigationBarColor is deprecated on API 35+ (edge-to-edge
+        // is enforced there and this setter is a no-op), kept only so pre-35 devices don't show the
+        // system's default opaque nav bar behind our transparent content. The actual nav bar scrim is
+        // drawn by binding.navBar instead, which works consistently across all API levels.
         sheetManageNavColor =
             when {
                 isInMultiWindowMode -> {
-                    window.statusBarColor = getResourceColor(R.attr.colorPrimaryVariant)
-                    window.navigationBarColor = getResourceColor(R.attr.colorPrimaryVariant)
+                    binding.navBar.backgroundColor = getResourceColor(R.attr.colorPrimaryVariant)
                     false
                 }
-                Build.VERSION.SDK_INT < Build.VERSION_CODES.O_MR1 -> {
-                    // basically if in landscape on a phone
-                    // For lollipop, draw opaque nav bar
-                    window.navigationBarColor =
-                        when {
-                            insets.hasSideNavBar() -> Color.BLACK
-                            isInNightMode() -> {
-                                ColorUtils.setAlphaComponent(
-                                    getResourceColor(R.attr.colorPrimaryVariant),
-                                    179,
-                                )
-                            }
-                            else -> Color.argb(179, 0, 0, 0)
-                        }
-                    !insets.hasSideNavBar()
-                }
                 insets.isBottomTappable() -> {
-                    window.navigationBarColor = Color.TRANSPARENT
+                    binding.navBar.backgroundColor = Color.TRANSPARENT
                     false
                 }
                 insets.hasSideNavBar() -> {
-                    window.navigationBarColor = getResourceColor(R.attr.colorSurface)
+                    binding.navBar.backgroundColor =
+                        ColorUtils.setAlphaComponent(
+                            getResourceColor(R.attr.colorSurface),
+                            200,
+                        )
                     false
                 }
                 // if in portrait with 2/3 button mode, translucent nav bar
@@ -1439,7 +1446,7 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
                     .isExpanded() &&
                 sheetManageNavColor
             ) {
-                window.navigationBarColor = Color.TRANSPARENT
+                binding.navBar.backgroundColor = Color.TRANSPARENT
             }
             if (animate && oldVisibility != menuVisible) {
                 if (!menuTemporarilyVisible) {
@@ -1547,11 +1554,11 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
         binding.viewerContainer.addView(newViewer.getView())
 
         if (newViewer is R2LPagerViewer && !binding.readerNav.pageSeekbar.isVertical) {
-            binding.readerNav.leftChapter.compatToolTipText = getString(R.string.next_chapter)
-            binding.readerNav.rightChapter.compatToolTipText = getString(R.string.previous_chapter)
+            binding.readerNav.leftChapter.tooltipText = getString(R.string.next_chapter)
+            binding.readerNav.rightChapter.tooltipText = getString(R.string.previous_chapter)
         } else {
-            binding.readerNav.leftChapter.compatToolTipText = getString(R.string.previous_chapter)
-            binding.readerNav.rightChapter.compatToolTipText = getString(R.string.next_chapter)
+            binding.readerNav.leftChapter.tooltipText = getString(R.string.previous_chapter)
+            binding.readerNav.rightChapter.tooltipText = getString(R.string.next_chapter)
         }
 
         if (newViewer is PagerViewer) {
@@ -1737,7 +1744,7 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
         val list = listOfNotNull(getTitleTextView(), getSubtitleTextView())
         if (list.isNotEmpty()) {
             scope.launchUI {
-                delay(1000)
+                delay(1.seconds)
                 if (menuVisible) {
                     list.forEach { it.isSelected = true }
                 }
@@ -1776,7 +1783,7 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
             isLoading = true
         } else {
             scope.launchIO {
-                delay(100)
+                delay(100.milliseconds)
                 isLoading = false
             }
         }
@@ -2159,13 +2166,9 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
                     }
                 }
             if (sheetManageNavColor) {
-                window.navigationBarColor =
+                binding.navBar.backgroundColor =
                     ColorUtils.setAlphaComponent(
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1 || isInNightMode()) {
-                            getResourceColor(R.attr.colorSurface)
-                        } else {
-                            Color.BLACK
-                        },
+                        getResourceColor(R.attr.colorSurface),
                         if (binding.root.rootWindowInsetsCompat?.hasSideNavBar() == true) {
                             255
                         } else {
@@ -2278,7 +2281,7 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
                 .asFlow()
                 .drop(1)
                 .onEach {
-                    delay(250)
+                    delay(250.milliseconds)
                     setOrientation(viewModel.getMangaOrientationType())
                 }.launchIn(scope)
 
@@ -2365,7 +2368,7 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
                 preferences
                     .customBrightnessValue()
                     .asFlow()
-                    .sample(100)
+                    .sample(100.milliseconds)
                     .onEach { setCustomBrightnessValue(it) }
                     .launchIn(scope)
             } else {
@@ -2381,7 +2384,7 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
                 preferences
                     .colorFilterValue()
                     .asFlow()
-                    .sample(100)
+                    .sample(100.milliseconds)
                     .onEach { setColorFilterValue(it) }
                     .launchIn(scope)
             } else {

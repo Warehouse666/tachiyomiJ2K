@@ -3,7 +3,6 @@ package eu.kanade.tachiyomi.ui.reader.chapter
 import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Color
-import android.os.Build
 import android.util.AttributeSet
 import android.view.View
 import android.widget.LinearLayout
@@ -23,8 +22,8 @@ import eu.kanade.tachiyomi.ui.reader.ReaderActivity
 import eu.kanade.tachiyomi.ui.reader.ReaderViewModel
 import eu.kanade.tachiyomi.util.system.dpToPx
 import eu.kanade.tachiyomi.util.system.getResourceColor
-import eu.kanade.tachiyomi.util.system.isInNightMode
 import eu.kanade.tachiyomi.util.system.launchUI
+import eu.kanade.tachiyomi.util.view.backgroundColor
 import eu.kanade.tachiyomi.util.view.collapse
 import eu.kanade.tachiyomi.util.view.expand
 import eu.kanade.tachiyomi.util.view.isCollapsed
@@ -59,17 +58,10 @@ class ReaderChapterSheet
         fun setup(activity: ReaderActivity) {
             viewModel = activity.viewModel
             val fullPrimary = activity.getResourceColor(R.attr.colorSurface)
-
             val primary = ColorUtils.setAlphaComponent(fullPrimary, 200)
-
-            val hasLightNav = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1 || activity.isInNightMode()
             val navPrimary =
                 ColorUtils.setAlphaComponent(
-                    if (hasLightNav) {
-                        fullPrimary
-                    } else {
-                        Color.BLACK
-                    },
+                    fullPrimary,
                     200,
                 )
             sheetBehavior = BottomSheetBehavior.from(this)
@@ -85,7 +77,7 @@ class ReaderChapterSheet
                 binding.chapterRecycler.alpha = if (sheetBehavior.isExpanded()) 1f else 0f
                 binding.chapterRecycler.isClickable = sheetBehavior.isExpanded()
                 binding.chapterRecycler.isFocusable = sheetBehavior.isExpanded()
-                val canShowNav = viewModel.getCurrentChapter()?.pages?.size ?: 1 > 1
+                val canShowNav = (viewModel.getCurrentChapter()?.pages?.size ?: 1) > 1
                 if (canShowNav) {
                     activity.binding.readerNav.root.isVisible = sheetBehavior.isCollapsed()
                 }
@@ -105,8 +97,8 @@ class ReaderChapterSheet
                             ColorStateList.valueOf(lerpColor(primary, fullPrimary, trueProgress))
                         binding.chapterRecycler.alpha = trueProgress
                         if (activity.sheetManageNavColor && progress > 0f) {
-                            activity.window.navigationBarColor =
-                                lerpColor(ColorUtils.setAlphaComponent(navPrimary, if (hasLightNav) 0 else 179), navPrimary, trueProgress)
+                            activity.binding.navBar.backgroundColor =
+                                lerpColor(ColorUtils.setAlphaComponent(navPrimary, 0), navPrimary, trueProgress)
                         }
                         if (lastScale != 1f && scaleY != 1f) {
                             val scaleProgress = ((1f - progress) * (1f - lastScale)) + lastScale
@@ -148,7 +140,7 @@ class ReaderChapterSheet
                             activity.binding.readerNav.root.alpha = 0f
                             binding.chapterRecycler.alpha = 1f
                             if (activity.sheetManageNavColor) {
-                                activity.window.navigationBarColor =
+                                activity.binding.navBar.backgroundColor =
                                     navPrimary
                             }
                         }

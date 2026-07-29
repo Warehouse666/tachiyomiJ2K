@@ -1,6 +1,5 @@
 package eu.kanade.tachiyomi.ui.library
 
-import android.os.Build
 import android.view.GestureDetector
 import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
@@ -49,14 +48,12 @@ class LibraryHeaderGestureDetector(
             header.itemView.parent?.requestDisallowInterceptTouchEvent(true)
             header.locked = true
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
-            if (!vibrated && abs(binding.categoryHeaderLayout.translationX) >= 40f.dpToPx) {
-                header.itemView.performHapticFeedback(HapticFeedbackConstants.TEXT_HANDLE_MOVE)
-                vibrated = true
-            } else if (vibrated && abs(binding.categoryHeaderLayout.translationX) < 40f.dpToPx) {
-                header.itemView.performHapticFeedback(HapticFeedbackConstants.TEXT_HANDLE_MOVE)
-                vibrated = false
-            }
+        if (!vibrated && abs(binding.categoryHeaderLayout.translationX) >= 40f.dpToPx) {
+            header.itemView.performHapticFeedback(HapticFeedbackConstants.TEXT_HANDLE_MOVE)
+            vibrated = true
+        } else if (vibrated && abs(binding.categoryHeaderLayout.translationX) < 40f.dpToPx) {
+            header.itemView.performHapticFeedback(HapticFeedbackConstants.TEXT_HANDLE_MOVE)
+            vibrated = false
         }
         return super.onScroll(e1, e2, distanceX, distanceY)
     }

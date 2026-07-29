@@ -8,7 +8,6 @@ import android.content.ClipData
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.graphics.Color
 import android.graphics.Rect
 import android.graphics.RenderEffect
 import android.graphics.Shader
@@ -335,7 +334,6 @@ class FullCoverDialog(
         }
 
         window?.let { window ->
-            window.navigationBarColor = Color.TRANSPARENT
             window.decorView.fitsSystemWindows = true
             val wic = WindowInsetsControllerCompat(window, window.decorView)
             wic.isAppearanceLightStatusBars = false
