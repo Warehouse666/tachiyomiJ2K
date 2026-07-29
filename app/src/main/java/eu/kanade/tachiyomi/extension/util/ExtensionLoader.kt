@@ -7,7 +7,6 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.core.content.pm.PackageInfoCompat
-import dalvik.system.PathClassLoader
 import eu.kanade.tachiyomi.BuildConfig
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.extension.model.Extension
@@ -16,6 +15,7 @@ import eu.kanade.tachiyomi.source.CatalogueSource
 import eu.kanade.tachiyomi.source.Source
 import eu.kanade.tachiyomi.source.SourceFactory
 import eu.kanade.tachiyomi.util.lang.Hash
+import eu.kanade.tachiyomi.util.system.ChildFirstPathClassLoader
 import eu.kanade.tachiyomi.util.system.withIOContext
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -372,7 +372,7 @@ internal object ExtensionLoader {
             return LoadResult.Error
         }
 
-        val classLoader = PathClassLoader(appInfo.sourceDir, null, context.classLoader)
+        val classLoader = ChildFirstPathClassLoader(appInfo.sourceDir, null, context.classLoader)
 
         val sources =
             appInfo.metaData
