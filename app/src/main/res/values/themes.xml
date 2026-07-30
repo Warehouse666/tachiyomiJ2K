@@ -86,7 +86,7 @@
         <item name="mainActionBarSize">56dp</item>
 
         <item name="android:windowLightStatusBar">@bool/isLightMode</item>
-        <item name="android:windowLightNavigationBar">@bool/isLightMode</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="27">@bool/isLightMode</item>
     </style>
 
     <style name="Theme.Tachiyomi" parent="Theme.Base"/>
@@ -229,7 +229,7 @@
         <item name="android:statusBarColor">#00000000</item>
         <item name="android:navigationBarColor">#00000000</item>
         <item name="android:windowLightStatusBar">false</item>
-        <item name="android:windowLightNavigationBar">false</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="27">false</item>
     </style>
 
     <style name="Theme.OSS" parent="Theme.Tachiyomi.Monet">
