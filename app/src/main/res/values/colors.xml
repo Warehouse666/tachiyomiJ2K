@@ -58,7 +58,7 @@
     <color name="divider">@color/md_black_1000_12</color>
     <color name="download">#056f00</color>
 
-    <color name="background">@color/md_grey_50</color>
+    <color name="background">#F2F2F2</color>
     <color name="dialog">@color/md_white_1000</color>
     <color name="splashIcon">@color/md_black_1000</color>
     <color name="colorOnSurface">@color/md_black_1000</color>
@@ -83,8 +83,6 @@
 
     <!-- Material Design Colors -->
     <color name="md_black_1000">#000000</color>
-
-    <color name="md_grey_50">#FAFAFA</color>
 
     <color name="md_blue_A400">#2979FF</color>
 
@@ -120,7 +118,7 @@
     <color name="primaryInverseTealSapphire">#a1e1db</color>
     <color name="primaryVariantTealSapphire">#d4f1e6</color>
     <color name="onPrimaryTealSapphire">@color/onPrimaryTachiyomi</color>
-    <color name="backgroundTealSapphire">#f0f7f7</color>
+    <color name="backgroundTealSapphire">#E8F2F2</color>
     <color name="colorOnBackgroundTealSapphire">#DE072926</color>
     <color name="tabBarIconColorTealSapphire">#DE072927</color>
     <color name="appBarTextTealSapphire">#DE0a302e</color>
