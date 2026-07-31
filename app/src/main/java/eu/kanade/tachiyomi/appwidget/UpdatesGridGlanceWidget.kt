@@ -6,6 +6,8 @@ import android.graphics.Bitmap
 import android.os.Build
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
+import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.glance.GlanceId
@@ -13,6 +15,7 @@ import androidx.glance.GlanceModifier
 import androidx.glance.ImageProvider
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetManager
+import androidx.glance.appwidget.PreviewSizeMode
 import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.appWidgetBackground
 import androidx.glance.appwidget.provideContent
@@ -51,6 +54,11 @@ class UpdatesGridGlanceWidget : GlanceAppWidget() {
 
     override val sizeMode = SizeMode.Exact
 
+    // SizeMode.Exact isn't a valid PreviewSizeMode (there's no live AppWidgetManager size to be
+    // exact about for a one-shot preview render), so pin the generated preview to a size roughly
+    // matching this widget's targetCellWidth/targetCellHeight (4x2) in the provider info XML.
+    override val previewSizeMode: PreviewSizeMode = SizeMode.Responsive(setOf(PreviewSize))
+
     override suspend fun provideGlance(
         context: Context,
         id: GlanceId,
@@ -64,6 +72,39 @@ class UpdatesGridGlanceWidget : GlanceAppWidget() {
                 val data by produceState<List<Pair<Long, Bitmap?>>?>(null, rawMangaList) {
                     value = loadCovers(decodeMangaList(rawMangaList))
                 }
+                UpdatesWidget(data)
+            }
+        }
+    }
+
+    /**
+     * Generates a one-shot preview for the Android 15+ widget picker (see [setWidgetPreviews]).
+     * Unlike [provideGlance], this composition never recomposes, so data must be loaded before
+     * calling [provideContent] rather than observed reactively.
+     */
+    override suspend fun providePreview(
+        context: Context,
+        widgetCategory: Int,
+    ) {
+        val useLock = preferences.useBiometrics().get()
+        val data =
+            if (useLock) {
+                null
+            } else {
+                val (rowCount, columnCount) = PreviewSize.calculateRowAndColumnCount()
+                val cellCount = minOf(rowCount * columnCount, maxCoversForMemoryBudget())
+                val processList = RecentsPresenter.getRecentManga(customAmount = min(50, cellCount))
+                loadCovers(
+                    processList
+                        .sortedByDescending { it.second }
+                        .take(cellCount)
+                        .mapNotNull { (manga, _) -> manga.takeIf { it.id != null } },
+                )
+            }
+        provideContent {
+            if (useLock) {
+                LockedWidget()
+            } else {
                 UpdatesWidget(data)
             }
         }
@@ -166,6 +207,10 @@ class UpdatesGridGlanceWidget : GlanceAppWidget() {
 
     companion object {
         private val MangaListKey = stringPreferencesKey("recent_manga_list")
+
+        // Roughly matches targetCellWidth=4 / targetCellHeight=2 from the widget's provider info
+        // XML, using the same 64/95 dp-per-cell divisors as calculateRowAndColumnCount.
+        private val PreviewSize = DpSize(width = 256.dp, height = 190.dp)
 
         // Conservative budget for this widget's own decoded covers, well under the OS's observed
         // per-widget RemoteViews bitmap ceiling (~13MB on one test device) to leave headroom for

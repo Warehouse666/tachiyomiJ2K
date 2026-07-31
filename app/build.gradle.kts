@@ -135,7 +135,7 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview:1.11.4")
     debugImplementation("androidx.compose.ui:ui-tooling:1.11.4")
     implementation("com.google.accompanist:accompanist-webview:0.36.0")
-    implementation("androidx.glance:glance-appwidget:1.1.1")
+    implementation("androidx.glance:glance-appwidget:1.2.0-rc01")
 
     // Modified dependencies
     implementation("com.github.jays2kings:subsampling-scale-image-view:7bb1a05")
