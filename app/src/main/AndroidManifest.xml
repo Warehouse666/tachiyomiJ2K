@@ -180,7 +180,7 @@
 
                 <data
                     android:host="anilist-auth"
-                    android:scheme="tachiyomi" />
+                    android:scheme="tachiyomij2k" />
             </intent-filter>
         </activity>
         <activity
