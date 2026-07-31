@@ -427,6 +427,7 @@ class MangaDetailsController :
         snack?.dismiss()
         adapter = null
         finishFloatingActionMode()
+        trackingBottomSheet?.dismiss()
         trackingBottomSheet = null
         super.onDestroyView(view)
     }
