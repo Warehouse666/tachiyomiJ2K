@@ -17,7 +17,6 @@ import android.graphics.ColorMatrixColorFilter
 import android.graphics.Paint
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.LayerDrawable
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.text.TextUtils
@@ -47,6 +46,7 @@ import androidx.core.content.withStyledAttributes
 import androidx.core.graphics.ColorUtils
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.drawable.toDrawable
+import androidx.core.net.toUri
 import androidx.core.text.buildSpannedString
 import androidx.core.text.inSpans
 import androidx.core.transition.addListener
@@ -1160,7 +1160,8 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
                 val prevValue = (viewer as? PagerViewer)?.pager?.currentItem ?: -1
                 moveToPageIndex(value.roundToInt())
                 val newValue = (viewer as? PagerViewer)?.pager?.currentItem ?: -1
-                if (((prevValue > -1 && newValue != prevValue) || viewer !is PagerViewer)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1 &&
+                    ((prevValue > -1 && newValue != prevValue) || viewer !is PagerViewer)
                 ) {
                     binding.readerNav.pageSeekbar.performHapticFeedback(HapticFeedbackConstants.TEXT_HANDLE_MOVE)
                 }
@@ -1201,7 +1202,7 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
         val peek = 50.dpToPx
         lastVis = window.decorView.rootWindowInsetsCompat?.isVisible(statusBars()) ?: false
         var firstPass = true
-        binding.readerLayout.doOnApplyWindowInsetsCompat { v, insets, _ ->
+        binding.readerLayout.doOnApplyWindowInsetsCompat { _, insets, _ ->
             setNavColor(insets)
             val systemInsets = insets.getInsetsIgnoringVisibility(systemBars())
             val currentOrientation = resources.configuration.orientation
@@ -2050,7 +2051,7 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
     override fun onProvideAssistContent(outContent: AssistContent) {
         super.onProvideAssistContent(outContent)
         val chapterUrl = viewModel.getChapterUrl() ?: return
-        outContent.webUri = Uri.parse(chapterUrl)
+        outContent.webUri = chapterUrl.toUri()
     }
 
     /**
