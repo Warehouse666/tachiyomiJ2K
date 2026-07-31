@@ -971,7 +971,7 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
     /**
      * Initializes the reader menu. It sets up click listeners and the initial visibility.
      */
-    @SuppressLint("ClickableViewAccessibility")
+    @SuppressLint("ClickableViewAccessibility", "RtlHardcoded")
     private fun initializeMenu() {
         // Set binding.toolbar
         setSupportActionBar(binding.toolbar)
@@ -1207,25 +1207,17 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
             val currentOrientation = resources.configuration.orientation
             val isLandscapeFully =
                 currentOrientation == Configuration.ORIENTATION_LANDSCAPE && preferences.landscapeCutoutBehavior().get() == 1
-            val cutOutInsets = if (isLandscapeFully) insets.displayCutout else null
             val vis = insets.isVisible(statusBars())
             val fullscreen = preferences.fullscreen().get()
-            if (!isLandscapeFully) {
-                val cutoutInsets = insets.getInsetsIgnoringVisibility(displayCutout())
-                v.updatePadding(left = cutoutInsets.left, right = cutoutInsets.right)
-            } else {
-                v.updatePadding(left = 0, right = 0)
+            val systemCutoutInsets = insets.getInsetsIgnoringVisibility(systemBars() or displayCutout())
+            if (!firstPass && lastVis != vis && fullscreen && !isInMultiWindowMode) {
+                onVisibilityChange(vis)
             }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                if (!firstPass && lastVis != vis && fullscreen && !isInMultiWindowMode) {
-                    onVisibilityChange(vis)
-                }
-                firstPass = false
-                lastVis = vis
-            }
+            firstPass = false
+            lastVis = vis
             wic.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_DEFAULT
             if (!(fullscreen && !isInMultiWindowMode) && sheetManageNavColor) {
-                binding.navBar.backgroundColor = getResourceColor(R.attr.colorSurface)
+                binding.navBar.backgroundColor = if (!fullscreen) Color.TRANSPARENT else getResourceColor(R.attr.colorSurface)
             }
             binding.navBar.isVisible = insets.isVisible(navigationBars())
             if (insets.hasSideNavBar()) {
@@ -1261,45 +1253,48 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
                 height = 280.dpToPx + systemInsets.bottom
             }
             binding.toolbar.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                leftMargin = cutOutInsets?.safeInsetLeft ?: 0
-                rightMargin = cutOutInsets?.safeInsetRight ?: 0
+                leftMargin = systemCutoutInsets.left
+                rightMargin = systemCutoutInsets.right
             }
             binding.chaptersSheet.topbarLayout.updatePadding(
-                left = cutOutInsets?.safeInsetLeft ?: 0,
-                right = cutOutInsets?.safeInsetRight ?: 0,
+                left = systemCutoutInsets.left,
+                right = systemCutoutInsets.right,
             )
             binding.chaptersSheet.chapterRecycler.updatePadding(
-                left = cutOutInsets?.safeInsetLeft ?: 0,
-                right = cutOutInsets?.safeInsetRight ?: 0,
+                left = systemCutoutInsets.left,
+                right = systemCutoutInsets.right,
             )
             binding.navLayout.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                leftMargin = 12.dpToPx + max(systemInsets.left, cutOutInsets?.safeInsetLeft ?: 0)
-                rightMargin = 12.dpToPx + max(systemInsets.right, cutOutInsets?.safeInsetRight ?: 0)
+                leftMargin = 12.dpToPx + systemCutoutInsets.left
+                rightMargin = 12.dpToPx + systemCutoutInsets.right
             }
             binding.chaptersSheet.root.sheetBehavior
                 ?.peekHeight =
                 peek + insets.getBottomGestureInsets()
             binding.chaptersSheet.chapterRecycler.updatePaddingRelative(bottom = systemInsets.bottom)
             val noInsetForFullScreen = fullscreen && !isInMultiWindowMode
-            binding.viewerContainer.updatePadding(
-                left = if (noInsetForFullScreen) 0 else systemInsets.left,
-                top = if (noInsetForFullScreen) 0 else systemInsets.top,
-                right = if (noInsetForFullScreen) 0 else systemInsets.right,
-                bottom = if (noInsetForFullScreen) 0 else systemInsets.bottom,
-            )
+
+            val insetsToUse = if (!fullscreen) systemCutoutInsets else systemInsets
+            listOf(binding.viewerContainer, binding.navigationOverlay, binding.colorOverlay, binding.brightnessOverlay).forEach {
+                it.updateLayoutParams<CoordinatorLayout.LayoutParams> {
+                    if (!isLandscapeFully) {
+                        val cutoutInsets =
+                            insets.getInsetsIgnoringVisibility(displayCutout())
+                        leftMargin = cutoutInsets.left
+                        rightMargin = cutoutInsets.right
+                    } else {
+                        leftMargin = if (noInsetForFullScreen) 0 else insetsToUse.left
+                        rightMargin = if (noInsetForFullScreen) 0 else insetsToUse.right
+                    }
+                    topMargin = if (noInsetForFullScreen) 0 else insetsToUse.top
+                    bottomMargin = if (noInsetForFullScreen) 0 else insetsToUse.bottom
+                }
+            }
             binding.pageNumber.updateLayoutParams<CoordinatorLayout.LayoutParams> {
                 bottomMargin = if (noInsetForFullScreen) 0 else systemInsets.bottom
             }
             binding.viewerContainer.requestLayout()
             reapplyVerticalSeekbarLayoutIfSizeChanged()
-        }
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
-            @Suppress("DEPRECATION")
-            binding.readerLayout.setOnSystemUiVisibilityChangeListener {
-                if (preferences.fullscreen().get() && !isInMultiWindowMode) {
-                    onVisibilityChange((it and View.SYSTEM_UI_FLAG_HIDE_NAVIGATION) == 0)
-                }
-            }
         }
     }
 
@@ -1466,9 +1461,7 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
             if (preferences.fullscreen().get() && !isInMultiWindowMode) {
                 wic.hide(systemBars())
                 wic.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_DEFAULT
-            } else if (viewer is WebtoonViewer) {
-                // Unlike paged viewers, the webtoon viewer doesn't extend its background into the
-                // status/nav bar areas, so the reader's black background shows through there instead.
+            } else {
                 wic.isAppearanceLightStatusBars = false
                 wic.isAppearanceLightNavigationBars = false
             }
@@ -2165,16 +2158,21 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
                         setMenuVisibility(false)
                     }
                 }
+            val fullscreen = preferences.fullscreen().get()
             if (sheetManageNavColor) {
                 binding.navBar.backgroundColor =
-                    ColorUtils.setAlphaComponent(
-                        getResourceColor(R.attr.colorSurface),
-                        if (binding.root.rootWindowInsetsCompat?.hasSideNavBar() == true) {
-                            255
-                        } else {
-                            179
-                        },
-                    )
+                    if (!fullscreen) {
+                        Color.TRANSPARENT
+                    } else {
+                        ColorUtils.setAlphaComponent(
+                            getResourceColor(R.attr.colorSurface),
+                            if (binding.root.rootWindowInsetsCompat?.hasSideNavBar() == true) {
+                                255
+                            } else {
+                                179
+                            },
+                        )
+                    }
             }
             binding.appBar.isVisible = true
             val toolbarAnimation = AnimationUtils.loadAnimation(this, R.anim.enter_from_top)
@@ -2190,26 +2188,9 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
         }
     }
 
-    /**
-     * Sets notch cutout mode to "NEVER", if mobile is in a landscape view
-     */
     private fun setCutoutMode() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            val currentOrientation = resources.configuration.orientation
-
-            val params = window.attributes
-            if (currentOrientation == Configuration.ORIENTATION_LANDSCAPE) {
-                binding.root.requestApplyInsets()
-                params.layoutInDisplayCutoutMode =
-                    if (preferences.landscapeCutoutBehavior().get() == 0) {
-                        WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_NEVER
-                    } else {
-                        WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
-                    }
-            } else {
-                params.layoutInDisplayCutoutMode =
-                    WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
-            }
+            binding.root.requestApplyInsets()
         }
     }
 

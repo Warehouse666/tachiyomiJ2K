@@ -108,7 +108,7 @@ class WebtoonViewer(
             },
         )
         recycler.tapListener = f@{ event ->
-            val pos = PointF(event.rawX / recycler.width, event.rawY / recycler.height)
+            val pos = PointF(event.x / recycler.width, event.y / recycler.height)
             val navigator = config.navigator
             when (navigator.getAction(pos)) {
                 ViewerNavigation.NavigationRegion.MENU -> activity.toggleMenu()

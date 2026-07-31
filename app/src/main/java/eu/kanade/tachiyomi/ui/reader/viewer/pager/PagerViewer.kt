@@ -7,6 +7,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup.LayoutParams
 import androidx.core.view.children
+import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.viewpager.widget.ViewPager
 import eu.kanade.tachiyomi.R
@@ -110,14 +111,14 @@ abstract class PagerViewer(
         }
 
     init {
-        pager.isVisible = false // Don't layout the pager yet
+        pager.isVisible = false // Don't lay out the pager yet
         pager.layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
         pager.offscreenPageLimit = 1
         pager.id = R.id.reader_pager
         pager.adapter = adapter
         pager.addOnPageChangeListener(pagerListener)
         pager.tapListener = f@{ event ->
-            val pos = PointF(event.rawX / pager.width, event.rawY / pager.height)
+            val pos = PointF(event.x / pager.width, event.y / pager.height)
             val navigator = config.navigator
             when (navigator.getAction(pos)) {
                 ViewerNavigation.NavigationRegion.MENU -> activity.toggleMenu()
@@ -355,7 +356,7 @@ abstract class PagerViewer(
         adapter.setChapters(chapters, forceTransition)
 
         // Layout the pager once a chapter is being set
-        if (pager.visibility == View.GONE) {
+        if (pager.isGone) {
             Timber.d("Pager first layout")
             val pages = chapters.currChapter.pages ?: return
             moveToPage(pages[chapters.currChapter.requestedPage])
