@@ -9,7 +9,6 @@ import androidx.core.animation.doOnEnd
 import androidx.core.animation.doOnStart
 import androidx.core.graphics.ColorUtils
 import androidx.core.view.isVisible
-import androidx.core.widget.TextViewCompat
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.data.download.model.Download
@@ -180,10 +179,7 @@ class ChapterHolder(
                 ColorStateList.valueOf(
                     context.getResourceColor(android.R.attr.textColorPrimaryInverse),
                 )
-            TextViewCompat.setCompoundDrawableTintList(
-                binding.chapterTitle,
-                ColorStateList.valueOf(it),
-            )
+            ChapterUtil.tintBookmarkDrawable(binding.chapterTitle, it)
             accentColor = it
         }
         if (locked) {

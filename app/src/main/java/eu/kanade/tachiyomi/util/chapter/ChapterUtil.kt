@@ -2,8 +2,8 @@ package eu.kanade.tachiyomi.util.chapter
 
 import android.content.Context
 import android.content.res.ColorStateList
+import android.graphics.Paint
 import android.widget.TextView
-import androidx.core.widget.TextViewCompat
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.database.models.Chapter
@@ -14,6 +14,7 @@ import eu.kanade.tachiyomi.util.system.contextCompatColor
 import eu.kanade.tachiyomi.util.system.dpToPx
 import eu.kanade.tachiyomi.util.system.dpToPxEnd
 import eu.kanade.tachiyomi.util.system.getResourceColor
+import eu.kanade.tachiyomi.util.system.isHighTextContrastEnabled
 import eu.kanade.tachiyomi.util.system.timeSpanFromNow
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
@@ -41,40 +42,63 @@ class ChapterUtil {
         ) {
             val context = textView.context
             textView.setTextColor(chapterColor(context, chapter, hideStatus))
+            val showReadIndicator = !hideStatus && chapter.read && context.isHighTextContrastEnabled()
+            textView.paintFlags =
+                if (showReadIndicator) {
+                    textView.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
+                } else {
+                    textView.paintFlags and Paint.STRIKE_THRU_TEXT_FLAG.inv()
+                }
             if (!hideStatus && showBookmark) {
-                setBookmark(textView, chapter)
+                setBookmark(textView, chapter, showReadIndicator)
             }
         }
 
         private fun setBookmark(
             textView: TextView,
             chapter: Chapter,
+            showReadIndicator: Boolean,
         ) {
-            if (chapter.bookmark) {
-                val context = textView.context
-                val drawable =
-                    VectorDrawableCompat.create(
-                        textView.resources,
-                        R.drawable.ic_bookmark_24dp,
-                        context.theme,
-                    )
-                drawable?.setBounds(0, 0, textView.textSize.toInt(), textView.textSize.toInt())
-                textView.setCompoundDrawablesRelative(
-                    drawable,
-                    null,
-                    null,
-                    null,
-                )
-                TextViewCompat.setCompoundDrawableTintList(
-                    textView,
-                    ColorStateList.valueOf(bookmarkedColor(context)),
-                )
+            val context = textView.context
+            val bookmarkDrawable =
+                if (chapter.bookmark) {
+                    VectorDrawableCompat
+                        .create(textView.resources, R.drawable.ic_bookmark_24dp, context.theme)
+                        ?.also {
+                            it.setBounds(0, 0, textView.textSize.toInt(), textView.textSize.toInt())
+                            it.setTintList(ColorStateList.valueOf(bookmarkedColor(context)))
+                        }
+                } else {
+                    null
+                }
+            val readDrawable =
+                if (showReadIndicator) {
+                    VectorDrawableCompat
+                        .create(textView.resources, R.drawable.ic_eye_24dp, context.theme)
+                        ?.also {
+                            it.setBounds(0, 0, textView.textSize.toInt(), textView.textSize.toInt())
+                            it.setTintList(ColorStateList.valueOf(readColor(context)))
+                        }
+                } else {
+                    null
+                }
+
+            textView.setCompoundDrawablesRelative(bookmarkDrawable, null, readDrawable, null)
+
+            if (bookmarkDrawable != null || readDrawable != null) {
                 textView.compoundDrawablePadding = 3.dpToPx
-                textView.translationX = (-2f).dpToPxEnd(textView.resources)
-            } else {
-                textView.setCompoundDrawablesRelative(null, null, null, null)
-                textView.translationX = 0f
             }
+            textView.translationX =
+                if (bookmarkDrawable != null) (-2f).dpToPxEnd(textView.resources) else 0f
+        }
+
+        /** Re-tints just the bookmark compound drawable set by [setBookmark], leaving any other compound drawable (e.g. the read indicator) untouched. */
+        fun tintBookmarkDrawable(
+            textView: TextView,
+            tint: Int,
+        ) {
+            // The bookmark is always the start drawable; the read indicator (if any) is the end one.
+            textView.compoundDrawablesRelative[0]?.setTintList(ColorStateList.valueOf(tint))
         }
 
         fun chapterColor(

@@ -166,6 +166,13 @@ val Resources.isLTR
 
 fun Context.isTablet() = resources.configuration.smallestScreenWidthDp >= 600
 
+fun Context.isHighTextContrastEnabled(): Boolean =
+    try {
+        Settings.Secure.getInt(contentResolver, "high_text_contrast_enabled", 0) == 1
+    } catch (_: Exception) {
+        false
+    }
+
 val displayMaxHeightInPx: Int
     get() = Resources.getSystem().displayMetrics.let { max(it.heightPixels, it.widthPixels) }
 
