@@ -27,6 +27,8 @@ class Bangumi(
 
     private val api by lazy { BangumiApi(client, interceptor) }
 
+    override val supportsPrivateTracking: Boolean = true
+
     override fun getScoreList(): List<String> = IntRange(0, 10).map(Int::toString)
 
     override fun displayScore(track: Track): String = track.score.toInt().toString()
@@ -36,26 +38,21 @@ class Bangumi(
         setToRead: Boolean,
     ): Track {
         updateTrackStatus(track, setToRead, setToComplete = true, mustReadToComplete = false)
-        return api.updateLibManga(track)
+        return api.addLibManga(track)
     }
 
     override suspend fun add(track: Track): Track {
         track.score = DEFAULT_SCORE.toFloat()
         track.status = DEFAULT_STATUS
         updateNewTrackInfo(track)
-        api.addLibManga(track)
-        return update(track)
+        return api.addLibManga(track)
     }
 
     override suspend fun bind(track: Track): Track {
-        val statusTrack = api.statusLibManga(track)
-        val remoteTrack = api.findLibManga(track)
-        return if (statusTrack != null && remoteTrack != null) {
+        val remoteTrack = api.statusLibManga(track, getUsername())
+        return if (remoteTrack != null) {
             track.copyPersonalFrom(remoteTrack)
-            track.library_id = remoteTrack.library_id
-            track.status = remoteTrack.status
-            track.last_chapter_read = remoteTrack.last_chapter_read
-            refresh(track)
+            update(track)
         } else {
             add(track)
         }
@@ -64,13 +61,8 @@ class Bangumi(
     override suspend fun search(query: String): List<TrackSearch> = api.search(query)
 
     override suspend fun refresh(track: Track): Track {
-        val statusTrack = api.statusLibManga(track)
-        track.copyPersonalFrom(statusTrack!!)
-        val remoteTrack = api.findLibManga(track)
-        if (remoteTrack != null) {
-            track.total_chapters = remoteTrack.total_chapters
-            track.status = remoteTrack.status
-        }
+        val remoteTrack = api.statusLibManga(track, getUsername()) ?: throw Exception("Could not find manga")
+        track.copyPersonalFrom(remoteTrack)
         return track
     }
 
@@ -123,7 +115,11 @@ class Bangumi(
         try {
             val oauth = api.accessToken(code)
             interceptor.newAuth(oauth)
-            saveCredentials(oauth.user_id.toString(), oauth.access_token)
+            // Users can set a 'username' (not nickname) once which effectively
+            // replaces the stringified ID in certain queries.
+            // If no username is set, the API returns the user ID as a string
+            val currentUser = api.getCurrentUser()
+            saveCredentials(currentUser.username, oauth.access_token)
             return true
         } catch (e: Exception) {
             Timber.e(e)

@@ -1,8 +1,8 @@
 package eu.kanade.tachiyomi.data.track.bangumi
 
+import eu.kanade.tachiyomi.BuildConfig
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
-import okhttp3.FormBody
 import okhttp3.Interceptor
 import okhttp3.Response
 import uy.kohesive.injekt.injectLazy
@@ -20,35 +20,27 @@ class BangumiInterceptor(
     override fun intercept(chain: Interceptor.Chain): Response {
         val originalRequest = chain.request()
 
-        val currAuth = oauth ?: throw Exception("Not authenticated with Bangumi")
+        var currAuth = oauth ?: throw Exception("Not authenticated with Bangumi")
 
         if (currAuth.isExpired()) {
             val response = chain.proceed(BangumiApi.refreshTokenRequest(currAuth.refresh_token!!))
             if (response.isSuccessful) {
-                newAuth(json.decodeFromString<OAuth>(response.body.string()))
+                currAuth = json.decodeFromString<OAuth>(response.body.string())
+                newAuth(currAuth)
             } else {
                 response.close()
             }
         }
 
         val authRequest =
-            if (originalRequest.method == "GET") {
-                originalRequest
-                    .newBuilder()
-                    .header("User-Agent", "Tachiyomi")
-                    .url(
-                        originalRequest.url
-                            .newBuilder()
-                            .addQueryParameter("access_token", currAuth.access_token)
-                            .build(),
-                    ).build()
-            } else {
-                originalRequest
-                    .newBuilder()
-                    .post(addToken(currAuth.access_token, originalRequest.body as FormBody))
-                    .header("User-Agent", "Tachiyomi")
-                    .build()
-            }
+            originalRequest
+                .newBuilder()
+                .header(
+                    "User-Agent",
+                    "Tachiyomi J2K/${BuildConfig.VERSION_NAME} (${BuildConfig.APPLICATION_ID}) " +
+                        "(Android) (https://github.com/Jays2Kings/tachiyomiJ2K)",
+                ).header("Authorization", "Bearer ${currAuth.access_token}")
+                .build()
 
         return chain.proceed(authRequest)
     }
@@ -69,17 +61,5 @@ class BangumiInterceptor(
             }
 
         bangumi.saveToken(oauth)
-    }
-
-    private fun addToken(
-        token: String,
-        oidFormBody: FormBody,
-    ): FormBody {
-        val newFormBody = FormBody.Builder()
-        for (i in 0 until oidFormBody.size) {
-            newFormBody.add(oidFormBody.name(i), oidFormBody.value(i))
-        }
-        newFormBody.add("access_token", token)
-        return newFormBody.build()
     }
 }

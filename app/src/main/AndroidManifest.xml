@@ -210,7 +210,7 @@
 
                 <data
                     android:host="bangumi-auth"
-                    android:scheme="tachiyomi" />
+                    android:scheme="tachiyomij2k" />
             </intent-filter>
         </activity>
         <activity
