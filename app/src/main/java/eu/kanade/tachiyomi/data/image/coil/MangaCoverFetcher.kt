@@ -68,8 +68,7 @@ class MangaCoverFetcher(
     private suspend fun httpLoader(): FetchResult {
         val diskRead = options.diskCachePolicy.readEnabled
         val networkRead = options.networkCachePolicy.readEnabled
-        val onlyCache = !networkRead && diskRead
-        val shouldFetchRemotely = networkRead && !diskRead && !onlyCache
+        val shouldFetchRemotely = networkRead && !diskRead
         val useCustomCover = options.parameters.value(useCustomCover) ?: true
         // Use custom cover if exists
         if (!shouldFetchRemotely) {

@@ -35,5 +35,20 @@ fun DpSize.calculateRowAndColumnCount(): Pair<Int, Int> {
     // Set max to 10 children each direction because of Glance limitation
     val rowCount = (height.value / 95).toInt().coerceIn(1, 10)
     val columnCount = (width.value / 64).toInt().coerceIn(1, 10)
-    return Pair(rowCount, columnCount)
+    return capCellCount(rowCount, columnCount)
+}
+
+// Max Cover limit to not overload the widget's memory budget
+private const val MaxCellCount = 24
+
+private fun capCellCount(
+    rowCount: Int,
+    columnCount: Int,
+): Pair<Int, Int> {
+    var rows = rowCount
+    var columns = columnCount
+    while (rows * columns > MaxCellCount && (rows > 1 || columns > 1)) {
+        if (rows >= columns) rows-- else columns--
+    }
+    return Pair(rows, columns)
 }
