@@ -167,17 +167,18 @@
                     android:id="@+id/place_vertical_seekbar_text"
                     style="?textAppearanceBodyMedium"
                     android:textSize="15sp"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
                     android:layout_height="wrap_content"
                     android:text="@string/vertical_seekbar_dock_left" />
 
                 <com.google.android.material.button.MaterialButtonToggleGroup
                     android:id="@+id/vertical_seekbar_placement"
                     style="@style/Widget.Tachiyomi.MaterialButtonGroup.Connected"
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
+                    android:layout_width="wrap_content"
                     app:singleSelection="true"
                     app:selectionRequired="true"
+                    android:layoutDirection="ltr"
                     android:layout_height="wrap_content"
                     android:gravity="end"
                     android:layout_marginStart="12dp"

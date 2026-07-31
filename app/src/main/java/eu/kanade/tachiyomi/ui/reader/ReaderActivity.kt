@@ -643,6 +643,7 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
         return availableHeight > 300.dpToPx
     }
 
+    @SuppressLint("RtlHardcoded")
     private fun updateNavBarOrientation(vertical: Boolean) {
         // R2L only flips left/right when horizontal (rotation already handles vertical's value direction); re-swap if this call changes that.
         val flipChanged = viewer is R2LPagerViewer && binding.readerNav.pageSeekbar.isVertical != vertical
@@ -686,7 +687,7 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
             if (vertical) {
                 width = ViewGroup.LayoutParams.WRAP_CONTENT
                 height = ViewGroup.LayoutParams.WRAP_CONTENT
-                anchorGravity = Gravity.TOP or if (dockLeft) Gravity.START else Gravity.END
+                anchorGravity = Gravity.TOP or if (dockLeft) Gravity.LEFT else Gravity.RIGHT
             } else {
                 width = ViewGroup.LayoutParams.MATCH_PARENT
                 height = ViewGroup.LayoutParams.WRAP_CONTENT

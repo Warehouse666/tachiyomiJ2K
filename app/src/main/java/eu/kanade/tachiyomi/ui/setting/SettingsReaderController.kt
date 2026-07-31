@@ -421,6 +421,7 @@ class SettingsReaderController : SettingsController() {
                 twoButtonPreference {
                     bindTo(preferences.readerVerticalSeekbarDockLeft())
                     inverted = true
+                    forceDirection = true
                     titleRes = R.string.vertical_seekbar_dock_left
                     startTextRes = R.string.left
                     endTextRes = R.string.right

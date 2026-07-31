@@ -2,6 +2,7 @@ package eu.kanade.tachiyomi.widget.preference
 
 import android.content.Context
 import android.util.AttributeSet
+import android.view.View
 import androidx.annotation.StringRes
 import androidx.core.content.edit
 import androidx.preference.Preference
@@ -25,6 +26,7 @@ class TwoButtonPreference
         @StringRes var endTextRes: Int = 0
         private var defValue: Boolean = false
         var inverted = false
+        var forceDirection = false
 
         init {
             widgetLayoutResource = R.layout.preference_widget_button_toggle_group
@@ -44,6 +46,7 @@ class TwoButtonPreference
             startButton.setText(startTextRes)
             endButton.setText(endTextRes)
 
+            group.layoutDirection = if (forceDirection) View.LAYOUT_DIRECTION_LTR else View.LAYOUT_DIRECTION_INHERIT
             val current = sharedPreferences?.getBoolean(key, defValue) ?: defValue
             group.check(if (current.xor(inverted)) endButton.id else startButton.id)
 
