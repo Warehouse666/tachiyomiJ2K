@@ -89,7 +89,7 @@ class TrackHolder(
         if (track != null) {
             binding.trackTitle.text = track.title
             binding.trackPrivateBadge.isVisible = item.service.supportsPrivateTracking && track.private
-            binding.trackTitle.updatePaddingRelative(if (binding.trackPrivateBadge.isVisible) 30.dpToPx else 16.dpToPx)
+            binding.trackTitle.updatePaddingRelative(if (binding.trackPrivateBadge.isVisible) 24.dpToPx else 16.dpToPx)
             setupOverflowMenu(item, track)
             with(binding.trackChapters) {
                 text =

@@ -72,7 +72,7 @@
                 android:paddingBottom="16dp"
                 android:text="@string/title"
                 android:textSize="14sp"
-                tools:paddingStart="30dp"
+                tools:paddingStart="24dp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="@id/status_container"
                 app:layout_constraintStart_toStartOf="parent"
@@ -81,7 +81,7 @@
 
             <ImageView
                 android:id="@+id/track_private_badge"
-                android:layout_width="24dp"
+                android:layout_width="18dp"
                 android:layout_height="0dp"
                 android:layout_marginStart="4dp"
                 android:contentDescription="@string/tracked_privately"
