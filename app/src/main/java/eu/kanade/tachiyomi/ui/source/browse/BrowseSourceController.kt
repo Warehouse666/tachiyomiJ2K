@@ -160,16 +160,26 @@ open class BrowseSourceController(
     override fun onViewCreated(view: View) {
         super.onViewCreated(view)
 
+        if (!presenter.sourceIsInitialized) {
+            activity?.toast(R.string.source_not_installed)
+            if (activity is SearchActivity) {
+                activity?.finish()
+            } else {
+                router.popCurrentController()
+            }
+            return
+        }
+
         // Initialize adapter, scroll listener and recycler views
         adapter = FlexibleAdapter(null, this)
         setupRecycler(view)
 
-        if (presenter.sourceFilters.isEmpty() && (presenter.source as? CatalogueSource)?.supportsLatest != true) {
+        if (presenter.sourceFilters.isEmpty() && !presenter.source.supportsLatest) {
             binding.floatingBrowseBar.isVisible = false
         } else {
             binding.filterGroup.isVisible = presenter.sourceFilters.isNotEmpty()
             binding.latestGroup.isVisible =
-                (presenter.source as? CatalogueSource)?.supportsLatest == true
+                presenter.source.supportsLatest == true
         }
         binding.latestGroup.setOnClickListener {
             if (!presenter.useLatest || !presenter.filtersMatchDefault() || presenter.query.isNotBlank()) {
@@ -192,15 +202,6 @@ open class BrowseSourceController(
         activityBinding?.appBar?.y = 0f
         activityBinding?.appBar?.updateAppBarAfterY(recycler)
         activityBinding?.appBar?.lockYPos = true
-        if (!presenter.sourceIsInitialized) {
-            activity?.toast(R.string.source_not_installed)
-            if (activity is SearchActivity) {
-                activity?.finish()
-            } else {
-                router.popCurrentController()
-            }
-            return
-        }
         if (presenter.items.isNotEmpty()) {
             onAddPage(1, presenter.items)
         } else {
