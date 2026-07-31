@@ -80,8 +80,8 @@ class UpdatesGridGlanceWidget : GlanceAppWidget() {
             val (rowCount, columnCount) =
                 ids
                     .flatMap { manager.getAppWidgetSizes(it) }
-                    .maxBy { it.height.value * it.width.value }
-                    .calculateRowAndColumnCount()
+                    .map { it.calculateRowAndColumnCount() }
+                    .maxBy { (rows, columns) -> rows * columns }
             val processList = list ?: RecentsPresenter.getRecentManga(customAmount = min(50, rowCount * columnCount))
 
             data = prepareList(processList, rowCount * columnCount)
