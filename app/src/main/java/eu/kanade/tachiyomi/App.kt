@@ -10,7 +10,6 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Build
-import android.os.Looper
 import android.webkit.WebView
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.app.ActivityCompat
@@ -149,7 +148,10 @@ open class App :
     override fun getPackageName(): String {
         try {
             // Override the value passed as X-Requested-With in WebView requests
-            val stackTrace = Looper.getMainLooper().thread.stackTrace
+            // Check the calling thread's own stack, not just the main thread's, since
+            // getPackageName() can be invoked from background threads (e.g. widget updates)
+            // that have nothing to do with WebView/Chromium
+            val stackTrace = Thread.currentThread().stackTrace
             val isChromiumCall =
                 stackTrace.any { trace ->
                     trace.className.lowercase() in setOf("org.chromium.base.buildinfo", "org.chromium.base.apkinfo") &&
