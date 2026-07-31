@@ -66,7 +66,7 @@ class MangaBakaApi(
             val url = "$LIBRARY_API_URL/${track.media_id}"
             val body =
                 buildJsonObject {
-                    put("is_private", false)
+                    put("is_private", track.private)
                     put("state", track.toApiStatus())
                     if (track.last_chapter_read > 0f) {
                         put("progress_chapter", track.last_chapter_read)
@@ -128,6 +128,7 @@ class MangaBakaApi(
                         started_reading_date = parseIsoDate(userData.startDate)
                         finished_reading_date = parseIsoDate(userData.finishDate)
                         last_chapter_read = userData.progressChapter?.toFloat() ?: 0f
+                        private = userData.isPrivate
                     }
                 } catch (e: HttpException) {
                     if (e.code == 404) {
@@ -145,7 +146,7 @@ class MangaBakaApi(
             val body =
                 buildJsonObject {
                     put("state", track.toApiStatus())
-                    put("is_private", false)
+                    put("is_private", track.private)
                     if (track.last_chapter_read > 0f) {
                         put("progress_chapter", track.last_chapter_read)
                     } else {

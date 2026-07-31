@@ -47,6 +47,7 @@ data class ALUserManga(
     val chapters_read: Int,
     val start_date_fuzzy: Long,
     val completed_date_fuzzy: Long,
+    val private: Boolean,
     val manga: ALManga,
 ) {
     fun toTrack() =
@@ -60,6 +61,7 @@ data class ALUserManga(
             last_chapter_read = chapters_read.toFloat()
             library_id = this@ALUserManga.library_id
             total_chapters = manga.total_chapters
+            private = this@ALUserManga.private
         }
 
     private fun toTrackStatus() =

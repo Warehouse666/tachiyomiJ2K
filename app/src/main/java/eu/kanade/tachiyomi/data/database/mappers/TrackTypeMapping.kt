@@ -17,6 +17,7 @@ import eu.kanade.tachiyomi.data.database.tables.TrackTable.COL_LAST_CHAPTER_READ
 import eu.kanade.tachiyomi.data.database.tables.TrackTable.COL_LIBRARY_ID
 import eu.kanade.tachiyomi.data.database.tables.TrackTable.COL_MANGA_ID
 import eu.kanade.tachiyomi.data.database.tables.TrackTable.COL_MEDIA_ID
+import eu.kanade.tachiyomi.data.database.tables.TrackTable.COL_PRIVATE
 import eu.kanade.tachiyomi.data.database.tables.TrackTable.COL_SCORE
 import eu.kanade.tachiyomi.data.database.tables.TrackTable.COL_START_DATE
 import eu.kanade.tachiyomi.data.database.tables.TrackTable.COL_STATUS
@@ -63,6 +64,7 @@ class TrackPutResolver : DefaultPutResolver<Track>() {
             COL_SCORE to obj.score,
             COL_START_DATE to obj.started_reading_date,
             COL_FINISH_DATE to obj.finished_reading_date,
+            COL_PRIVATE to obj.private,
         )
 }
 
@@ -82,6 +84,7 @@ class TrackGetResolver : DefaultGetResolver<Track>() {
             tracking_url = cursor.getString(cursor.getColumnIndexOrThrow(COL_TRACKING_URL))
             started_reading_date = cursor.getLong(cursor.getColumnIndexOrThrow(COL_START_DATE))
             finished_reading_date = cursor.getLong(cursor.getColumnIndexOrThrow(COL_FINISH_DATE))
+            private = cursor.getInt(cursor.getColumnIndexOrThrow(COL_PRIVATE)) == 1
         }
 }
 

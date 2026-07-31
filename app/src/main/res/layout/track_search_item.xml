@@ -153,20 +153,36 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"/>
 
-    <ImageButton
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/link_button"
+        style="?materialIconButtonStyle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:layout_constraintWidth_max="wrap"
         android:background="?selectableItemBackgroundBorderless"
         android:contentDescription="@string/stop"
-        android:padding="12dp"
+        android:padding="6dp"
         android:tooltipText="@string/open_in_browser"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_chainStyle="spread"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/ic_open_in_new_24dp"
-        app:tint="?android:textColorPrimary" />
+        app:icon="@drawable/ic_open_in_new_24dp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/add_privately_button"
+        style="?materialIconButtonStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="?selectableItemBackgroundBorderless"
+        android:contentDescription="@string/add_tracking_privately"
+        android:padding="6dp"
+        android:tooltipText="@string/add_tracking_privately"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="@id/link_button"
+        app:layout_constraintStart_toStartOf="@id/link_button"
+        app:layout_constraintTop_toBottomOf="@id/link_button"
+        app:icon="@drawable/ic_add_tracking_private_24dp"
+        tools:visibility="visible" />
 
     <androidx.constraintlayout.widget.Barrier
         android:id="@+id/cover_barrier"

@@ -640,6 +640,13 @@
     <string name="remove_previous_tracker">Remove previous tracker?</string>
     <string name="remove_x_from_service_and_add_y">Remove %1$s from %2$s and add %3$s</string>
     <string name="keep_both_on_service">Keep both on %1$s and only replace locally</string>
+    <string name="copy_link">Copy link</string>
+    <string name="link">Link</string>
+    <string name="track_privately">Track privately</string>
+    <string name="track_publicly">Track publicly</string>
+    <string name="tracked_privately">Tracked privately</string>
+    <string name="add_tracking_privately">Add tracking privately</string>
+    <string name="track_options">Track options</string>
     <string name="anilist" translatable="false">AniList</string>
     <string name="myanimelist" translatable="false">MyAnimeList</string>
     <string name="kitsu" translatable="false">Kitsu</string>

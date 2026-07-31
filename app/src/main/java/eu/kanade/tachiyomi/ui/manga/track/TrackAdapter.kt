@@ -56,6 +56,14 @@ class TrackAdapter(
 
         fun onRemoveClick(position: Int)
 
+        fun onOpenInBrowserClick(position: Int)
+
+        fun onCopyLinkClick(position: Int)
+
+        fun onTogglePrivateClick(position: Int)
+
+        fun onAddPrivatelyClick(position: Int)
+
         fun onStartDateClick(
             view: View,
             position: Int,

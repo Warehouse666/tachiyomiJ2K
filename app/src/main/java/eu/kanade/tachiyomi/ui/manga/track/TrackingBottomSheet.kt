@@ -72,6 +72,7 @@ class TrackingBottomSheet(
     private var adapter: TrackAdapter? = null
     private val searchItemAdapter = ItemAdapter<TrackSearchItem>()
     private val searchAdapter = FastAdapter.with(searchItemAdapter)
+    private var searchPrivately = false
     private var suggestedStartDate: Long? = null
     private var suggestedFinishDate: Long? = null
     private val dateFormat: DateFormat by lazy {
@@ -114,6 +115,12 @@ class TrackingBottomSheet(
 
         searchAdapter.addClickListener<TrackSearchItem.ViewHolder, TrackSearchItem>({ it.binding.linkButton }) { _, _, _, item ->
             activity.openInBrowser(item.trackSearch.tracking_url)
+        }
+
+        searchAdapter.addClickListener<TrackSearchItem.ViewHolder, TrackSearchItem>(
+            { it.binding.addPrivatelyButton },
+        ) { _, position, _, _ ->
+            trackItem(position, private = true)
         }
 
         binding.trackSearch.setOnEditorActionListener { _, actionId, keyEvent ->
@@ -197,6 +204,14 @@ class TrackingBottomSheet(
     }
 
     override fun onLogoClick(position: Int) {
+        openInBrowser(position)
+    }
+
+    override fun onOpenInBrowserClick(position: Int) {
+        openInBrowser(position)
+    }
+
+    private fun openInBrowser(position: Int) {
         val track = adapter?.getItem(position)?.track ?: return
         if (controller.isNotOnline()) {
             dismiss()
@@ -207,6 +222,33 @@ class TrackingBottomSheet(
             activity.openInBrowser(track.tracking_url.toUri())
             controller.refreshTracker = position
         }
+    }
+
+    override fun onCopyLinkClick(position: Int) {
+        val track = adapter?.getItem(position)?.track ?: return
+        if (track.tracking_url.isBlank()) return
+        controller.copyContentToClipboard(track.tracking_url, R.string.link, true)
+    }
+
+    override fun onTogglePrivateClick(position: Int) {
+        val item = adapter?.getItem(position) ?: return
+        val track = item.track ?: return
+        if (controller.isNotOnline()) {
+            dismiss()
+            return
+        }
+        refreshTrack(item.service)
+        presenter.setPrivate(item, !track.private)
+    }
+
+    override fun onAddPrivatelyClick(position: Int) {
+        val item = adapter?.getItem(position) ?: return
+        if (controller.isNotOnline()) {
+            dismiss()
+            return
+        }
+        searchPrivately = true
+        showSearchView(item)
     }
 
     override fun onTitleClick(position: Int) {
@@ -279,6 +321,7 @@ class TrackingBottomSheet(
         binding.trackRecycler.isVisible = true
         binding.trackSearchConstraintLayout.isVisible = false
         searchingItem = null
+        searchPrivately = false
         backCallback.isEnabled = false
     }
 
@@ -305,9 +348,10 @@ class TrackingBottomSheet(
         startTransition()
         binding.searchProgress.visibility = View.GONE
         binding.trackSearchRecycler.visibility = View.VISIBLE
+        val supportsPrivateTracking = searchingItem?.service?.supportsPrivateTracking ?: false
         searchItemAdapter.set(
             results.map {
-                TrackSearchItem(it).apply {
+                TrackSearchItem(it, supportsPrivateTracking).apply {
                     isSelected = it.tracking_url == searchingItem?.track?.tracking_url
                 }
             },
@@ -341,9 +385,13 @@ class TrackingBottomSheet(
         )
     }
 
-    private fun trackItem(position: Int) {
+    private fun trackItem(
+        position: Int,
+        private: Boolean = searchPrivately,
+    ) {
         val searchingItem = searchingItem
         val selectedItem = searchItemAdapter.getAdapterItem(position).trackSearch
+        selectedItem.private = private
         if (searchingItem != null) {
             if (searchingItem.track != null &&
                 searchingItem.service.canRemoveFromService() &&

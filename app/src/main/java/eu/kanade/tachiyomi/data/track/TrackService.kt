@@ -30,6 +30,9 @@ abstract class TrackService(
     // Application and remote support for reading dates
     open val supportsReadingDates: Boolean = false
 
+    // Whether the remote service supports marking a tracked entry as private
+    open val supportsPrivateTracking: Boolean = false
+
     @DrawableRes
     abstract fun getLogo(): Int
 

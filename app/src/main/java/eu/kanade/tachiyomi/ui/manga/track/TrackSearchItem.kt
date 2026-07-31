@@ -15,6 +15,7 @@ import java.util.Locale
 
 class TrackSearchItem(
     val trackSearch: TrackSearch,
+    val supportsPrivateTracking: Boolean = false,
 ) : AbstractItem<TrackSearchItem.ViewHolder>() {
     /** defines the type defining this item. must be unique. preferably an id */
     override val type: Int = R.id.track_search_cover
@@ -46,6 +47,7 @@ class TrackSearchItem(
         ) {
             val track = item.trackSearch
             binding.checkbox.isVisible = item.isSelected
+            binding.addPrivatelyButton.isVisible = item.supportsPrivateTracking
             binding.trackSearchTitle.text = track.title
             binding.trackSearchSummary.text = track.summary
             binding.trackSearchSummary.isVisible = track.summary.isNotBlank()

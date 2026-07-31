@@ -12,6 +12,7 @@ import eu.kanade.tachiyomi.util.system.withIOContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.encodeToJsonElement
@@ -52,6 +53,7 @@ class AnilistApi(
                         put("mangaId", track.media_id)
                         put("progress", track.last_chapter_read.toInt())
                         put("status", track.toAnilistStatus())
+                        put("private", track.private)
                         createDate(track.started_reading_date)?.let { date ->
                             put("startedAt", Json.encodeToJsonElement(date))
                         }
@@ -86,6 +88,7 @@ class AnilistApi(
                         put("progress", track.last_chapter_read.toInt())
                         put("status", track.toAnilistStatus())
                         put("score", track.score.toInt())
+                        put("private", track.private)
                         createDate(track.started_reading_date)?.let { date ->
                             put("startedAt", Json.encodeToJsonElement(date))
                         }
@@ -237,6 +240,7 @@ class AnilistApi(
             struct["progress"]!!.jsonPrimitive.int,
             parseDate(struct, "startedAt"),
             parseDate(struct, "completedAt"),
+            struct["private"]?.jsonPrimitive?.booleanOrNull ?: false,
             jsonToALManga(struct["media"]!!.jsonObject),
         )
 
@@ -290,11 +294,11 @@ class AnilistApi(
 
         fun addToLibraryQuery() =
             """
-            |mutation AddManga(${'$'}mangaId: Int, ${'$'}progress: Int, ${'$'}status: MediaListStatus, ${'$'}startedAt: FuzzyDateInput, ${'$'}completedAt: FuzzyDateInput) {
-                |SaveMediaListEntry (mediaId: ${'$'}mangaId, progress: ${'$'}progress, status: ${'$'}status, startedAt: ${'$'}startedAt, completedAt: ${'$'}completedAt) { 
-                |   id 
-                |   status 
-                |} 
+            |mutation AddManga(${'$'}mangaId: Int, ${'$'}progress: Int, ${'$'}status: MediaListStatus, ${'$'}private: Boolean, ${'$'}startedAt: FuzzyDateInput, ${'$'}completedAt: FuzzyDateInput) {
+                |SaveMediaListEntry (mediaId: ${'$'}mangaId, progress: ${'$'}progress, status: ${'$'}status, private: ${'$'}private, startedAt: ${'$'}startedAt, completedAt: ${'$'}completedAt) {
+                |   id
+                |   status
+                |}
             |}
             |
             """.trimMargin()
@@ -311,8 +315,8 @@ class AnilistApi(
 
         fun updateInLibraryQuery() =
             """
-            |mutation UpdateManga(${'$'}listId: Int, ${'$'}progress: Int, ${'$'}status: MediaListStatus, ${'$'}score: Int, ${'$'}startedAt: FuzzyDateInput, ${'$'}completedAt: FuzzyDateInput) {
-                |SaveMediaListEntry (id: ${'$'}listId, progress: ${'$'}progress, status: ${'$'}status, scoreRaw: ${'$'}score, startedAt: ${'$'}startedAt, completedAt: ${'$'}completedAt) {
+            |mutation UpdateManga(${'$'}listId: Int, ${'$'}progress: Int, ${'$'}status: MediaListStatus, ${'$'}score: Int, ${'$'}private: Boolean, ${'$'}startedAt: FuzzyDateInput, ${'$'}completedAt: FuzzyDateInput) {
+                |SaveMediaListEntry (id: ${'$'}listId, progress: ${'$'}progress, status: ${'$'}status, scoreRaw: ${'$'}score, private: ${'$'}private, startedAt: ${'$'}startedAt, completedAt: ${'$'}completedAt) {
                     |id
                     |status
                     |progress
@@ -367,6 +371,7 @@ class AnilistApi(
                         |status
                         |scoreRaw: score(format: POINT_100)
                         |progress
+                        |private
                         |startedAt {
                             |year
                             |month

@@ -48,6 +48,7 @@ class KitsuApi(
                         putJsonObject("attributes") {
                             put("status", track.toKitsuStatus())
                             put("progress", track.last_chapter_read.toInt())
+                            put("private", track.private)
                         }
                         putJsonObject("relationships") {
                             putJsonObject("user") {
@@ -108,6 +109,7 @@ class KitsuApi(
                             put("ratingTwenty", track.toKitsuScore())
                             put("startedAt", KitsuDateHelper.convert(track.started_reading_date))
                             put("finishedAt", KitsuDateHelper.convert(track.finished_reading_date))
+                            put("private", track.private)
                         }
                     }
                 }

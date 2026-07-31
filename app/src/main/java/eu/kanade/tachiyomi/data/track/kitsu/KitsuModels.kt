@@ -5,6 +5,7 @@ import eu.kanade.tachiyomi.data.database.models.Track
 import eu.kanade.tachiyomi.data.track.TrackManager
 import eu.kanade.tachiyomi.data.track.model.TrackSearch
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.int
 import kotlinx.serialization.json.intOrNull
@@ -92,6 +93,7 @@ class KitsuLibManga(
     val status = obj["attributes"]!!.jsonObject["status"]!!.jsonPrimitive.content
     private val ratingTwenty = obj["attributes"]!!.jsonObject["ratingTwenty"]?.jsonPrimitive?.contentOrNull
     val progress = obj["attributes"]!!.jsonObject["progress"]!!.jsonPrimitive.int
+    private val isPrivate = obj["attributes"]!!.jsonObject["private"]?.jsonPrimitive?.booleanOrNull ?: false
 
     fun toTrack() =
         TrackSearch.create(TrackManager.KITSU).apply {
@@ -109,6 +111,7 @@ class KitsuLibManga(
             status = toTrackStatus()
             score = ratingTwenty?.let { it.toInt() / 2f } ?: 0f
             last_chapter_read = progress.toFloat()
+            private = isPrivate
         }
 
     private fun toTrackStatus() =

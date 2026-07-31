@@ -74,6 +74,7 @@
         <item name="loadingIndicatorStyle">@style/Tachiyomi.LoadingIndicatorStyle</item>
         <item name="circularProgressIndicatorStyle">@style/Tachiyomi.CircularProgressIndicator</item>
         <item name="linearProgressIndicatorStyle">@style/Tachiyomi.LinearProgressIndicator</item>
+        <item name="materialIconButtonStyle">@style/Widget.Tachiyomi.Button.IconButton.Standard</item>
 
         <!-- Custom Attributes-->
         <item name="actionBarTintColor">?attr/colorOnBackground</item>

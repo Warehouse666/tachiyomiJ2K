@@ -1091,6 +1091,15 @@ class MangaDetailsPresenter(
         updateRemote(track, item.service)
     }
 
+    fun setPrivate(
+        item: TrackItem,
+        private: Boolean,
+    ) {
+        val track = item.track!!
+        track.private = private
+        updateRemote(track, item.service)
+    }
+
     fun setTrackerFinishDate(
         item: TrackItem,
         date: Long,
