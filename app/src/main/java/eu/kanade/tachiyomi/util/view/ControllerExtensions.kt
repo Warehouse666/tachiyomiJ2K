@@ -352,16 +352,7 @@ fun Controller.scrollViewWith(
     var fakeBottomNavView: View? = null
     if (!customPadding) {
         recycler.updatePaddingRelative(
-            top =
-                (
-                    activity
-                        ?.window
-                        ?.decorView
-                        ?.rootWindowInsetsCompat
-                        ?.getInsets(systemBars())
-                        ?.top
-                        ?: 0
-                ) + appBarHeight,
+            top = ((activity as? MainActivity)?.cachedSystemInsets?.top ?: 0) + appBarHeight,
         )
     }
     val atTopOfRecyclerView: () -> Boolean = f@{
@@ -473,10 +464,6 @@ fun Controller.scrollViewWith(
                     activityBinding!!.appBar.doOnLayout {
                         if ((fullAppBarHeight ?: 0) > 0 && isControllerVisible) {
                             appBarHeight = fullAppBarHeight!!
-                            recycler.rootWindowInsets?.let { insets ->
-                                recycler.dispatchApplyWindowInsets(insets)
-                                activityBinding?.appBar?.updateAppBarAfterY(recycler)
-                            }
                         }
                     }
                 } else {

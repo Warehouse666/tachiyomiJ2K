@@ -20,10 +20,8 @@ import eu.kanade.tachiyomi.util.lang.withSubtitle
 import eu.kanade.tachiyomi.util.system.dpToPx
 import eu.kanade.tachiyomi.util.system.end
 import eu.kanade.tachiyomi.util.system.getResourceColor
-import eu.kanade.tachiyomi.util.system.ignoredDisplayCutout
 import eu.kanade.tachiyomi.util.system.isLTR
 import eu.kanade.tachiyomi.util.system.openInBrowser
-import eu.kanade.tachiyomi.util.system.rootWindowInsetsCompat
 import uy.kohesive.injekt.injectLazy
 
 class OverflowDialog(
@@ -125,15 +123,13 @@ class OverflowDialog(
             dismiss()
         }
 
-        val insets =
-            activity.window.decorView.rootWindowInsetsCompat!!
-                .ignoredDisplayCutout
+        val insets = activity.cachedSystemInsets
         binding.overflowCardView.updateLayoutParams<ViewGroup.MarginLayoutParams> {
             topMargin = activity.toolbarHeight - 2.dpToPx + insets.top
             marginEnd = 14.dpToPx + insets.end(context.resources.isLTR)
         }
         window?.let { window ->
-            window.decorView.fitsSystemWindows = true
+            window.decorView.fitsSystemWindows = false
             val wic = WindowInsetsControllerCompat(window, window.decorView)
             wic.isAppearanceLightStatusBars = false
             wic.isAppearanceLightNavigationBars = false

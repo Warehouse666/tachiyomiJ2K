@@ -40,6 +40,7 @@ import androidx.core.animation.doOnEnd
 import androidx.core.app.ActivityCompat
 import androidx.core.content.getSystemService
 import androidx.core.graphics.ColorUtils
+import androidx.core.graphics.Insets
 import androidx.core.net.toUri
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
@@ -113,7 +114,6 @@ import eu.kanade.tachiyomi.util.system.dpToPx
 import eu.kanade.tachiyomi.util.system.end
 import eu.kanade.tachiyomi.util.system.getResourceColor
 import eu.kanade.tachiyomi.util.system.hasSideNavBar
-import eu.kanade.tachiyomi.util.system.ignoredDisplayCutout
 import eu.kanade.tachiyomi.util.system.ignoredSystemInsets
 import eu.kanade.tachiyomi.util.system.isBottomTappable
 import eu.kanade.tachiyomi.util.system.isLTR
@@ -177,6 +177,8 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
     private var tabAnimation: ValueAnimator? = null
     private var searchBarAnimation: ValueAnimator? = null
     private var overflowDialog: Dialog? = null
+    var cachedSystemInsets: Insets = Insets.NONE
+        private set
     var currentToolbar: Toolbar? = null
     var ogWidth: Int = Int.MAX_VALUE
     var hingeGapSize = 0
@@ -477,11 +479,11 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
             binding.bottomView?.updateLayoutParams<ViewGroup.LayoutParams> {
                 height = systemInsets.bottom
             }
+            cachedSystemInsets = systemInsets
             (overflowDialog as? OverflowDialog)?.let {
-                val cutoutInsets = insets.ignoredDisplayCutout
                 it.binding.overflowCardView.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                    topMargin = toolbarHeight - 2.dpToPx + cutoutInsets.top
-                    marginEnd = 14.dpToPx + cutoutInsets.end(resources.isLTR)
+                    topMargin = toolbarHeight - 2.dpToPx + cachedSystemInsets.top
+                    marginEnd = 14.dpToPx + cachedSystemInsets.end(resources.isLTR)
                 }
             }
         }

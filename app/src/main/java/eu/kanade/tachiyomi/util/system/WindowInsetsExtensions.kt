@@ -9,13 +9,14 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsCompat.Type.displayCutout
 import androidx.core.view.WindowInsetsCompat.Type.mandatorySystemGestures
 import androidx.core.view.WindowInsetsCompat.Type.systemBars
+import androidx.core.view.WindowInsetsCompat.Type.tappableElement
 
 fun WindowInsetsCompat.getBottomGestureInsets(): Int = getInsetsIgnoringVisibility(mandatorySystemGestures() or systemBars()).bottom
 
 /** returns if device using gesture nav and supports true edge to edge */
 fun WindowInsetsCompat.isBottomTappable() =
     Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q &&
-        getInsetsIgnoringVisibility(systemBars()).bottom != getInsetsIgnoringVisibility(mandatorySystemGestures()).bottom
+        getInsetsIgnoringVisibility(systemBars()).bottom != getInsetsIgnoringVisibility(tappableElement()).bottom
 
 val View.rootWindowInsetsCompat
     get() = rootWindowInsets?.let { WindowInsetsCompat.toWindowInsetsCompat(it) }
