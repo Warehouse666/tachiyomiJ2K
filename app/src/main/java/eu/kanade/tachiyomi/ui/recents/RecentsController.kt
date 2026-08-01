@@ -486,7 +486,7 @@ class RecentsController(
         if (isControllerVisible) {
             val activity = (activity as? MainActivity) ?: return
             activityBinding?.appBar?.isInvisible = showingDownloads
-            (activity as? MainActivity)?.setStatusBarColorTransparent(showingDownloads)
+            activity.setStatusBarColorTransparent(showingDownloads)
             setTitle()
             if (activityBinding?.sideNav?.isExpanded == true) {
                 activityBinding

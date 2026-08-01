@@ -800,8 +800,22 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
         backPressedCallback?.isEnabled = actionMode != null ||
             (binding.searchToolbar.hasExpandedActionView() && binding.cardFrame.isVisible) ||
             router.canStillGoBack() ||
-            (returnToStart && startingTab() != nav.selectedItemId)
+            (returnToStart && !isOnStartingTab())
     }
+
+    fun isOnStartingTab(): Boolean =
+        if (startingTab() == R.id.nav_recents) {
+            nav.selectedItemId in
+                listOf(
+                    R.id.nav_summary,
+                    R.id.nav_ungrouped,
+                    R.id.nav_history,
+                    R.id.nav_updates,
+                    R.id.nav_recents,
+                )
+        } else {
+            startingTab() == nav.selectedItemId
+        }
 
     override fun onTitleChanged(
         title: CharSequence?,
@@ -1248,7 +1262,7 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
         if (if (router.backstackSize == 1) controller?.handleBack() != true else !router.handleBack()) {
             if (preferences.backReturnsToStart().get() &&
                 this !is SearchActivity &&
-                startingTab() != nav.selectedItemId
+                !isOnStartingTab()
             ) {
                 goToStartingTab()
             }
