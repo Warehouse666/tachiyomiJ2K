@@ -431,6 +431,7 @@ fun MaterialCardView.makeContainerShape(
 fun MaterialCardView.makeShapeCorners(
     @Dimension topStart: Float = 0f,
     @Dimension bottomEnd: Float = 0f,
+    roundEnd: Boolean = false,
 ): ShapeAppearanceModel =
     shapeAppearanceModel
         .toBuilder()
@@ -439,9 +440,27 @@ fun MaterialCardView.makeShapeCorners(
                 setTopLeftCorner(CornerFamily.ROUNDED, topStart)
                 setBottomLeftCorner(CornerFamily.ROUNDED, if (topStart > 0) 4f.dpToPx else 0f)
                 setBottomRightCorner(CornerFamily.ROUNDED, bottomEnd)
-                setTopRightCorner(CornerFamily.ROUNDED, if (bottomEnd > 0) 4f.dpToPx else 0f)
+                setTopRightCorner(
+                    CornerFamily.ROUNDED,
+                    if (roundEnd) {
+                        bottomEnd
+                    } else if (bottomEnd > 0) {
+                        4f.dpToPx
+                    } else {
+                        0f
+                    },
+                )
             } else {
-                setTopLeftCorner(CornerFamily.ROUNDED, if (bottomEnd > 0) 4f.dpToPx else 0f)
+                setTopLeftCorner(
+                    CornerFamily.ROUNDED,
+                    if (roundEnd) {
+                        bottomEnd
+                    } else if (bottomEnd > 0) {
+                        4f.dpToPx
+                    } else {
+                        0f
+                    },
+                )
                 setBottomLeftCorner(CornerFamily.ROUNDED, bottomEnd)
                 setBottomRightCorner(CornerFamily.ROUNDED, if (topStart > 0) 4f.dpToPx else 0f)
                 setTopRightCorner(CornerFamily.ROUNDED, topStart)

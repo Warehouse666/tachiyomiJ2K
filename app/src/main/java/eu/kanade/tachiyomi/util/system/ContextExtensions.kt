@@ -20,6 +20,7 @@ import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.PowerManager
 import android.provider.Settings
+import android.util.TypedValue
 import android.view.View
 import android.widget.Toast
 import androidx.annotation.AttrRes
@@ -39,7 +40,6 @@ import androidx.core.net.toUri
 import androidx.work.CoroutineWorker
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
-import com.hippo.unifile.UniFile
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.extension.util.ExtensionLoader
@@ -153,10 +153,13 @@ val Int.dpToPx: Int
     get() = (this * Resources.getSystem().displayMetrics.density).toInt()
 
 val Int.spToPx: Int
-    get() = (this * Resources.getSystem().displayMetrics.scaledDensity).toInt()
+    get() = this.toFloat().spToPx.toInt()
 
 val Float.dpToPx: Float
     get() = (this * Resources.getSystem().displayMetrics.density)
+
+val Float.spToPx: Float
+    get() = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, this, Resources.getSystem().displayMetrics)
 
 /** Converts to px and takes into account LTR/RTL layout */
 fun Float.dpToPxEnd(resources: Resources): Float = this * resources.displayMetrics.density * if (resources.isLTR) 1 else -1
@@ -236,7 +239,7 @@ fun Context.withOriginalWidth(): Context {
 }
 
 fun Context.extensionIntentForText(text: String): Intent? {
-    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(text))
+    val intent = Intent(Intent.ACTION_VIEW, text.toUri())
     val info =
         packageManager
             .queryIntentActivitiesCompat(intent, PackageManager.MATCH_ALL)
@@ -253,13 +256,6 @@ fun Context.extensionIntentForText(text: String): Intent? {
 }
 
 fun Context.isLandscape(): Boolean = resources.configuration?.orientation == Configuration.ORIENTATION_LANDSCAPE
-
-/**
- * Gets document size of provided [Uri]
- *
- * @return document size of [uri] or null if size can't be obtained
- */
-fun Context.getUriSize(uri: Uri): Long? = UniFile.fromUri(this, uri).length().takeIf { it >= 0 }
 
 /**
  * Returns true if [packageName] is installed.
@@ -467,7 +463,11 @@ val Context.cardColor: Int
 fun Context.isOnline(): Boolean {
     val networkCapabilities = connectivityManager.activeNetwork ?: return false
     val actNw = connectivityManager.getNetworkCapabilities(networkCapabilities) ?: return false
-    val maxTransport = NetworkCapabilities.TRANSPORT_LOWPAN
+    val maxTransport =
+        when {
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1 -> NetworkCapabilities.TRANSPORT_LOWPAN
+            else -> NetworkCapabilities.TRANSPORT_WIFI_AWARE
+        }
     return (NetworkCapabilities.TRANSPORT_CELLULAR..maxTransport).any(actNw::hasTransport)
 }
 
@@ -479,13 +479,6 @@ fun Context.createFileInCacheDir(name: String): File {
     file.createNewFile()
     return file
 }
-
-fun Context.getApplicationIcon(pkgName: String): Drawable? =
-    try {
-        packageManager.getApplicationIcon(pkgName)
-    } catch (e: PackageManager.NameNotFoundException) {
-        null
-    }
 
 /** Context used for notifications as Appcompat app lang does not support notifications */
 val Context.localeContext: Context

@@ -5,6 +5,7 @@ import android.content.res.ColorStateList
 import android.util.AttributeSet
 import android.view.View
 import androidx.core.view.isVisible
+import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePaddingRelative
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.imageview.ShapeableImageView
@@ -14,6 +15,7 @@ import eu.kanade.tachiyomi.databinding.UnreadDownloadBadgeBinding
 import eu.kanade.tachiyomi.util.system.contextCompatColor
 import eu.kanade.tachiyomi.util.system.dpToPx
 import eu.kanade.tachiyomi.util.system.getResourceColor
+import eu.kanade.tachiyomi.util.system.spToPx
 import eu.kanade.tachiyomi.util.view.makeShapeCorners
 
 class LibraryBadge
@@ -23,12 +25,13 @@ class LibraryBadge
         attrs: AttributeSet? = null,
     ) : MaterialCardView(context, attrs) {
         private lateinit var binding: UnreadDownloadBadgeBinding
+        val ogRadius = radius
+        val roundedRadius = 8.7f.spToPx
 
         override fun onFinishInflate() {
             super.onFinishInflate()
             binding = UnreadDownloadBadgeBinding.bind(this)
-
-            shapeAppearanceModel = makeShapeCorners(radius, radius)
+            shapeAppearanceModel = makeShapeCorners(ogRadius, ogRadius)
         }
 
         fun setUnreadDownload(
@@ -52,7 +55,7 @@ class LibraryBadge
                 if (!isVisible) {
                     return@with
                 }
-                text = if (unread == -1) "0" else unread.toString()
+                text = if (unread == -1) "." else unread.toString()
                 setTextColor(
                     // hide the badge text when preference is only show badge
                     when {
@@ -117,16 +120,31 @@ class LibraryBadge
                     .mapNotNull {
                         binding.cardConstraint.getChildAt(it)
                     }.filter { it.isVisible }
-            shapeAppearanceModel = shapeAppearanceModel.withCornerSize(radius)
+            shapeAppearanceModel = shapeAppearanceModel.withCornerSize(ogRadius)
+            binding.unreadText.updateLayoutParams { width = LayoutParams.WRAP_CONTENT }
             if (changeShape) {
-                if (visibleChildren.size == 1 && binding.unreadText.isVisible && unread == -1) {
+                val hasUnreadDot = binding.unreadText.isVisible && unread == -1
+                if (visibleChildren.size == 1 && hasUnreadDot) {
                     binding.unreadText.setBackgroundColor(unreadBadgeBackground)
-                    shapeAppearanceModel = shapeAppearanceModel.withCornerSize(radius)
+                    binding.unreadText.updateLayoutParams { width = (roundedRadius * 2).toInt() }
+                    shapeAppearanceModel = shapeAppearanceModel.withCornerSize(roundedRadius)
                 } else {
-                    shapeAppearanceModel = makeShapeCorners(radius, radius)
+                    shapeAppearanceModel = makeShapeCorners(ogRadius, if (hasUnreadDot) roundedRadius else ogRadius, hasUnreadDot)
+                    if (hasUnreadDot) {
+                        binding.unreadText.updateLayoutParams { width = (roundedRadius * 1.25f).toInt() }
+                    }
                     visibleChildren.forEachIndexed { index, view ->
-                        val startRadius = if (index == 0) radius else 0f
-                        val endRadius = if (index == visibleChildren.size - 1) radius else 0f
+                        val startRadius = if (index == 0) ogRadius else 0f
+                        val endRadius =
+                            if (index == visibleChildren.size - 1) {
+                                if (binding.unreadText.isVisible && unread == -1) {
+                                    roundedRadius
+                                } else {
+                                    ogRadius
+                                }
+                            } else {
+                                0f
+                            }
                         val bgColor =
                             when (view) {
                                 binding.downloadText -> context.getResourceColor(R.attr.colorTertiary)
@@ -135,11 +153,19 @@ class LibraryBadge
                             }
                         if (view is ShapeableImageView) {
                             view.shapeAppearanceModel =
-                                makeShapeCorners(topStart = startRadius, bottomEnd = endRadius)
+                                makeShapeCorners(
+                                    topStart = startRadius,
+                                    bottomEnd = endRadius,
+                                    index == visibleChildren.size - 1 && hasUnreadDot,
+                                )
                         } else {
                             view.background =
                                 MaterialShapeDrawable(
-                                    makeShapeCorners(topStart = startRadius, bottomEnd = endRadius),
+                                    makeShapeCorners(
+                                        topStart = startRadius,
+                                        bottomEnd = endRadius,
+                                        index == visibleChildren.size - 1 && hasUnreadDot,
+                                    ),
                                 ).apply {
                                     this.fillColor = ColorStateList.valueOf(bgColor)
                                 }
@@ -188,7 +214,7 @@ class LibraryBadge
             binding.unreadText.isVisible = inLibrary
             binding.unreadText.text = resources.getText(R.string.in_library)
             binding.unreadText.background =
-                MaterialShapeDrawable(makeShapeCorners(radius, radius)).apply {
+                MaterialShapeDrawable(makeShapeCorners(ogRadius, ogRadius)).apply {
                     this.fillColor =
                         ColorStateList.valueOf(context.getResourceColor(R.attr.colorSecondary))
                 }
