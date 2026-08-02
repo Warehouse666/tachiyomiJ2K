@@ -85,3 +85,9 @@
 # Firebase
 -keep class com.google.firebase.installations.** { *; }
 -keep interface com.google.firebase.installations.** { *; }
+
+# Methods called by Shizuku only
+-keepclassmembers class eu.kanade.tachiyomi.extension.shizuku.ShellInterface {
+    public <init>();
+    public void destroy();
+}
