@@ -31,8 +31,18 @@
         <item name="colorSurfaceContainer">?colorPrimaryVariant</item>
         <item name="colorSurfaceContainerHigh">@color/tachiyomi_surfaceContainerHigh</item>
         <item name="colorSurfaceContainerHighest">@color/tachiyomi_surfaceContainerHighest</item>
+        <item name="colorSurfaceContainerLow">@color/tachiyomi_surfaceContainerLow</item>
+        <item name="colorSurfaceContainerLowest">@color/tachiyomi_surfaceContainerLowest</item>
         <item name="colorOnSurfaceVariant">@color/tachiyomi_onSurfaceVariant</item>
         <item name="colorOutline">@color/tachiyomi_outline</item>
+        <item name="colorOutlineVariant">@color/tachiyomi_outlineVariant</item>
+        <item name="colorOnPrimaryContainer">@color/tachiyomi_onPrimaryContainer</item>
+        <item name="colorOnSecondaryContainer">@color/tachiyomi_onSecondaryContainer</item>
+        <item name="colorOnTertiaryContainer">@color/tachiyomi_onTertiaryContainer</item>
+        <item name="colorError">@color/tachiyomi_error</item>
+        <item name="colorOnError">@color/tachiyomi_onError</item>
+        <item name="colorErrorContainer">@color/tachiyomi_errorContainer</item>
+        <item name="colorOnErrorContainer">@color/tachiyomi_onErrorContainer</item>
         <item name="background">@color/background</item>
         <item name="colorOnBackground">@color/colorOnBackground</item>
         <item name="colorBackgroundFloating">?colorSurface</item>
@@ -105,6 +115,8 @@
         <item name="readerBackground">@color/md_black_1000</item>
         <item name="colorSurfaceContainerHigh">@color/amoled_surfaceContainerHigh</item>
         <item name="colorSurfaceContainerHighest">@color/amoled_surfaceContainerHighest</item>
+        <item name="colorSurfaceContainerLow">@color/amoled_surfaceContainerLow</item>
+        <item name="colorSurfaceContainerLowest">@color/amoled_surfaceContainerLowest</item>
     </style>
 
     <style name="Theme.Tachiyomi.FlatLime">
@@ -124,6 +136,14 @@
         <item name="colorSurfaceContainerHigh">@color/surfaceContainerHighLime</item>
         <item name="colorSurfaceContainerHighest">@color/surfaceContainerHighestLime</item>
         <item name="colorOutline">@color/outlineLime</item>
+        <item name="colorOutlineVariant">@color/outlineVariantLime</item>
+        <item name="colorOnPrimaryContainer">@color/onPrimaryContainerLime</item>
+        <item name="colorOnSecondaryContainer">@color/onSecondaryContainerLime</item>
+        <item name="colorOnTertiaryContainer">@color/onTertiaryContainerLime</item>
+        <item name="colorSurfaceContainerLow">@color/surfaceContainerLowLime</item>
+        <item name="colorSurfaceContainerLowest">@color/surfaceContainerLowestLime</item>
+        <item name="colorSurfaceDim">@color/surfaceDimLime</item>
+        <item name="colorSurfaceBright">@color/surfaceBrightLime</item>
     </style>
 
     <style name="Theme.Tachiyomi.MidnightDusk">
@@ -142,6 +162,11 @@
         <item name="colorSurfaceContainerHigh">@color/surfaceContainerHighDuskDawn</item>
         <item name="colorSurfaceContainerHighest">@color/surfaceContainerHighestDuskDawn</item>
         <item name="colorOutline">@color/outlineDuskDawn</item>
+        <item name="colorOnPrimaryContainer">@color/onPrimaryContainerDuskDawn</item>
+        <item name="colorOnSecondaryContainer">@color/onSecondaryContainerDuskDawn</item>
+        <item name="colorOnTertiaryContainer">@color/onTertiaryContainerDuskDawn</item>
+        <item name="colorSurfaceContainerLow">@color/surfaceContainerLowDuskDawn</item>
+        <item name="colorSurfaceContainerLowest">@color/surfaceContainerLowestDuskDawn</item>
     </style>
 
     <style name="Theme.Tachiyomi.SapphireDusk">
@@ -164,6 +189,11 @@
         <item name="colorSurfaceContainerHigh">@color/surfaceContainerHighTealSapphire</item>
         <item name="colorSurfaceContainerHighest">@color/surfaceContainerHighestTealSapphire</item>
         <item name="colorOutline">@color/outlineTealSapphire</item>
+        <item name="colorOnPrimaryContainer">@color/onPrimaryContainerTealSapphire</item>
+        <item name="colorOnSecondaryContainer">@color/onSecondaryContainerTealSapphire</item>
+        <item name="colorOnTertiaryContainer">@color/onTertiaryContainerTealSapphire</item>
+        <item name="colorSurfaceContainerLow">@color/surfaceContainerLowTealSapphire</item>
+        <item name="colorSurfaceContainerLowest">@color/surfaceContainerLowestTealSapphire</item>
     </style>
 
     <style name="Theme.Tachiyomi.Lavender">
@@ -187,6 +217,14 @@
         <item name="colorSurfaceContainerHigh">@color/lavender_surface_container_high</item>
         <item name="colorSurfaceContainerHighest">@color/lavender_surface_container_highest</item>
         <item name="colorOutline">@color/lavender_outline</item>
+        <item name="colorOutlineVariant">@color/lavender_outline_variant</item>
+        <item name="colorOnPrimaryContainer">@color/lavender_on_primary_container</item>
+        <item name="colorOnSecondaryContainer">@color/lavender_on_secondary_container</item>
+        <item name="colorOnTertiaryContainer">@color/lavender_on_tertiary_container</item>
+        <item name="colorSurfaceContainerLow">@color/lavender_surface_container_low</item>
+        <item name="colorSurfaceContainerLowest">@color/lavender_surface_container_lowest</item>
+        <item name="colorSurfaceDim">@color/lavender_surface_dim</item>
+        <item name="colorSurfaceBright">@color/lavender_surface_bright</item>
     </style>
 
     <style name="Theme.Tachiyomi.Strawberries">
@@ -203,6 +241,14 @@
         <item name="colorSurfaceContainerHigh">@color/surfaceContainerHighStrawberry</item>
         <item name="colorSurfaceContainerHighest">@color/surfaceContainerHighestStrawberry</item>
         <item name="colorOutline">@color/outlineStrawberry</item>
+        <item name="colorOutlineVariant">@color/outlineVariantStrawberry</item>
+        <item name="colorOnPrimaryContainer">@color/onPrimaryContainerStrawberry</item>
+        <item name="colorOnSecondaryContainer">@color/onSecondaryContainerStrawberry</item>
+        <item name="colorOnTertiaryContainer">@color/onTertiaryContainerStrawberry</item>
+        <item name="colorSurfaceContainerLow">@color/surfaceContainerLowStrawberry</item>
+        <item name="colorSurfaceContainerLowest">@color/surfaceContainerLowestStrawberry</item>
+        <item name="colorSurfaceDim">@color/surfaceDimStrawberry</item>
+        <item name="colorSurfaceBright">@color/surfaceBrightStrawberry</item>
     </style>
 
     <!--== Tako Theme ==-->
@@ -226,6 +272,11 @@
         <item name="colorSurfaceContainerHigh">@color/surfaceContainerHighTako</item>
         <item name="colorSurfaceContainerHighest">@color/surfaceContainerHighestTako</item>
         <item name="colorOutline">@color/outlineTako</item>
+        <item name="colorOnPrimaryContainer">@color/onPrimaryContainerTako</item>
+        <item name="colorOnSecondaryContainer">@color/onSecondaryContainerTako</item>
+        <item name="colorOnTertiaryContainer">@color/onTertiaryContainerTako</item>
+        <item name="colorSurfaceContainerLow">@color/surfaceContainerLowTako</item>
+        <item name="colorSurfaceContainerLowest">@color/surfaceContainerLowestTako</item>
     </style>
 
     <style name="Theme.Tachiyomi.Yotsuba">
@@ -240,6 +291,11 @@
         <item name="colorSurfaceContainerHigh">@color/surfaceContainerHighYotsuba</item>
         <item name="colorSurfaceContainerHighest">@color/surfaceContainerHighestYotsuba</item>
         <item name="colorOutline">@color/outlineYotsuba</item>
+        <item name="colorOnPrimaryContainer">@color/onPrimaryContainerYotsuba</item>
+        <item name="colorOnSecondaryContainer">@color/onSecondaryContainerYotsuba</item>
+        <item name="colorOnTertiaryContainer">@color/onTertiaryContainerYotsuba</item>
+        <item name="colorSurfaceContainerLow">@color/surfaceContainerLowYotsuba</item>
+        <item name="colorSurfaceContainerLowest">@color/surfaceContainerLowestYotsuba</item>
     </style>
 
     <!--== Yin Yang theme ==-->
@@ -259,6 +315,11 @@
         <item name="colorSurfaceContainerHigh">@color/surfaceContainerHighYinYang</item>
         <item name="colorSurfaceContainerHighest">@color/surfaceContainerHighestYinYang</item>
         <item name="colorOutline">@color/outlineYinYang</item>
+        <item name="colorOnPrimaryContainer">@color/onPrimaryContainerYinYang</item>
+        <item name="colorOnSecondaryContainer">@color/onSecondaryContainerYinYang</item>
+        <item name="colorOnTertiaryContainer">@color/onTertiaryContainerYinYang</item>
+        <item name="colorSurfaceContainerLow">@color/surfaceContainerLowYinYang</item>
+        <item name="colorSurfaceContainerLowest">@color/surfaceContainerLowestYinYang</item>
     </style>
     <style name="Theme.Tachiyomi.Monet"/>
 
