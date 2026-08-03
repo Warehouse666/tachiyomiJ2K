@@ -6,13 +6,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.view.WindowInsetsCompat.Type.systemBars
 import androidx.core.view.children
 import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePaddingRelative
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.textview.MaterialTextView
 import com.mikepenz.fastadapter.FastAdapter
 import com.mikepenz.fastadapter.adapters.ItemAdapter
@@ -24,10 +22,9 @@ import eu.kanade.tachiyomi.databinding.ExpandedFilterSheetBinding
 import eu.kanade.tachiyomi.ui.main.MainActivity
 import eu.kanade.tachiyomi.util.system.dpToPx
 import eu.kanade.tachiyomi.util.system.materialAlertDialog
-import eu.kanade.tachiyomi.util.system.rootWindowInsetsCompat
 import eu.kanade.tachiyomi.util.view.checkHeightThen
 import eu.kanade.tachiyomi.util.view.expand
-import eu.kanade.tachiyomi.widget.E2EBottomSheetDialog
+import eu.kanade.tachiyomi.widget.StickyFooterBottomSheetDialog
 import uy.kohesive.injekt.injectLazy
 
 class ExpandedFilterSheet(
@@ -36,7 +33,7 @@ class ExpandedFilterSheet(
     private val trackersFilter: LibraryFilter?,
     private val filterCallback: () -> Unit,
     private val clearFilterCallback: () -> Unit,
-) : E2EBottomSheetDialog<ExpandedFilterSheetBinding>(activity) {
+) : StickyFooterBottomSheetDialog<ExpandedFilterSheetBinding>(activity) {
     private val fastAdapter: FastAdapter<ExpandedFilterItem>
     private val itemAdapter = ItemAdapter<ExpandedFilterItem>()
 
@@ -44,30 +41,13 @@ class ExpandedFilterSheet(
 
     override fun createBinding(inflater: LayoutInflater) = ExpandedFilterSheetBinding.inflate(inflater)
 
+    override val stickyFooterView: View
+        get() = binding.buttonLayout
+
     val trackerItem = trackersFilter?.let { ExpandedFilterItem(trackersFilter) }
     internal val preferences by injectLazy<PreferencesHelper>()
 
     init {
-        setOnShowListener {
-            updateBottomButtons()
-        }
-        sheetBehavior.addBottomSheetCallback(
-            object : BottomSheetBehavior.BottomSheetCallback() {
-                override fun onSlide(
-                    bottomSheet: View,
-                    slideOffset: Float,
-                ) {
-                    updateBottomButtons()
-                }
-
-                override fun onStateChanged(
-                    bottomSheet: View,
-                    newState: Int,
-                ) {
-                    updateBottomButtons()
-                }
-            },
-        )
         // For some reason the bottom sheet gets wonky it's too tall at the start
         binding.categoryRecyclerView.updateLayoutParams<ConstraintLayout.LayoutParams> {
             height = 100.dpToPx
@@ -75,9 +55,9 @@ class ExpandedFilterSheet(
         binding.titleLayout.checkHeightThen {
             binding.categoryRecyclerView.updateLayoutParams<ConstraintLayout.LayoutParams> {
                 val fullHeight = activity.window.decorView.height
-                val insets = activity.window.decorView.rootWindowInsetsCompat
+                val insetTop = (activity as? MainActivity)?.cachedSystemInsets?.top ?: 0
                 height =
-                    fullHeight - (insets?.getInsets(systemBars())?.top ?: 0) -
+                    fullHeight - insetTop -
                     binding.titleLayout.height - binding.buttonLayout.height - 45.dpToPx
             }
             sheetBehavior.expand()
@@ -203,28 +183,18 @@ class ExpandedFilterSheet(
         super.onStart()
         sheetBehavior.expand()
         sheetBehavior.skipCollapsed = true
-        updateBottomButtons()
+        updateStickyFooterPosition()
         binding.root.post {
             binding.categoryRecyclerView.scrollToPosition(0)
-            updateBottomButtons()
+            updateStickyFooterPosition()
         }
-    }
-
-    fun updateBottomButtons() {
-        val bottomSheet = binding.root.parent as View
-        val bottomSheetVisibleHeight = -bottomSheet.top + (activity.window.decorView.height - bottomSheet.height)
-
-        binding.buttonLayout.translationY = bottomSheetVisibleHeight.toFloat()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val headerHeight = (activity as? MainActivity)?.toolbarHeight ?: 0
         binding.buttonLayout.updatePaddingRelative(
-            bottom =
-                activity.window.decorView.rootWindowInsetsCompat
-                    ?.getInsets(systemBars())
-                    ?.bottom ?: 0,
+            bottom = (activity as? MainActivity)?.cachedSystemInsets?.bottom ?: 0,
         )
 
         binding.buttonLayout.updateLayoutParams<ConstraintLayout.LayoutParams> {

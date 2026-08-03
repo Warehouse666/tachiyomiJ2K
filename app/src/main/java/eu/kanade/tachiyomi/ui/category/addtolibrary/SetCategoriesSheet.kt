@@ -5,12 +5,10 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.view.WindowInsetsCompat.Type.systemBars
 import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePaddingRelative
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.mikepenz.fastadapter.FastAdapter
 import com.mikepenz.fastadapter.adapters.ItemAdapter
 import eu.kanade.tachiyomi.R
@@ -18,15 +16,13 @@ import eu.kanade.tachiyomi.data.database.DatabaseHelper
 import eu.kanade.tachiyomi.data.database.models.Category
 import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.data.database.models.MangaCategory
-import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.databinding.SetCategoriesSheetBinding
 import eu.kanade.tachiyomi.ui.category.ManageCategoryDialog
 import eu.kanade.tachiyomi.ui.main.MainActivity
 import eu.kanade.tachiyomi.util.system.dpToPx
-import eu.kanade.tachiyomi.util.system.rootWindowInsetsCompat
 import eu.kanade.tachiyomi.util.view.checkHeightThen
 import eu.kanade.tachiyomi.util.view.expand
-import eu.kanade.tachiyomi.widget.E2EBottomSheetDialog
+import eu.kanade.tachiyomi.widget.StickyFooterBottomSheetDialog
 import eu.kanade.tachiyomi.widget.TriStateCheckBox
 import uy.kohesive.injekt.injectLazy
 import java.util.Date
@@ -40,7 +36,7 @@ class SetCategoriesSheet(
     var preselected: Array<TriStateCheckBox.State>,
     private val addingToLibrary: Boolean,
     val onMangaAdded: (() -> Unit) = { },
-) : E2EBottomSheetDialog<SetCategoriesSheetBinding>(activity) {
+) : StickyFooterBottomSheetDialog<SetCategoriesSheetBinding>(activity) {
     constructor(
         activity: Activity,
         manga: Manga,
@@ -68,7 +64,6 @@ class SetCategoriesSheet(
     private val itemAdapter = ItemAdapter<AddCategoryItem>()
 
     private val db: DatabaseHelper by injectLazy()
-    private val preferences: PreferencesHelper by injectLazy()
     override var recyclerView: RecyclerView? = binding.categoryRecyclerView
 
     private val preCheckedCategories =
@@ -95,6 +90,9 @@ class SetCategoriesSheet(
 
     override fun createBinding(inflater: LayoutInflater) = SetCategoriesSheetBinding.inflate(inflater)
 
+    override val stickyFooterView: View
+        get() = binding.buttonLayout
+
     init {
         binding.toolbarTitle.text =
             context.getString(
@@ -106,33 +104,12 @@ class SetCategoriesSheet(
                 },
             )
 
-        setOnShowListener {
-            updateBottomButtons()
-        }
-        sheetBehavior.addBottomSheetCallback(
-            object : BottomSheetBehavior.BottomSheetCallback() {
-                override fun onSlide(
-                    bottomSheet: View,
-                    slideOffset: Float,
-                ) {
-                    updateBottomButtons()
-                }
-
-                override fun onStateChanged(
-                    bottomSheet: View,
-                    newState: Int,
-                ) {
-                    updateBottomButtons()
-                }
-            },
-        )
-
         binding.titleLayout.checkHeightThen {
             binding.categoryRecyclerView.updateLayoutParams<ConstraintLayout.LayoutParams> {
                 val fullHeight = activity.window.decorView.height
-                val insets = activity.window.decorView.rootWindowInsetsCompat
+                val insetTop = (activity as? MainActivity)?.cachedSystemInsets?.top ?: 0
                 matchConstraintMaxHeight =
-                    fullHeight - (insets?.getInsets(systemBars())?.top ?: 0) -
+                    fullHeight - insetTop -
                     binding.titleLayout.height - binding.buttonLayout.height - 45.dpToPx
             }
         }
@@ -223,29 +200,20 @@ class SetCategoriesSheet(
         super.onStart()
         sheetBehavior.expand()
         sheetBehavior.skipCollapsed = true
-        updateBottomButtons()
+        updateStickyFooterPosition()
         binding.root.post {
             binding.categoryRecyclerView.scrollToPosition(
                 max(0, itemAdapter.adapterItems.indexOf(selectedItems.firstOrNull())),
             )
+            updateStickyFooterPosition()
         }
-    }
-
-    fun updateBottomButtons() {
-        val bottomSheet = binding.root.parent as View
-        val bottomSheetVisibleHeight = -bottomSheet.top + (activity.window.decorView.height - bottomSheet.height)
-
-        binding.buttonLayout.translationY = bottomSheetVisibleHeight.toFloat()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val headerHeight = (activity as? MainActivity)?.toolbarHeight ?: 0
         binding.buttonLayout.updatePaddingRelative(
-            bottom =
-                activity.window.decorView.rootWindowInsetsCompat
-                    ?.getInsets(systemBars())
-                    ?.bottom ?: 0,
+            bottom = (activity as? MainActivity)?.cachedSystemInsets?.bottom ?: 0,
         )
 
         binding.buttonLayout.updateLayoutParams<ConstraintLayout.LayoutParams> {

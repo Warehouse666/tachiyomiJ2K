@@ -20,7 +20,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.PopupMenu
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.net.toUri
-import androidx.core.view.WindowInsetsCompat.Type.systemBars
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -37,6 +36,7 @@ import eu.kanade.tachiyomi.data.track.model.TrackSearch
 import eu.kanade.tachiyomi.databinding.TrackChaptersDialogBinding
 import eu.kanade.tachiyomi.databinding.TrackScoreDialogBinding
 import eu.kanade.tachiyomi.databinding.TrackingBottomSheetBinding
+import eu.kanade.tachiyomi.ui.main.MainActivity
 import eu.kanade.tachiyomi.ui.manga.MangaDetailsController
 import eu.kanade.tachiyomi.ui.manga.TrackerSearchDivider
 import eu.kanade.tachiyomi.util.lang.indexesOf
@@ -47,7 +47,6 @@ import eu.kanade.tachiyomi.util.system.isPromptChecked
 import eu.kanade.tachiyomi.util.system.launchIO
 import eu.kanade.tachiyomi.util.system.materialAlertDialog
 import eu.kanade.tachiyomi.util.system.openInBrowser
-import eu.kanade.tachiyomi.util.system.rootWindowInsetsCompat
 import eu.kanade.tachiyomi.util.system.toLocalCalendar
 import eu.kanade.tachiyomi.util.system.toUtcCalendar
 import eu.kanade.tachiyomi.util.system.toast
@@ -93,9 +92,7 @@ class TrackingBottomSheet(
         }
 
     init {
-        val insets =
-            activity.window.decorView.rootWindowInsetsCompat
-                ?.getInsets(systemBars())
+        val insets = (activity as? MainActivity)?.cachedSystemInsets
         val height = insets?.bottom ?: 0
         sheetBehavior.peekHeight = 525.dpToPx + height
         sheetBehavior.expand()

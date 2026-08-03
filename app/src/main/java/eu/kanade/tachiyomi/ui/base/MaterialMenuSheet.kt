@@ -7,7 +7,6 @@ import android.view.LayoutInflater
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.view.WindowInsetsCompat.Type.systemBars
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -16,9 +15,9 @@ import com.mikepenz.fastadapter.FastAdapter
 import com.mikepenz.fastadapter.adapters.ItemAdapter
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.databinding.BottomMenuSheetBinding
+import eu.kanade.tachiyomi.ui.main.MainActivity
 import eu.kanade.tachiyomi.util.system.dpToPx
 import eu.kanade.tachiyomi.util.system.getResourceColor
-import eu.kanade.tachiyomi.util.system.rootWindowInsetsCompat
 import eu.kanade.tachiyomi.util.view.RecyclerWindowInsetsListener
 import eu.kanade.tachiyomi.util.view.checkHeightThen
 import eu.kanade.tachiyomi.util.view.expand
@@ -47,9 +46,7 @@ class MaterialMenuSheet(
         binding.menuSheetLayout.checkHeightThen {
             binding.menuSheetRecycler.updateLayoutParams<ConstraintLayout.LayoutParams> {
                 val fullHeight = activity.window.decorView.height
-                val insets =
-                    activity.window.decorView.rootWindowInsetsCompat
-                        ?.getInsets(systemBars())
+                val insets = (activity as? MainActivity)?.cachedSystemInsets
                 matchConstraintMaxHeight =
                     min(
                         (maxHeight ?: fullHeight) + (insets?.bottom ?: 0),
@@ -106,7 +103,7 @@ class MaterialMenuSheet(
             isElevated = elevate
             elevationAnimator?.cancel()
             val nonElevateColor = activity.getResourceColor(R.attr.colorSurface)
-            val elevateColor = activity.getResourceColor(R.attr.colorPrimaryVariant)
+            val elevateColor = activity.getResourceColor(R.attr.colorSurfaceContainer)
 
             elevationAnimator =
                 ValueAnimator.ofArgb(

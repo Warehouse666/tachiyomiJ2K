@@ -4,18 +4,17 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import androidx.appcompat.app.AlertDialog
-import androidx.core.view.WindowInsetsCompat.Type.systemBars
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.databinding.ChapterSortBottomSheetBinding
+import eu.kanade.tachiyomi.ui.main.MainActivity
 import eu.kanade.tachiyomi.ui.manga.MangaDetailsController
 import eu.kanade.tachiyomi.util.chapter.ChapterUtil
 import eu.kanade.tachiyomi.util.system.dpToPx
 import eu.kanade.tachiyomi.util.system.materialAlertDialog
-import eu.kanade.tachiyomi.util.system.rootWindowInsetsCompat
 import eu.kanade.tachiyomi.util.system.setNegativeStateItems
 import eu.kanade.tachiyomi.util.view.checkHeightThen
 import eu.kanade.tachiyomi.util.view.setBottomEdge
@@ -33,10 +32,7 @@ class ChaptersSortBottomSheet(
     override fun createBinding(inflater: LayoutInflater) = ChapterSortBottomSheetBinding.inflate(inflater)
 
     init {
-        val height =
-            activity.window.decorView.rootWindowInsetsCompat
-                ?.getInsetsIgnoringVisibility(systemBars())
-                ?.bottom ?: 0
+        val height = (activity as? MainActivity)?.cachedSystemInsets?.bottom ?: 0
         sheetBehavior.peekHeight = 470.dpToPx + height
 
         sheetBehavior.addBottomSheetCallback(
