@@ -536,10 +536,7 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
                         binding.mainTabs.run { selectTab(getTabAt(recentsType.mainValue)) }
                     }
                     if (currentRoot?.tag()?.toIntOrNull() != R.id.nav_recents) {
-                        setRoot(RecentsController(), R.id.nav_recents)
-                        nav.post {
-                            updatePlace()
-                        }
+                        setRoot(RecentsController(launchWithType = recentsType), R.id.nav_recents)
                     } else {
                         val controller =
                             router.backstack.firstOrNull()?.controller as? RecentsController

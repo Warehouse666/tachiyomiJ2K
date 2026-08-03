@@ -90,10 +90,11 @@ class RecentsPresenter(
         DownloadJob.downloadFlow.onEach(::downloadStatusChanged).launchIn(presenterScope)
         LibraryUpdateJob.updateFlow.onEach(::onUpdateManga).launchIn(presenterScope)
         if (lastRecents != null) {
-            if (recentItems.isEmpty()) {
+            if (recentItems.isEmpty() && lastRecentsType == viewType) {
                 recentItems = lastRecents ?: emptyList()
             }
             lastRecents = null
+            lastRecentsType = null
         }
         getRecents()
         listOf(
@@ -509,18 +510,22 @@ class RecentsPresenter(
         super.onDestroy()
         downloadManager.removeListener(this)
         lastRecents = recentItems
+        lastRecentsType = viewType
     }
 
     fun toggleGroupRecents(
         pref: RecentsViewType,
         updatePref: Boolean = true,
+        getRecents: Boolean = true,
     ) {
         if (updatePref) {
             preferences.recentsViewType().set(pref.mainValue)
         }
         viewType = pref
-        resetOffsets()
-        getRecents()
+        if (getRecents) {
+            resetOffsets()
+            getRecents()
+        }
     }
 
     /**
@@ -751,9 +756,11 @@ class RecentsPresenter(
 
     companion object {
         private var lastRecents: List<RecentMangaItem>? = null
+        private var lastRecentsType: RecentsViewType? = null
 
         fun onLowMemory() {
             lastRecents = null
+            lastRecentsType = null
         }
 
         const val ENDLESS_LIMIT = 50

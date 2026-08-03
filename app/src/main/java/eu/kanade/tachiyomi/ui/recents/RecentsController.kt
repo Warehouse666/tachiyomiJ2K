@@ -97,6 +97,7 @@ import kotlin.math.max
  */
 class RecentsController(
     bundle: Bundle? = null,
+    var launchWithType: RecentsViewType? = null,
 ) : BaseCoroutineController<RecentsControllerBinding, RecentsPresenter>(bundle),
     RecentMangaAdapter.RecentsInterface,
     FlexibleAdapter.OnItemClickListener,
@@ -160,6 +161,10 @@ class RecentsController(
      * @param view created view
      */
     override fun onViewCreated(view: View) {
+        launchWithType?.let {
+            presenter.toggleGroupRecents(it, getRecents = false)
+            launchWithType = null
+        }
         super.onViewCreated(view)
         // Initialize adapter
         val isReturning = this::adapter.isInitialized
