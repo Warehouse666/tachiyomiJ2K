@@ -153,10 +153,10 @@
     <color name="surfaceContainerLowestTealSapphire">#F3FBF8</color>
 
     <!-- Flat Lime Theme -->
-    <color name="primaryLime">#1DA750</color>
+    <color name="primaryLime">#12803B</color>
     <color name="surfaceContainerLime">#D9ECE0</color>
     <color name="primaryInverseLime">#AEDFC0</color>
-    <color name="onPrimaryLime">@color/md_black_1000_87</color>
+    <color name="onPrimaryLime">@color/md_white_1000</color>
     <color name="secondaryLime">#57BD79</color>
     <color name="primaryVariantLime">#065124</color>
     <color name="rippleColorLime">#1F4AF88A</color>
@@ -176,21 +176,21 @@
     <color name="surfaceBrightLime">#F6FBF2</color>
 
     <!-- Strawberry Daiquiri Theme -->
-    <color name="primaryStrawberry">#ED4A65</color>
-    <color name="surfaceContainerStrawberry">#F3E7E7</color>
-    <color name="onPrimaryStrawberry">@color/md_black_1000_87</color>
+    <color name="primaryStrawberry">#D52946</color>
+    <color name="onPrimaryStrawberry">@color/md_white_1000</color>
     <color name="primaryInverseStrawberry">#ef8e9e</color>
     <color name="secondaryStrawberry">#d31d3b</color>
     <color name="rippleColorStrawberry">#1FED4A65</color>
     <color name="primaryVariantStrawberry">#68101f</color>
     <color name="onSurfaceVariantStrawberry">#594042</color>
-    <color name="surfaceContainerHighStrawberry">#F0E0E0</color>
-    <color name="surfaceContainerHighestStrawberry">#ECD9D9</color>
     <color name="outlineStrawberry">#8D7071</color>
     <color name="outlineVariantStrawberry">#E1BEC0</color>
     <color name="onPrimaryContainerStrawberry">#F6EAED</color>
     <color name="onSecondaryContainerStrawberry">#FFFFFF</color>
     <color name="onTertiaryContainerStrawberry">#FFFFFF</color>
+    <color name="surfaceContainerHighestStrawberry">#ECD9D9</color>
+    <color name="surfaceContainerHighStrawberry">#F0E0E0</color>
+    <color name="surfaceContainerStrawberry">#EBDDDD</color>
     <color name="surfaceContainerLowStrawberry">#F6EEEE</color>
     <color name="surfaceContainerLowestStrawberry">#FFFFFF</color>
     <color name="surfaceDimStrawberry">#EED4D5</color>
