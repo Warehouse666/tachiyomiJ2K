@@ -35,7 +35,6 @@ import androidx.browser.customtabs.CustomTabsService.ACTION_CUSTOM_TABS_CONNECTI
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
-import androidx.core.graphics.ColorUtils
 import androidx.core.net.toUri
 import androidx.work.CoroutineWorker
 import androidx.work.WorkInfo
@@ -453,8 +452,9 @@ val Context.cardColor: Int
     get() {
         val cardContainer = getColor(R.color.card_container)
         return if (isInNightMode()) {
-            val bgColor = getResourceColor(R.attr.background)
-            ColorUtils.blendARGB(cardContainer, bgColor, 0.25f)
+            cardContainer
+//            val bgColor = getResourceColor(R.attr.background)
+//            ColorUtils.blendARGB(cardContainer, bgColor, 0.25f)
         } else {
             cardContainer
         }

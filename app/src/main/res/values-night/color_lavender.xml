@@ -28,15 +28,15 @@
     <color name="lavender_on_surface">#DEE8FF</color>
     <color name="lavender_elevation_overlay">@color/lavender_primary</color>
     <color name="lavender_on_surface_variant">#CBC3D6</color>
-    <color name="lavender_surface_container_high">#241f41</color>
-    <color name="lavender_surface_container_highest">#282446</color>
+    <color name="lavender_surface_container_high">#2A1557</color>
+    <color name="lavender_surface_container_highest">#341A6B</color>
     <color name="lavender_outline">#958E9F</color>
     <color name="lavender_outline_variant">#4A4453</color>
     <color name="lavender_on_primary_container">#A177FF</color>
     <color name="lavender_on_secondary_container">#FFFFFF</color>
     <color name="lavender_on_tertiary_container">#EFE6FF</color>
-    <color name="lavender_surface_container_low">#171531</color>
-    <color name="lavender_surface_container_lowest">#15132d</color>
+    <color name="lavender_surface_container_low">#1C0E3A</color>
+    <color name="lavender_surface_container_lowest">#100821</color>
     <color name="lavender_surface_dim">#111129</color>
     <color name="lavender_surface_bright">#3B3841</color>
 </resources>
