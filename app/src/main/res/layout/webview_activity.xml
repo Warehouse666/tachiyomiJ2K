@@ -44,7 +44,7 @@
                 android:id="@+id/progressBar"
                 android:layout_width="match_parent"
                 android:layout_height="2dp"
-                android:progressTint="?attr/colorSecondary"
+                android:progressTint="?attr/colorPrimary"
                 android:progressBackgroundTint="?attr/colorSurface"
                 />
         </WebView>

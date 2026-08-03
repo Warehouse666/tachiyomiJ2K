@@ -54,7 +54,7 @@ class ReaderProgressBar
 
         private fun setPaint(): Paint =
             Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                color = foregroundTintList?.defaultColor ?: context.getResourceColor(R.attr.colorSecondary)
+                color = foregroundTintList?.defaultColor ?: context.getResourceColor(R.attr.colorPrimary)
                 isAntiAlias = true
                 strokeCap = Paint.Cap.ROUND
                 style = Paint.Style.STROKE

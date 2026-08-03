@@ -288,7 +288,7 @@
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/more_button"
-        style="@style/Theme.Widget.Button.TextButton"
+        style="@style/Widget.Material3Expressive.Button.TextButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="12dp"
@@ -298,7 +298,7 @@
         android:paddingEnd="0dp"
         android:text="@string/more"
         android:textAlignment="viewEnd"
-        app:drawableTint="?colorSecondary"
+        app:drawableTint="?colorPrimary"
         app:layout_constraintBottom_toBottomOf="@id/more_guide"
         app:layout_constraintEnd_toEndOf="parent"
         app:rippleColor="@null" />
@@ -333,7 +333,7 @@
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/less_button"
-        style="@style/Theme.Widget.Button.TextButton"
+        style="@style/Widget.Material3Expressive.Button.TextButton"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
@@ -343,7 +343,7 @@
         android:drawableEnd="@drawable/ic_expand_less_24dp"
         android:paddingStart="0dp"
         android:paddingEnd="0dp"
-        app:drawableTint="?colorSecondary"
+        app:drawableTint="?colorPrimary"
         android:visibility="gone"
         app:layout_constraintBottom_toTopOf="@id/start_reading_button"
         app:layout_constraintEnd_toEndOf="parent"
@@ -402,7 +402,7 @@
             android:padding="5dp"
             android:contentDescription="@string/sort_and_filter"
             android:src="@drawable/ic_filter_list_24dp"
-            app:tint="?attr/colorSecondary"
+            app:tint="?attr/colorPrimary"
             app:layout_constraintBottom_toBottomOf="@id/chapters_title"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@id/chapters_title" />

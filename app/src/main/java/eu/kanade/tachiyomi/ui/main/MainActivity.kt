@@ -1010,13 +1010,13 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
                         recentsItem,
                         getString(R.string.manage_whats_downloading),
                         getString(R.string.visit_recents_for_download_queue),
-                    ).outerCircleColorInt(getResourceColor(R.attr.colorSecondary))
+                    ).outerCircleColorInt(getResourceColor(R.attr.colorPrimary))
                     .outerCircleAlpha(0.95f)
                     .titleTextSize(
                         20,
-                    ).titleTextColorInt(getResourceColor(R.attr.colorOnSecondary))
+                    ).titleTextColorInt(getResourceColor(R.attr.colorOnPrimary))
                     .descriptionTextSize(16)
-                    .descriptionTextColorInt(getResourceColor(R.attr.colorOnSecondary))
+                    .descriptionTextColorInt(getResourceColor(R.attr.colorOnPrimary))
                     .icon(contextCompatDrawable(R.drawable.ic_recent_read_32dp))
                     .targetCircleColor(android.R.color.white)
                     .targetRadius(45),

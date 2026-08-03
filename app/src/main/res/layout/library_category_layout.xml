@@ -65,7 +65,7 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/add_categories_button"
-            style="@style/Theme.Widget.Button.TextButton"
+            style="@style/Widget.Material3Expressive.Button.TextButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/add_edit_categories" />

@@ -22,7 +22,7 @@ class DownloadButton
         context: Context,
         attrs: AttributeSet? = null,
     ) : FrameLayout(context, attrs) {
-        var accentColor = context.getResourceColor(R.attr.colorSecondary)
+        var accentColor = context.getResourceColor(R.attr.colorPrimary)
             set(value) {
                 field = value
                 activeColor = ColorUtils.blendARGB(value, bgColor, 0.05f)

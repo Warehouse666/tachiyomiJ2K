@@ -380,7 +380,7 @@ inline fun View.popupMenu(
     if (selectedItemId != null) {
         val blendedAccent =
             ColorUtils.blendARGB(
-                context.getResourceColor(R.attr.colorSecondary),
+                context.getResourceColor(R.attr.colorPrimary),
                 context.getResourceColor(R.attr.colorOnBackground),
                 0.5f,
             )

@@ -17,7 +17,7 @@
             android:id="@+id/install_progress"
             android:layout_width="0dp"
             android:progressBackgroundTint="?attr/background"
-            android:progressTint="?attr/colorSecondary"
+            android:progressTint="?attr/colorPrimary"
             android:layout_height="2dp"
             android:visibility="gone"
             tools:visibility="visible"
@@ -170,7 +170,7 @@
                 app:layout_constraintStart_toEndOf="@id/ext_button"
                 app:layout_constraintTop_toTopOf="parent"
                 app:icon="@drawable/ic_close_24dp"
-                app:iconTint="?attr/colorSecondary" />
+                app:iconTint="?attr/colorPrimary" />
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 

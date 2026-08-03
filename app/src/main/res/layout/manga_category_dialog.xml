@@ -18,7 +18,7 @@
         app:boxStrokeColor="@color/text_box_stroke_selector"
         app:endIconMode="clear_text"
         app:hintEnabled="false"
-        app:hintTextColor="?attr/colorSecondary">
+        app:hintTextColor="?attr/colorPrimary">
 
         <eu.kanade.tachiyomi.widget.TachiyomiTextInputEditText
             android:id="@+id/title"
@@ -49,6 +49,6 @@
         android:id="@+id/edit_categories"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        style="@style/Theme.Widget.Button.TextButton"
+        style="@style/Widget.Material3Expressive.Button.TextButton"
         android:text="@string/edit_categories"/>
 </LinearLayout>

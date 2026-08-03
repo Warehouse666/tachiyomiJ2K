@@ -37,7 +37,7 @@ class OverflowDialog(
             ColorStateList.valueOf(
                 ColorUtils.blendARGB(
                     activity.getResourceColor(R.attr.background),
-                    activity.getResourceColor(R.attr.colorSecondary),
+                    activity.getResourceColor(R.attr.colorPrimary),
                     0.075f,
                 ),
             )

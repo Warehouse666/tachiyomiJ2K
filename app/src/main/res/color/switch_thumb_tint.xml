@@ -4,7 +4,7 @@
     <item android:color="?attr/colorOnSurfaceInverse" android:state_enabled="false"/>
 
     <!-- State Checked -->
-    <item android:color="?attr/colorSecondary" android:state_checked="true"/>
+    <item android:color="?attr/colorPrimary" android:state_checked="true"/>
 
     <!-- State Unchecked -->
     <item android:color="?attr/colorOnSurface"/>

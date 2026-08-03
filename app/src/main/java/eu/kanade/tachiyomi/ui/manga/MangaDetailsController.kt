@@ -291,7 +291,7 @@ class MangaDetailsController :
                     (colorToUse ?: manga?.vibrantCoverColor)
                 } else {
                     ColorUtils.blendARGB(
-                        context.getResourceColor(R.attr.colorSecondary),
+                        context.getResourceColor(R.attr.colorPrimary),
                         colorBack,
                         0.5f,
                     )
@@ -612,7 +612,7 @@ class MangaDetailsController :
                                 if (it == null) return@generate
                                 if (presenter.preferences.themeMangaDetails()) {
                                     launchUI {
-                                        view.context.getResourceColor(R.attr.colorSecondary)
+                                        view.context.getResourceColor(R.attr.colorPrimary)
                                         val vibrantColor = it.getBestColor() ?: return@launchUI
                                         manga?.vibrantCoverColor = vibrantColor
                                         setAccentColorValue(vibrantColor)

@@ -8,12 +8,12 @@
         <item name="colorSecondaryVariant">@android:color/system_accent1_100</item>
         <item name="colorTertiary">@android:color/system_accent3_800</item>
         <item name="colorOnTertiary">@color/md_white_1000</item>
-        <item name="colorOnPrimary">@android:color/system_accent1_900</item>
+        <item name="colorOnPrimary">@android:color/system_neutral2_900</item>
         <item name="colorSurface">@android:color/system_neutral1_900</item>
-        <item name="colorControlHighlight">@color/secondary_highlight</item>
+        <item name="colorControlHighlight">@color/primary_highlight</item>
         <item name="background">@android:color/system_neutral1_900</item>
         <item name="colorOnBackground">@android:color/system_neutral1_10</item>
         <item name="actionBarTintColor">@android:color/system_accent2_10</item>
-        <item name="colorOnSecondary">@android:color/system_neutral2_900</item>
+        <item name="colorOnSecondary">@android:color/system_accent1_900</item>
     </style>
 </resources>

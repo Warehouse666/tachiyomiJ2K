@@ -167,7 +167,7 @@ class ExtensionHolder(
                 when {
                     extension.hasUpdate -> {
                         isActivated = true
-                        rippleColor = ColorStateList.valueOf(context.getColor(R.color.on_secondary_highlight))
+                        rippleColor = ColorStateList.valueOf(context.getColor(R.color.on_primary_highlight))
                         setText(R.string.update)
                     }
                     else -> {

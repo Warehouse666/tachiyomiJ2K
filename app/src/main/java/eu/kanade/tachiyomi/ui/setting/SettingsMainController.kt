@@ -30,7 +30,7 @@ class SettingsMainController :
         with(screen) {
             titleRes = R.string.settings
 
-            val tintColor = context.getResourceColor(R.attr.colorSecondary)
+            val tintColor = context.getResourceColor(R.attr.colorPrimary)
 
             preference {
                 iconRes = R.drawable.ic_tune_24dp

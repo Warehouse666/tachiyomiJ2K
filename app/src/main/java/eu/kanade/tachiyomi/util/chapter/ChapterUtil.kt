@@ -134,7 +134,7 @@ class ChapterUtil {
 
         private fun unreadColor(context: Context): Int = context.getResourceColor(R.attr.colorOnBackground)
 
-        private fun bookmarkedColor(context: Context): Int = context.getResourceColor(R.attr.colorSecondary)
+        private fun bookmarkedColor(context: Context): Int = context.getResourceColor(R.attr.colorPrimary)
 
         private val volumeRegex = Regex("""(vol|volume)\.? *([0-9]+)?""", RegexOption.IGNORE_CASE)
         private val seasonRegex = Regex("""(Season |S)([0-9]+)?""")

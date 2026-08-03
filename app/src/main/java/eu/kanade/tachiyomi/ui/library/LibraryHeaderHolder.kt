@@ -66,13 +66,13 @@ class LibraryHeaderHolder(
         runningDrawable.setStyle(CircularProgressDrawable.DEFAULT)
         runningDrawable.centerRadius = 6f.dpToPx
         runningDrawable.strokeWidth = 2f.dpToPx
-        runningDrawable.setColorSchemeColors(itemView.context.getResourceColor(R.attr.colorSecondary))
+        runningDrawable.setColorSchemeColors(itemView.context.getResourceColor(R.attr.colorPrimary))
 
         binding.endRefresh.setImageDrawable(progressDrawableEnd)
         binding.startRefresh.setImageDrawable(progressDrawableStart)
         binding.startRefresh.scaleX = -1f
         listOf(progressDrawableStart, progressDrawableEnd).forEach {
-            it.setColorSchemeColors(itemView.context.getResourceColor(R.attr.colorOnSecondary))
+            it.setColorSchemeColors(itemView.context.getResourceColor(R.attr.colorOnPrimary))
             it.centerRadius = 1f
             it.arrowEnabled = true
             it.setStyle(CircularProgressDrawable.DEFAULT)
@@ -135,7 +135,7 @@ class LibraryHeaderHolder(
                 .align(ViewTooltip.ALIGN.START)
                 .position(ViewTooltip.Position.TOP)
                 .text(R.string.long_press_category)
-                .color(itemView.context.getResourceColor(R.attr.colorSecondary))
+                .color(itemView.context.getResourceColor(R.attr.colorPrimary))
                 .textSize(TypedValue.COMPLEX_UNIT_SP, 15f)
                 .textColor(Color.WHITE)
                 .withShadow(false)
@@ -392,7 +392,7 @@ class LibraryHeaderHolder(
         val tintedDrawable = drawable?.mutate()
         tintedDrawable?.setTint(
             if (allSelected) {
-                contentView.context.getResourceColor(R.attr.colorSecondary)
+                contentView.context.getResourceColor(R.attr.colorPrimary)
             } else {
                 ContextCompat.getColor(contentView.context, R.color.gray_button)
             },

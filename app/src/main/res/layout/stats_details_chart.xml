@@ -88,7 +88,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="10dp"
-        android:textColor="?attr/colorSecondary"
+        android:textColor="?attr/colorPrimary"
         android:textSize="18sp"
         android:visibility="gone"
         tools:text="15h27"

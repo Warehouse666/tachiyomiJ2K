@@ -161,7 +161,7 @@
                 android:background="#66000000"
                 android:indeterminate="false"
                 android:progress="10"
-                android:progressTint="?attr/colorSecondary"
+                android:progressTint="?attr/colorPrimary"
                 android:visibility="gone"
                 app:layout_constraintEnd_toStartOf="@id/button_layout"
                 app:layout_constraintStart_toStartOf="@id/title"
@@ -188,7 +188,7 @@
                     android:paddingEnd="16dp"
                     android:tooltipText="@string/show_more_chapters"
                     app:layout_constraintHorizontal_chainStyle="spread"
-                    app:tint="?attr/colorSecondary"
+                    app:tint="?attr/colorPrimary"
                     app:srcCompat="@drawable/ic_expand_more_24dp" />
 
                 <ImageButton

@@ -31,7 +31,7 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/clear_history"
-            style="@style/Theme.Widget.Button.TextButton"
+            style="@style/Widget.Material3Expressive.Button.TextButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/clear_history" />

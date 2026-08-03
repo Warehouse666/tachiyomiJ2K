@@ -21,7 +21,7 @@ abstract class LibraryHolder(
     view: View,
     val adapter: LibraryCategoryAdapter,
 ) : BaseFlexibleViewHolder(view, adapter) {
-    protected val color = ColorUtils.setAlphaComponent(itemView.context.getResourceColor(R.attr.colorSecondary), 75)
+    protected val color = ColorUtils.setAlphaComponent(itemView.context.getResourceColor(R.attr.colorPrimary), 75)
 
     init {
         val card = itemView.findViewById<MaterialCardView>(R.id.card)

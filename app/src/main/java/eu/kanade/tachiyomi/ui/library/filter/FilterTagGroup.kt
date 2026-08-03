@@ -136,7 +136,7 @@ FilterTagGroup@JvmOverloads
                 binding.firstButton.setTextColor(
                     context.getResourceColor(
                         if (binding.firstButton.isActivated) {
-                            R.attr.colorOnSecondary
+                            R.attr.colorOnPrimary
                         } else {
                             R.attr.colorOnBackground
                         },
@@ -171,7 +171,7 @@ FilterTagGroup@JvmOverloads
             mainButton.setTextColor(
                 context.getResourceColor(
                     if (mainButton.isActivated) {
-                        R.attr.colorOnSecondary
+                        R.attr.colorOnPrimary
                     } else {
                         R.attr.colorOnBackground
                     },

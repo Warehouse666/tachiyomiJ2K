@@ -32,8 +32,8 @@
     <color name="lavender_surface_container_highest">#282446</color>
     <color name="lavender_outline">#958E9F</color>
     <color name="lavender_outline_variant">#4A4453</color>
-    <color name="lavender_on_primary_container">#FFFFFF</color>
-    <color name="lavender_on_secondary_container">#A177FF</color>
+    <color name="lavender_on_primary_container">#A177FF</color>
+    <color name="lavender_on_secondary_container">#FFFFFF</color>
     <color name="lavender_on_tertiary_container">#EFE6FF</color>
     <color name="lavender_surface_container_low">#171531</color>
     <color name="lavender_surface_container_lowest">#15132d</color>

@@ -69,7 +69,7 @@ internal class AppUpdateNotifier(
             setContentIntent(pendingIntent)
             setAutoCancel(true)
             setSmallIcon(android.R.drawable.stat_sys_download_done)
-            color = context.getResourceColor(R.attr.colorSecondary)
+            color = context.getResourceColor(R.attr.colorPrimary)
             clearActions()
             val isOnA12 = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
             // Download action

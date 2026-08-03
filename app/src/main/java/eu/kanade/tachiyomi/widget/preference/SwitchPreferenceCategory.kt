@@ -31,7 +31,7 @@ class SwitchPreferenceCategory
         override fun onBindViewHolder(holder: PreferenceViewHolder) {
             super.onBindViewHolder(holder)
             val titleView = holder.findViewById(android.R.id.title) as TextView
-            titleView.setTextColor(context.getResourceColor(R.attr.colorSecondary))
+            titleView.setTextColor(context.getResourceColor(R.attr.colorPrimary))
             syncSwitchView(holder)
         }
 

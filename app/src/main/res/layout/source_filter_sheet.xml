@@ -59,7 +59,7 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/reset_btn"
-            style="@style/Theme.Widget.Button.TextButton"
+            style="@style/Widget.Material3Expressive.Button.TextButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/reset"
@@ -77,7 +77,7 @@
             android:layout_marginEnd="16dp"
             android:text="@string/filter"
             app:flow_verticalBias="1.0"
-            app:iconTint="?attr/colorSecondary"
+            app:iconTint="?attr/colorPrimary"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_chainStyle="spread"

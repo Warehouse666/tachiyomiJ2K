@@ -199,7 +199,7 @@ fun String.addBetaTag(
     useSuperScript: Boolean = true,
 ): Spanned {
     val betaText = context.getString(R.string.beta)
-    val colorS = context.getResourceColor(R.attr.colorSecondary)
+    val colorS = context.getResourceColor(R.attr.colorPrimary)
     return buildSpannedString {
         append(this@addBetaTag)
         val buttonSpan: SpannableStringBuilder.() -> Unit = {

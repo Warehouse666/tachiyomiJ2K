@@ -24,7 +24,7 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/set_as_default_filter"
-            style="@style/Theme.Widget.Button.TextButton"
+            style="@style/Widget.Material3Expressive.Button.TextButton"
             android:layout_width="wrap_content"
             android:layout_height="38sp"
             android:padding="4dp"
@@ -36,7 +36,7 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/reset_as_default_filter"
-            style="@style/Theme.Widget.Button.TextButton"
+            style="@style/Widget.Material3Expressive.Button.TextButton"
             android:layout_width="wrap_content"
             android:layout_height="38sp"
             android:padding="4dp"

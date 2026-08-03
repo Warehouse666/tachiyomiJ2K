@@ -7,7 +7,7 @@
 
     <style name="Theme.ActionBar.DayNight" parent="ThemeOverlay.Material3.ActionBar">
         <item name="elevationOverlayEnabled">true</item>
-        <item name="elevationOverlayColor">?colorSecondary</item>
+        <item name="elevationOverlayColor">?colorPrimary</item>
     </style>
 
     <!--===============-->
@@ -26,16 +26,8 @@
         <item name="android:textColor">?android:attr/textColorSecondary</item>
     </style>
 
-    <style name="TextAppearance.Tachiyomi.ListItem" parent="TextAppearance.Material3.TitleMedium">
-        <item name="android:textColor">?attr/colorOnBackground</item>
-    </style>
-
-    <style name="TextAppearance.Tachiyomi.ListItemSecondary" parent="TextAppearance.Material3.BodyMedium">
-        <item name="android:textColor">?android:attr/textColorSecondary</item>
-    </style>
-
     <style name="TextAppearance.Tachiyomi.Button" parent="TextAppearance.Material3.LabelLarge">
-        <item name="android:textColor">?colorSecondary</item>
+        <item name="android:textColor">?colorPrimary</item>
     </style>
 
     <style name="TextAppearance.FloatingTitle" parent="TextAppearance.Material3.TitleLarge">
@@ -59,12 +51,12 @@
         <item name="android:layout_margin">@dimen/fab_margin</item>
         <item name="android:scaleType">fitCenter</item>
         <item name="layout_anchorGravity">bottom|right|end</item>
-        <item name="tint">?attr/colorOnSecondary</item>
-        <item name="backgroundTint">?attr/colorSecondary</item>
-        <item name="android:tint">?attr/colorOnSecondary</item>
-        <item name="iconTint">?attr/colorOnSecondary</item>
+        <item name="tint">?attr/colorOnPrimary</item>
+        <item name="backgroundTint">?attr/colorPrimary</item>
+        <item name="android:tint">?attr/colorOnPrimary</item>
+        <item name="iconTint">?attr/colorOnPrimary</item>
         <item name="textAllCaps">false</item>
-        <item name="android:textColor">?attr/colorOnSecondary</item>
+        <item name="android:textColor">?attr/colorOnPrimary</item>
     </style>
 
     <style name="Widget.Tachiyomi.ActionMode" parent="Widget.Material3.ActionMode">
@@ -76,18 +68,6 @@
 
     <style name="Tachiyomi.PreferenceTheme" parent="@style/PreferenceThemeOverlay">
         <item name="switchPreferenceCompatStyle">@style/Widget.Tachiyomi.SwitchPreferenceCompat</item>
-        <item name="android:textAppearanceListItem">@style/TextAppearance.Tachiyomi.ListItem</item>
-        <item name="android:textAppearanceListItemSecondary">@style/TextAppearance.Tachiyomi.ListItemSecondary</item>
-    </style>
-
-    <style name="Tachiyomi.LoadingIndicatorStyle" parent="@style/Widget.Material3.LoadingIndicator">
-        <item name="indicatorColor">?colorSecondary</item>
-    </style>
-    <style name="Tachiyomi.LinearProgressIndicator" parent="@style/Widget.Material3.LinearProgressIndicator">
-        <item name="indicatorColor">?colorSecondary</item>
-    </style>
-    <style name="Tachiyomi.CircularProgressIndicator" parent="@style/Widget.Material3.CircularProgressIndicator">
-        <item name="indicatorColor">?colorSecondary</item>
     </style>
 
     <style name="Widget.Tachiyomi.SwitchPreferenceCompat" parent="Preference.SwitchPreferenceCompat.Material">
@@ -212,7 +192,7 @@
 
     <style name="Theme.Widget.TextInputLayout.OutlinedBox.Dense" parent="Widget.Material3.TextInputLayout.OutlinedBox.Dense">
         <item name="boxStrokeColor">@color/text_input_stroke</item>
-        <item name="hintTextColor">?attr/colorSecondary</item>
+        <item name="hintTextColor">?attr/colorPrimary</item>
         <item name="android:textColorHint">@color/material_on_background_disabled</item>
     </style>
 
@@ -222,7 +202,7 @@
     <style name="Theme.Widget.Tabs" parent="Widget.Material3.TabLayout.Secondary">
         <item name="tabGravity">center</item>
         <item name="tabIndicator">@drawable/tab_indicator</item>
-        <item name="tabIndicatorColor">?attr/colorSecondary</item>
+        <item name="tabIndicatorColor">?attr/colorPrimary</item>
         <item name="tabTextColor">@color/tabs_selector</item>
         <item name="tabRippleColor">?colorControlHighlight</item>
         <item name="tabIndicatorFullWidth">false</item>
@@ -250,16 +230,16 @@
         <item name="trackColorActive">@color/slider_active_track_color</item>
         <item name="thumbColor">@color/slider_active_track_color</item>
         <item name="labelStyle">@style/Theme.Tachiyomi.Tooltip</item>
-        <item name="tickColorActive">?colorOnSecondary</item>
+        <item name="tickColorActive">?colorOnPrimary</item>
         <item name="tickColorInactive">@color/slider_tick_inactive</item>
         <item name="haloColor">?colorControlHighlight</item>
     </style>
 
 
     <style name="Theme.Tachiyomi.Tooltip" parent="Widget.Material3.Tooltip">
-        <item name="backgroundTint">?colorSecondary</item>
+        <item name="backgroundTint">?colorPrimary</item>
         <item name="showMarker">false</item>
-        <item name="android:textColor">?colorOnSecondary</item>
+        <item name="android:textColor">?colorOnPrimary</item>
     </style>
 
     <!--==============-->
@@ -286,7 +266,7 @@
 
     <style name="Widget.Tachiyomi.Button.Small" parent="Widget.Material3Expressive.Button.TextButton">
         <item name="android:textAllCaps">false</item>
-        <item name="android:textColor">?attr/colorSecondary</item>
+        <item name="android:textColor">?attr/colorPrimary</item>
         <item name="rippleColor">?colorControlHighlight</item>
     </style>
 
@@ -363,7 +343,7 @@
 
     <style name="Widget.Tachiyomi.Button.IconButton.Outlined" parent="Widget.Material3Expressive.Button.IconButton.Outlined">
         <item name="iconGravity">textStart</item>
-        <item name="iconTint">?colorSecondary</item>
+        <item name="iconTint">?colorPrimary</item>
         <item name="android:layout_gravity">center</item>
     </style>
 
@@ -388,11 +368,11 @@
 
     <style name="ThemeOverlay.Tachiyomi.Button.Outlined" parent="">
         <item name="colorContainer">@android:color/transparent</item>
-        <item name="colorContainerChecked">?colorSecondaryContainer</item>
+        <item name="colorContainerChecked">?colorPrimaryContainer</item>
         <item name="colorContainerUnchecked">@android:color/transparent</item>
-        <item name="colorOnContainer">?colorSecondary</item>
+        <item name="colorOnContainer">?colorPrimary</item>
         <item name="colorOnContainerChecked">?colorOnBackground</item>
-        <item name="colorOnContainerUnchecked">?colorSecondary</item>
+        <item name="colorOnContainerUnchecked">?colorPrimary</item>
     </style>
 
     <style name="Widget.Tachiyomi.Button.OutlinedButton" parent="Widget.Material3Expressive.Button.OutlinedButton">
@@ -408,29 +388,25 @@
         <item name="android:letterSpacing">0.0</item>
     </style>
 
-    <style name="Theme.Widget.Button.TextButton" parent="Widget.Material3Expressive.Button.TextButton">
-        <item name="android:textColor">?attr/colorSecondary</item>
-    </style>
-
     <style name="Theme.Widget.ImageBorderless" parent="Widget.AppCompat.ImageButton">
         <item name="android:background">?selectableItemBackgroundBorderless</item>
-        <item name="android:tint">?attr/colorSecondary</item>
+        <item name="android:tint">?attr/colorPrimary</item>
         <item name="rippleColor">?colorControlHighlight</item>
     </style>
 
     <style name="Theme.Widget.ImageBorderless.Secondary">
-        <item name="android:background">@drawable/item_background_borderless_on_secondary</item>
-        <item name="android:tint">?attr/colorOnSecondary</item>
-        <item name="rippleColor">@color/on_secondary_highlight</item>
+        <item name="android:background">@drawable/item_background_borderless_on_primary</item>
+        <item name="android:tint">?attr/colorOnPrimary</item>
+        <item name="rippleColor">@color/on_primary_highlight</item>
     </style>
 
     <style name="Theme.Widget.ImageBorderlessExpressive.Secondary" parent="Widget.Material3Expressive.Button.IconButton.Standard">
-        <item name="iconTint">?attr/colorOnSecondary</item>
-        <item name="rippleColor">@color/on_secondary_highlight</item>
+        <item name="iconTint">?attr/colorOnPrimary</item>
+        <item name="rippleColor">@color/on_primary_highlight</item>
     </style>
 
     <style name="Widget.Tachiyomi.Button.IconButton.Standard" parent="Widget.Material3Expressive.Button.IconButton.Standard">
-        <item name="iconTint">?attr/colorSecondary</item>
+        <item name="iconTint">?attr/colorPrimary</item>
         <item name="iconGravity">textStart</item>
     </style>
 
@@ -438,11 +414,11 @@
         <item name="android:background">@drawable/round_ripple</item>
         <item name="android:clickable">true</item>
         <item name="android:focusable">true</item>
-        <item name="android:tint">?attr/colorSecondary</item>
+        <item name="android:tint">?attr/colorPrimary</item>
     </style>
 
     <style name="Widget.Tachiyomi.Chip.Genre" parent="Widget.Material3.Chip.Suggestion.Elevated">
-        <item name="chipBackgroundColor">@color/secondary_alpha</item>
+        <item name="chipBackgroundColor">@color/primary_alpha</item>
         <item name="chipMinHeight">28dp</item>
         <item name="android:textColor">?attr/colorOnSurface</item>
         <item name="android:textAppearance">@style/Theme.TextAppearance.Chip</item>
@@ -457,7 +433,7 @@
         <item name="chipIconVisible">false</item>
         <item name="chipIconEnabled">false</item>
         <item name="chipIconTint">?attr/colorOnBackground</item>
-        <item name="chipStrokeColor">?attr/colorSecondary</item>
+        <item name="chipStrokeColor">?attr/colorPrimary</item>
         <item name="chipStrokeWidth">1dp</item>
         <item name="closeIconEnabled">true</item>
         <item name="closeIconVisible">true</item>

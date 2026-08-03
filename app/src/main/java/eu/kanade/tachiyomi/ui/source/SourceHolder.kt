@@ -44,7 +44,7 @@ class SourceHolder(
                 ColorStateList.valueOf(
                     context.getResourceColor(
                         if (isPinned) {
-                            R.attr.colorSecondary
+                            R.attr.colorPrimary
                         } else {
                             android.R.attr.textColorSecondary
                         },

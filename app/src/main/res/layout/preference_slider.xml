@@ -28,7 +28,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:textAppearance="?textAppearanceListItem"
-            android:textColor="?attr/colorSecondary"
+            android:textColor="?attr/colorPrimary"
             tools:text="65%" />
 
     </LinearLayout>

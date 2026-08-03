@@ -590,7 +590,7 @@ class StatsDetailsController :
 
     fun Chip.setColors(sizeStat: Int) {
         val emptyTextColor = activity!!.getResourceColor(R.attr.colorOnBackground)
-        val filteredBackColor = activity!!.getResourceColor(R.attr.colorSecondary)
+        val filteredBackColor = activity!!.getResourceColor(R.attr.colorPrimary)
         val emptyBackColor = activity!!.getResourceColor(R.attr.colorSurface)
         val alwaysShowIcon = this == binding.chipStat
         val neverSelect = alwaysShowIcon || sizeStat == 0

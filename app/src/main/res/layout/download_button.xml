@@ -36,7 +36,7 @@
 
     <ImageView
         android:id="@+id/download_icon"
-        app:tint="?attr/colorSecondary"
+        app:tint="?attr/colorPrimary"
         android:layout_gravity="center"
         android:layout_width="30dp"
         android:contentDescription="@string/download"

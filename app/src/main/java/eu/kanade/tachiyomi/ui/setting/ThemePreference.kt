@@ -269,7 +269,7 @@ class ThemePreference
                     val primaryText = themeContext.getResourceColor(android.R.attr.textColorPrimary)
                     val secondaryText = themeContext.getResourceColor(android.R.attr.textColorSecondary)
                     val background = themeContext.getResourceColor(R.attr.background)
-                    val colorSecondary = themeContext.getResourceColor(R.attr.colorSecondary)
+                    val colorSecondary = themeContext.getResourceColor(R.attr.colorPrimary)
                     val appBar = themeContext.getResourceColor(R.attr.colorSurface)
                     val appBarText = themeContext.getResourceColor(R.attr.actionBarTintColor)
                     val bottomBar = themeContext.getResourceColor(R.attr.colorPrimaryVariant)

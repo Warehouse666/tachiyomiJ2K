@@ -287,7 +287,7 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/add_tracking"
-            style="@style/Theme.Widget.Button.TextButton"
+            style="@style/Widget.Material3Expressive.Button.TextButton"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:letterSpacing="0.0"

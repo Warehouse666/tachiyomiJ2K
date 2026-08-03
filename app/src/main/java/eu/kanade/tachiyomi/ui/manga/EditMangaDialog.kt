@@ -300,7 +300,7 @@ class EditMangaDialog : DialogController {
             val accentArray = FloatArray(3)
 
             ColorUtils.colorToHSL(baseTagColor, bgArray)
-            ColorUtils.colorToHSL(context.getResourceColor(R.attr.colorSecondary), accentArray)
+            ColorUtils.colorToHSL(context.getResourceColor(R.attr.colorPrimary), accentArray)
             val downloadedColor =
                 ColorUtils.setAlphaComponent(
                     ColorUtils.HSLToColor(

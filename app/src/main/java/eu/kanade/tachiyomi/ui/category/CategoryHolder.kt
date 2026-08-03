@@ -80,7 +80,7 @@ class CategoryHolder(
             binding.editButton.setImageDrawable(ContextCompat.getDrawable(itemView.context, R.drawable.ic_check_24dp))
             binding.editButton.drawable
                 .mutate()
-                .setTint(itemView.context.getResourceColor(R.attr.colorSecondary))
+                .setTint(itemView.context.getResourceColor(R.attr.colorPrimary))
             showKeyboard()
             if (!createCategory) {
                 binding.reorder.setImageDrawable(

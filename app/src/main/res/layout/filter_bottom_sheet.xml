@@ -80,7 +80,7 @@
                         android:layout_height="32dp"
                         android:maxLines="1"
                         android:text="@string/clear_filters"
-                        android:textColor="?attr/colorSecondary" />
+                        android:textColor="?attr/colorPrimary" />
                 </LinearLayout>
             </HorizontalScrollView>
 
@@ -93,7 +93,7 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/group_by"
-                    style="@style/Theme.Widget.Button.TextButton"
+                    style="@style/Widget.Material3Expressive.Button.TextButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="10dp"
@@ -105,7 +105,7 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/expand_categories"
-                    style="@style/Theme.Widget.Button.TextButton"
+                    style="@style/Widget.Material3Expressive.Button.TextButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:maxLines="2"
@@ -123,7 +123,7 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/view_options"
-                    style="@style/Theme.Widget.Button.TextButton"
+                    style="@style/Widget.Material3Expressive.Button.TextButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="10dp"

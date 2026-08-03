@@ -98,7 +98,7 @@ class RepoHolder(
             binding.editText.selectAll()
             binding.editButton.icon = ContextCompat.getDrawable(itemView.context, R.drawable.ic_check_24dp)
             binding.editButton.iconTint =
-                ColorStateList.valueOf(itemView.context.getResourceColor(R.attr.colorSecondary))
+                ColorStateList.valueOf(itemView.context.getResourceColor(R.attr.colorPrimary))
             showKeyboard()
             if (!createRepo) {
                 binding.openStoreButton.icon =

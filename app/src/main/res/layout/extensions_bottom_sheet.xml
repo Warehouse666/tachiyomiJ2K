@@ -81,7 +81,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/pill"
             app:tabTextColor="@color/tabs_selector_background"
-            app:tabIndicatorColor="?attr/colorSecondary"
+            app:tabIndicatorColor="?attr/colorPrimary"
             app:tabMaxWidth="0dp"
             app:tabGravity="fill"
             app:tabMode="fixed" />
