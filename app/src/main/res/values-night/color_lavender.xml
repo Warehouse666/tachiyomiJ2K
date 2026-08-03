@@ -27,4 +27,8 @@
     <color name="lavender_surface">#111129</color>
     <color name="lavender_on_surface">#DEE8FF</color>
     <color name="lavender_elevation_overlay">@color/lavender_primary</color>
+    <color name="lavender_on_surface_variant">#CBC3D6</color>
+    <color name="lavender_surface_container_high">#241f41</color>
+    <color name="lavender_surface_container_highest">#282446</color>
+    <color name="lavender_outline">#958E9F</color>
 </resources>

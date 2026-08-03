@@ -17,7 +17,9 @@
     <color name="tachiyomi_surface">#FDFBFF</color>
     <color name="tachiyomi_onSurface">#1B1B1E</color>
     <color name="tachiyomi_surfaceVariant">#E1E2EC</color>
-    <color name="tachiyomi_onSurfaceVariant">#44464E</color>
+    <color name="tachiyomi_onSurfaceVariant">#44464F</color>
+    <color name="tachiyomi_surfaceContainerHigh">#FCF7FF</color>
+    <color name="tachiyomi_surfaceContainerHighest">#FCF7FF</color>
     <color name="tachiyomi_outline">#757780</color>
     <color name="tachiyomi_inverseOnSurface">#F2F0F4</color>
     <color name="tachiyomi_inverseSurface">#303033</color>
@@ -51,6 +53,8 @@
     <color name="total_badge_text">@color/md_white_1000</color>
 
     <color name="colorAmoledPrimary">@color/md_black_1000</color>
+    <color name="amoled_surfaceContainerHigh">#121212</color>
+    <color name="amoled_surfaceContainerHighest">#1C1C1C</color>
 
     <color name="textColorPrimaryInverse">@color/md_white_1000</color>
 
@@ -109,6 +113,10 @@
     <color name="onPrimaryDuskDawn">@color/onPrimaryTachiyomi</color>
     <color name="colorOnBackgroundDuskDawn">#DE240728</color>
     <color name="appBarTextDuskDawn">#DE4c0d4b</color>
+    <color name="onSurfaceVariantDuskDawn">#524346</color>
+    <color name="surfaceContainerHighDuskDawn">#FCF3F8</color>
+    <color name="surfaceContainerHighestDuskDawn">#FEF9FC</color>
+    <color name="outlineDuskDawn">#847376</color>
 
     <!-- Teal/Sapphire Theme -->
     <color name="secondaryTealSapphire">#05B1A4</color>
@@ -122,6 +130,10 @@
     <color name="colorOnBackgroundTealSapphire">#DE072926</color>
     <color name="tabBarIconColorTealSapphire">#DE072927</color>
     <color name="appBarTextTealSapphire">#DE0a302e</color>
+    <color name="onSurfaceVariantTealSapphire">#050505</color>
+    <color name="surfaceContainerHighTealSapphire">#F0F8F6</color>
+    <color name="surfaceContainerHighestTealSapphire">#F7FFFD</color>
+    <color name="outlineTealSapphire">#6F7977</color>
 
     <!-- Flat Lime Theme -->
     <color name="primaryLime">#57BD79</color>
@@ -133,6 +145,10 @@
     <color name="rippleColorLime">#1F4AF88A</color>
     <color name="backgroundLime">#E9EFEB</color>
     <color name="downloadBadgeLime">#80CAD3</color>
+    <color name="onSurfaceVariantLime">#3F493F</color>
+    <color name="surfaceContainerHighLime">#E4EAE1</color>
+    <color name="surfaceContainerHighestLime">#DFE4DB</color>
+    <color name="outlineLime">#6F7A6E</color>
 
     <!-- Strawberry Daiquiri Theme -->
     <color name="primaryStrawberry">#d31d3b</color>
@@ -142,6 +158,10 @@
     <color name="secondaryStrawberry">#ED4A65</color>
     <color name="rippleColorStrawberry">#1FED4A65</color>
     <color name="secondaryVariantStrawberry">#68101f</color>
+    <color name="onSurfaceVariantStrawberry">#594042</color>
+    <color name="surfaceContainerHighStrawberry">#FFF0F0</color>
+    <color name="surfaceContainerHighestStrawberry">#FFFFFF</color>
+    <color name="outlineStrawberry">#8D7071</color>
     <color name="backgroundStrawberries">@color/background</color>
 
     <!-- Tako Theme -->
@@ -158,6 +178,10 @@
     <color name="backgroundTako">#F2EDF7</color>
     <color name="actionTintTako">#221b28</color>
     <color name="inactiveTabTako">#C2221b28</color>
+    <color name="onSurfaceVariantTako">#49454E</color>
+    <color name="surfaceContainerHighTako">#EEE6F1</color>
+    <color name="surfaceContainerHighestTako">#F7EEFA</color>
+    <color name="outlineTako">#7A757E</color>
 
     <!-- Yotsuba Theme -->
     <color name="primaryYotsuba">#ba5427</color>
@@ -167,6 +191,10 @@
     <color name="secondaryYotsuba">#dc6d3d</color>
     <color name="rippleColorYotsuba">#1Fdc6d3d</color>
     <color name="secondaryVariantYotsuba">#4e1e0a</color>
+    <color name="onSurfaceVariantYotsuba">#53433F</color>
+    <color name="surfaceContainerHighYotsuba">#FAF4F2</color>
+    <color name="surfaceContainerHighestYotsuba">#FBF6F4</color>
+    <color name="outlineYotsuba">#85736E</color>
 
     <!-- Yin Yang Theme -->
     <color name="primaryVariantYinYang">#FFFFFF</color>
@@ -177,4 +205,8 @@
     <color name="rippleColorYinYang">#1F000000</color>
     <color name="secondaryVariantYinYang">#000000</color>
     <color name="onSecondaryYinYang">@color/md_white_1000</color>
+    <color name="onSurfaceVariantYinYang">#515151</color>
+    <color name="surfaceContainerHighYinYang">#ECECEC</color>
+    <color name="surfaceContainerHighestYinYang">#EFEFEF</color>
+    <color name="outlineYinYang">#838383</color>
 </resources>

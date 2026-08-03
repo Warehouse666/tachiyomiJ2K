@@ -29,6 +29,10 @@
         <item name="colorSecondaryContainer">@color/secondary_container</item>
         <item name="colorTertiaryContainer">@color/tertiary_container</item>
         <item name="colorSurfaceContainer">?colorPrimaryVariant</item>
+        <item name="colorSurfaceContainerHigh">@color/tachiyomi_surfaceContainerHigh</item>
+        <item name="colorSurfaceContainerHighest">@color/tachiyomi_surfaceContainerHighest</item>
+        <item name="colorOnSurfaceVariant">@color/tachiyomi_onSurfaceVariant</item>
+        <item name="colorOutline">@color/tachiyomi_outline</item>
         <item name="background">@color/background</item>
         <item name="colorOnBackground">@color/colorOnBackground</item>
         <item name="colorBackgroundFloating">?colorSurface</item>
@@ -48,6 +52,7 @@
         <item name="materialCardViewElevatedStyle">@style/Widget.Tachiyomi.CardView.Elevated</item>
         <item name="switchPreferenceCompatStyle">@style/Widget.Tachiyomi.SwitchPreferenceCompat</item>
         <item name="android:colorBackground">?background</item>
+        <item name="android:textColor">?colorOnBackground</item>
         <item name="android:textColorSecondary">@color/text_color_secondary</item>
         <item name="android:textColorHint">@color/text_color_hint</item>
         <item name="textAppearanceButton">@style/TextAppearance.Tachiyomi.Button</item>
@@ -80,6 +85,7 @@
         <item name="actionBarTintColor">?attr/colorOnBackground</item>
         <item name="tabBarIconColor">?attr/colorSecondary</item>
         <item name="tabBarIconInactive">@color/colorPrimaryInactive</item>
+        <item name="tabBarTextColor">?attr/actionBarTintColor</item>
         <item name="android:navigationBarColor">#00000000</item>
         <item name="android:statusBarColor">#00000000</item>
         <item name="android:colorEdgeEffect">?attr/colorSecondary</item>
@@ -97,6 +103,8 @@
         <item name="colorPrimaryVariant">@color/md_black_1000</item>
         <item name="background">@color/md_black_1000</item>
         <item name="readerBackground">@color/md_black_1000</item>
+        <item name="colorSurfaceContainerHigh">@color/amoled_surfaceContainerHigh</item>
+        <item name="colorSurfaceContainerHighest">@color/amoled_surfaceContainerHighest</item>
     </style>
 
     <style name="Theme.Tachiyomi.FlatLime">
@@ -112,6 +120,10 @@
         <item name="background">@color/backgroundLime</item>
         <item name="colorTertiary">@color/downloadBadgeLime</item>
         <item name="colorOnTertiary">@color/colorOnDownloadBadgeDayNight</item>
+        <item name="colorOnSurfaceVariant">@color/onSurfaceVariantLime</item>
+        <item name="colorSurfaceContainerHigh">@color/surfaceContainerHighLime</item>
+        <item name="colorSurfaceContainerHighest">@color/surfaceContainerHighestLime</item>
+        <item name="colorOutline">@color/outlineLime</item>
     </style>
 
     <style name="Theme.Tachiyomi.MidnightDusk">
@@ -126,6 +138,10 @@
         <item name="background">@color/backgroundDuskDawn</item>
         <item name="colorOnBackground">@color/colorOnBackgroundDuskDawn</item>
         <item name="actionBarTintColor">@color/appBarTextDuskDawn</item>
+        <item name="colorOnSurfaceVariant">@color/onSurfaceVariantDuskDawn</item>
+        <item name="colorSurfaceContainerHigh">@color/surfaceContainerHighDuskDawn</item>
+        <item name="colorSurfaceContainerHighest">@color/surfaceContainerHighestDuskDawn</item>
+        <item name="colorOutline">@color/outlineDuskDawn</item>
     </style>
 
     <style name="Theme.Tachiyomi.SapphireDusk">
@@ -144,6 +160,10 @@
         <item name="colorOnBackground">@color/colorOnBackgroundTealSapphire</item>
         <item name="colorSurface">@color/backgroundTealSapphire</item>
         <item name="actionBarTintColor">@color/appBarTextTealSapphire</item>
+        <item name="colorOnSurfaceVariant">@color/onSurfaceVariantTealSapphire</item>
+        <item name="colorSurfaceContainerHigh">@color/surfaceContainerHighTealSapphire</item>
+        <item name="colorSurfaceContainerHighest">@color/surfaceContainerHighestTealSapphire</item>
+        <item name="colorOutline">@color/outlineTealSapphire</item>
     </style>
 
     <style name="Theme.Tachiyomi.Lavender">
@@ -163,6 +183,10 @@
         <item name="colorSurface">@color/lavender_surface</item>
         <item name="actionBarTintColor">@color/lavender_on_surface</item>
         <item name="elevationOverlayColor">@color/lavender_elevation_overlay</item>
+        <item name="colorOnSurfaceVariant">@color/lavender_on_surface_variant</item>
+        <item name="colorSurfaceContainerHigh">@color/lavender_surface_container_high</item>
+        <item name="colorSurfaceContainerHighest">@color/lavender_surface_container_highest</item>
+        <item name="colorOutline">@color/lavender_outline</item>
     </style>
 
     <style name="Theme.Tachiyomi.Strawberries">
@@ -175,6 +199,10 @@
         <item name="colorControlHighlight">@color/rippleColorStrawberry</item>
         <item name="colorSecondaryVariant">@color/secondaryVariantStrawberry</item>
         <item name="background">@color/backgroundStrawberries</item>
+        <item name="colorOnSurfaceVariant">@color/onSurfaceVariantStrawberry</item>
+        <item name="colorSurfaceContainerHigh">@color/surfaceContainerHighStrawberry</item>
+        <item name="colorSurfaceContainerHighest">@color/surfaceContainerHighestStrawberry</item>
+        <item name="colorOutline">@color/outlineStrawberry</item>
     </style>
 
     <!--== Tako Theme ==-->
@@ -194,6 +222,10 @@
         <item name="actionBarTintColor">@color/actionTintTako</item>
         <item name="background">@color/backgroundTako</item>
         <item name="tabBarIconInactive">@color/inactiveTabTako</item>
+        <item name="colorOnSurfaceVariant">@color/onSurfaceVariantTako</item>
+        <item name="colorSurfaceContainerHigh">@color/surfaceContainerHighTako</item>
+        <item name="colorSurfaceContainerHighest">@color/surfaceContainerHighestTako</item>
+        <item name="colorOutline">@color/outlineTako</item>
     </style>
 
     <style name="Theme.Tachiyomi.Yotsuba">
@@ -204,6 +236,10 @@
         <item name="colorSecondary">@color/secondaryYotsuba</item>
         <item name="colorControlHighlight">@color/rippleColorYotsuba</item>
         <item name="colorSecondaryVariant">@color/secondaryVariantYotsuba</item>
+        <item name="colorOnSurfaceVariant">@color/onSurfaceVariantYotsuba</item>
+        <item name="colorSurfaceContainerHigh">@color/surfaceContainerHighYotsuba</item>
+        <item name="colorSurfaceContainerHighest">@color/surfaceContainerHighestYotsuba</item>
+        <item name="colorOutline">@color/outlineYotsuba</item>
     </style>
 
     <!--== Yin Yang theme ==-->
@@ -219,6 +255,10 @@
         <item name="colorSecondaryVariant">@color/secondaryVariantYinYang</item>
         <item name="colorTertiary">@color/downloadBadgeDayNight</item>
         <item name="colorOnTertiary">@color/colorOnDownloadBadgeDayNight</item>
+        <item name="colorOnSurfaceVariant">@color/onSurfaceVariantYinYang</item>
+        <item name="colorSurfaceContainerHigh">@color/surfaceContainerHighYinYang</item>
+        <item name="colorSurfaceContainerHighest">@color/surfaceContainerHighestYinYang</item>
+        <item name="colorOutline">@color/outlineYinYang</item>
     </style>
     <style name="Theme.Tachiyomi.Monet"/>
 

@@ -14,6 +14,7 @@
     <attr name="textAppearanceBodySecondary" format="reference"/>
     <attr name="tabBarIconColor" format="reference|integer"/>
     <attr name="tabBarIconInactive" format="reference|integer"/>
+    <attr name="tabBarTextColor" format="reference|integer"/>
     <attr name="mainActionBarSize" format="dimension"/>
     <attr name="tabHighlightBackground" format="color"/>
 

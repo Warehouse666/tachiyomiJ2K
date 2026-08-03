@@ -18,7 +18,9 @@
     <color name="tachiyomi_onSurface">#E4E2E6</color>
     <color name="tachiyomi_surfaceVariant">#44464E</color>
     <color name="tachiyomi_onSurfaceVariant">#C5C6D0</color>
-    <color name="tachiyomi_outline">#8E9099</color>
+    <color name="tachiyomi_surfaceContainerHigh">#292730</color>
+    <color name="tachiyomi_surfaceContainerHighest">#302E38</color>
+    <color name="tachiyomi_outline">#8F9099</color>
     <color name="tachiyomi_inverseOnSurface">#1B1B1E</color>
     <color name="tachiyomi_inverseSurface">#E4E2E6</color>
     <color name="tachiyomi_primaryInverse">#0057CE</color>
@@ -61,6 +63,10 @@
     <color name="rippleColorStrawberry">#1FAA2200</color>
     <color name="secondaryVariantStrawberry">#f9bab2</color>
     <color name="primaryVariantStrawberry">#2B2320</color>
+    <color name="onSurfaceVariantStrawberry">#E1BEC0</color>
+    <color name="surfaceContainerHighStrawberry">#3C2F2F</color>
+    <color name="surfaceContainerHighestStrawberry">#463737</color>
+    <color name="outlineStrawberry">#A9898B</color>
     <color name="backgroundStrawberries">#1a1716</color>
 
     <!-- Flat Lime Theme -->
@@ -72,6 +78,10 @@
     <color name="backgroundLime">#202125</color>
     <color name="secondaryVariantLime">#cbffe0</color>
     <color name="downloadBadgeLime">#304E51</color>
+    <color name="onSurfaceVariantLime">#BECABC</color>
+    <color name="surfaceContainerHighLime">#262B26</color>
+    <color name="surfaceContainerHighestLime">#313630</color>
+    <color name="outlineLime">#889487</color>
 
     <!-- Tako Theme -->
     <color name="primaryTako">#fccd9f</color>
@@ -87,6 +97,10 @@
     <color name="backgroundTako">#21212E</color>
     <color name="actionTintTako">#f4ece5</color>
     <color name="inactiveTabTako">#C2f4ece5</color>
+    <color name="onSurfaceVariantTako">#CBC4CE</color>
+    <color name="surfaceContainerHighTako">#303044</color>
+    <color name="surfaceContainerHighestTako">#36364D</color>
+    <color name="outlineTako">#958F99</color>
 
     <!-- Midnight Dusk Theme -->
     <color name="secondaryDuskDawn">#F02475</color>
@@ -99,6 +113,10 @@
     <color name="primaryDuskDawn">#E570A0</color>
     <color name="colorOnBackgroundDuskDawn">@color/md_white_1000</color>
     <color name="appBarTextDuskDawn">@color/md_white_1000</color>
+    <color name="onSurfaceVariantDuskDawn">#D6C1C4</color>
+    <color name="surfaceContainerHighDuskDawn">#2D1C2A</color>
+    <color name="surfaceContainerHighestDuskDawn">#2F1F2C</color>
+    <color name="outlineDuskDawn">#9F8C8F</color>
 
     <!-- Teal/Sapphire Theme -->
     <color name="secondaryTealSapphire">#589ab8</color>
@@ -112,6 +130,10 @@
     <color name="colorOnBackgroundTealSapphire">@color/md_white_1000</color>
     <color name="tabBarIconColorTealSapphire">#589ab8</color>
     <color name="appBarTextTealSapphire">@color/md_white_1000</color>
+    <color name="onSurfaceVariantTealSapphire">#DFDEDA</color>
+    <color name="surfaceContainerHighTealSapphire">#28383A</color>
+    <color name="surfaceContainerHighestTealSapphire">#2F4244</color>
+    <color name="outlineTealSapphire">#899391</color>
 
     <!-- Yin Yang Theme -->
     <color name="primaryYinYang">#dcdcdc</color>
@@ -122,4 +144,8 @@
     <color name="secondaryVariantYinYang">#FFFFFF</color>
     <color name="onSecondaryYinYang">@color/md_black_1000</color>
     <color name="primaryVariantYinYang">#2C2C2C</color>
+    <color name="onSurfaceVariantYinYang">#D1D1D1</color>
+    <color name="surfaceContainerHighYinYang">#383838</color>
+    <color name="surfaceContainerHighestYinYang">#3F3F3F</color>
+    <color name="outlineYinYang">#999999</color>
 </resources>
