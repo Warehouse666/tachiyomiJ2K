@@ -245,6 +245,31 @@
         <item name="colorSurfaceBright">@color/surfaceBrightStrawberry</item>
     </style>
 
+    <!--== Tokyo Night Theme ==-->
+    <style name="Theme.Tachiyomi.TokyoNight">
+        <item name="colorPrimary">@color/tokyonight_primary</item>
+        <item name="colorPrimaryInverse">@color/tokyonight_primary_inverse</item>
+        <item name="colorPrimaryVariant">@color/tokyonight_primary_variant</item>
+        <item name="colorOnPrimary">@color/tokyonight_on_primary</item>
+        <item name="colorSecondary">@color/tokyonight_secondary</item>
+        <item name="colorOnSecondary">@color/tokyonight_on_secondary</item>
+        <item name="colorSecondaryContainer">@color/tokyonight_secondary_container</item>
+        <item name="colorControlHighlight">@color/tokyonight_ripple</item>
+        <item name="colorTertiary">@color/tokyonight_tertiary</item>
+        <item name="colorOnTertiary">@color/tokyonight_on_tertiary</item>
+        <item name="background">@color/tokyonight_background</item>
+        <item name="colorOnBackground">@color/tokyonight_on_background</item>
+        <item name="colorSurface">@color/tokyonight_surface</item>
+        <item name="colorSurfaceContainer">@color/tokyonight_surface_container</item>
+        <item name="tabBarIconInactive">@color/tokyonight_inactive</item>
+        <item name="tabBarTextColor">@color/tokyonight_primary_variant</item>
+        <item name="colorOnSurfaceVariant">@color/tokyonight_on_surface_variant</item>
+        <item name="colorSurfaceContainerHigh">@color/tokyonight_surface_container_high</item>
+        <item name="colorSurfaceContainerHighest">@color/tokyonight_surface_container_highest</item>
+        <item name="colorSurfaceContainerLow">@color/tokyonight_surface_container_low</item>
+        <item name="colorSurfaceContainerLowest">@color/tokyonight_surface_container_lowest</item>
+    </style>
+
     <!--== Tako Theme ==-->
     <style name="Theme.Tachiyomi.Tako">
         <item name="colorPrimary">@color/primaryTako</item>
