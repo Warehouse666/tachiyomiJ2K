@@ -13,7 +13,8 @@ import eu.kanade.tachiyomi.util.system.getResourceColor
 
 @SuppressLint("CustomViewStyleable")
 class
-CenteredToolbar@JvmOverloads
+CenteredToolbar
+    @JvmOverloads
     constructor(
         context: Context,
         attrs: AttributeSet? = null,
