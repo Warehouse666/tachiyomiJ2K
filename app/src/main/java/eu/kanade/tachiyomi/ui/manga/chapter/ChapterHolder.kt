@@ -177,7 +177,7 @@ class ChapterHolder(
 
             binding.bookmark.imageTintList =
                 ColorStateList.valueOf(
-                    context.getResourceColor(android.R.attr.textColorPrimaryInverse),
+                    context.getResourceColor(R.attr.colorOnPrimary),
                 )
             ChapterUtil.tintBookmarkDrawable(binding.chapterTitle, it)
             accentColor = it

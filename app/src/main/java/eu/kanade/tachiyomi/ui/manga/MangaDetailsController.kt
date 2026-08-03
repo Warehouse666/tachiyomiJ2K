@@ -332,7 +332,7 @@ class MangaDetailsController :
             if (presenter.preferences.themeMangaDetails()) {
                 (colorToUse ?: manga?.vibrantCoverColor)?.let { color ->
                     val newColor =
-                        makeColorFrom(color, context.getResourceColor(R.attr.colorPrimaryVariant))
+                        makeColorFrom(color, context.getResourceColor(R.attr.colorSurfaceContainer))
                     activityBinding?.navBar?.backgroundColor =
                         ColorUtils.setAlphaComponent(
                             newColor,
@@ -553,7 +553,7 @@ class MangaDetailsController :
         if (actionMode != null) {
             return
         }
-        val scrollingColor = headerColor ?: activity.getResourceColor(R.attr.colorPrimaryVariant)
+        val scrollingColor = headerColor ?: activity.getResourceColor(R.attr.colorSurfaceContainer)
         val topColor = ColorUtils.setAlphaComponent(scrollingColor, 0)
         val scrollingStatusColor =
             ColorUtils.setAlphaComponent(scrollingColor, (0.87f * 255).roundToInt())
@@ -640,7 +640,7 @@ class MangaDetailsController :
     }
 
     private fun setStatusBarAndToolbar() {
-        val scrollingColor = headerColor ?: activity!!.getResourceColor(R.attr.colorPrimaryVariant)
+        val scrollingColor = headerColor ?: activity!!.getResourceColor(R.attr.colorSurfaceContainer)
         val scrollingStatusColor =
             ColorUtils.setAlphaComponent(scrollingColor, (0.87f * 255).roundToInt())
         activityBinding?.statusBar?.gradientBackgroundColor =

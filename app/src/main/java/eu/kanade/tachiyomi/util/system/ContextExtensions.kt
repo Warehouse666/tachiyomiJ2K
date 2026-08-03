@@ -351,7 +351,7 @@ fun Context.openInBrowser(
                 .setDefaultColorSchemeParams(
                     CustomTabColorSchemeParams
                         .Builder()
-                        .setToolbarColor(toolbarColor ?: getResourceColor(R.attr.colorPrimaryVariant))
+                        .setToolbarColor(toolbarColor ?: getResourceColor(R.attr.colorSurfaceContainer))
                         .build(),
                 ).build()
         if (forceBrowser) {
@@ -390,7 +390,7 @@ fun Context.openInBrowser(
                     .setDefaultColorSchemeParams(
                         CustomTabColorSchemeParams
                             .Builder()
-                            .setToolbarColor(getResourceColor(R.attr.colorPrimaryVariant))
+                            .setToolbarColor(getResourceColor(R.attr.colorSurfaceContainer))
                             .build(),
                     ).build()
             if (forceBrowser) {

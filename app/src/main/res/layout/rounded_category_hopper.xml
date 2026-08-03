@@ -23,7 +23,7 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/up_category"
-            style="@style/Theme.Widget.ImageBorderlessExpressive.Secondary"
+            style="@style/Theme.Widget.ImageBorderlessExpressive.Standard"
             android:layout_width="wrap_content"
             android:layout_height="48dp"
             app:iconGravity="textStart"
@@ -33,7 +33,7 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/category_button"
-            style="@style/Theme.Widget.ImageBorderlessExpressive.Secondary"
+            style="@style/Theme.Widget.ImageBorderlessExpressive.Standard"
             android:layout_width="wrap_content"
             android:layout_height="48dp"
             android:contentDescription="@string/categories"
@@ -43,7 +43,7 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/down_category"
-            style="@style/Theme.Widget.ImageBorderlessExpressive.Secondary"
+            style="@style/Theme.Widget.ImageBorderlessExpressive.Standard"
             android:layout_width="wrap_content"
             android:layout_height="48dp"
             android:contentDescription="@string/next_title"

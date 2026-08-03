@@ -310,7 +310,7 @@ fun setBottomEdge(
 
 fun SwipeRefreshLayout.setStyle() {
     setColorSchemeColors(context.getResourceColor(R.attr.actionBarTintColor))
-    setProgressBackgroundColorSchemeColor(context.getResourceColor(R.attr.colorPrimaryVariant))
+    setProgressBackgroundColorSchemeColor(context.getResourceColor(R.attr.colorSurfaceContainer))
 }
 
 fun MaterialButton.resetStrokeColor() {

@@ -221,7 +221,7 @@ fun <T> Controller.liftAppbarWith(
             ImageUtil.getPercentOfColor(
                 activityBinding!!.appBar.backgroundColor ?: Color.TRANSPARENT,
                 activity!!.getResourceColor(R.attr.colorSurface),
-                activity!!.getResourceColor(R.attr.colorPrimaryVariant),
+                activity!!.getResourceColor(R.attr.colorSurfaceContainer),
             )
         if (floatingBar) {
             setAppBarBG(0f)
@@ -402,7 +402,7 @@ fun Controller.scrollViewWith(
                 ImageUtil.getPercentOfColor(
                     activityBinding!!.appBar.backgroundColor ?: Color.TRANSPARENT,
                     activity!!.getResourceColor(R.attr.colorSurface),
-                    activity!!.getResourceColor(R.attr.colorPrimaryVariant),
+                    activity!!.getResourceColor(R.attr.colorSurfaceContainer),
                 )
             toolbarColorAnim = ValueAnimator.ofFloat(percent, isColored.toInt().toFloat())
             toolbarColorAnim?.addUpdateListener { valueAnimator ->
@@ -505,7 +505,7 @@ fun Controller.scrollViewWith(
                         (params as? FrameLayout.LayoutParams)?.gravity = Gravity.BOTTOM
                         fakeBottomNavView?.translationY = bottomNav.translationY
                         params?.width = MATCH_PARENT
-                        v.setBackgroundColor(v.context.getResourceColor(R.attr.colorPrimaryVariant))
+                        v.setBackgroundColor(v.context.getResourceColor(R.attr.colorSurfaceContainer))
                         v.layoutParams = params
                     }
                     toolbarColorAnim?.cancel()
@@ -801,7 +801,7 @@ fun Controller.setAppBarBG(
         (this as? FloatingSearchInterface)?.showFloatingBar() == true && !includeTabView
     if (!isControllerVisible) return
     if (floatingBar) {
-        (activityBinding?.cardView as? CardView)?.setCardBackgroundColor(context.getResourceColor(R.attr.colorPrimaryVariant))
+        (activityBinding?.cardView as? CardView)?.setCardBackgroundColor(context.getResourceColor(R.attr.colorSurfaceContainer))
         if (this !is SmallToolbarInterface &&
             activityBinding?.appBar?.useLargeToolbar == true &&
             activityBinding?.appBar?.compactSearchMode != true
@@ -825,7 +825,7 @@ fun Controller.setAppBarBG(
         val color =
             ColorUtils.blendARGB(
                 context.getResourceColor(R.attr.colorSurface),
-                context.getResourceColor(R.attr.colorPrimaryVariant),
+                context.getResourceColor(R.attr.colorSurfaceContainer),
                 value,
             )
         activityBinding?.appBar?.setBackgroundColor(color)
@@ -837,7 +837,7 @@ fun Controller.setAppBarBG(
             val invColor =
                 ColorUtils.blendARGB(
                     context.getResourceColor(R.attr.colorSurface),
-                    context.getResourceColor(R.attr.colorPrimaryVariant),
+                    context.getResourceColor(R.attr.colorSurfaceContainer),
                     1 - value,
                 )
             (activityBinding?.cardView as? CardView)?.setCardBackgroundColor(

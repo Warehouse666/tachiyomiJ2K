@@ -100,7 +100,7 @@ open class BaseWebViewActivity : BaseActivity<WebviewActivityBinding>() {
             /*if (getResourceColor(android.R.attr.statusBarColor) != Color.TRANSPARENT)
                 window.statusBarColor = Color.BLACK
             else window.statusBarColor = getResourceColor(R.attr.colorPrimary)*/
-            window.navigationBarColor = getResourceColor(R.attr.colorPrimaryVariant)
+            window.navigationBarColor = getResourceColor(R.attr.colorSurfaceContainer)
             v.setPadding(
                 insets.getInsets(systemBars()).left,
                 insets.getInsets(systemBars()).top,
@@ -198,12 +198,12 @@ open class BaseWebViewActivity : BaseActivity<WebviewActivityBinding>() {
                 intArrayOf(
                     R.attr.colorSurface,
                     R.attr.actionBarTintColor,
-                    R.attr.colorPrimaryVariant,
+                    R.attr.colorSurfaceContainer,
                 ),
             )
         val colorSurface = attrs.getColor(0, 0)
         val actionBarTintColor = attrs.getColor(1, 0)
-        val colorPrimaryVariant = attrs.getColor(2, 0)
+        val colorSurfaceContainer = attrs.getColor(2, 0)
         attrs.recycle()
 
         window.statusBarColor = ColorUtils.setAlphaComponent(colorSurface, 255)
@@ -219,11 +219,11 @@ open class BaseWebViewActivity : BaseActivity<WebviewActivityBinding>() {
         binding.toolbar.setTitleTextColor(actionBarTintColor)
         binding.toolbar.overflowIcon?.setTint(actionBarTintColor)
         binding.swipeRefresh.setColorSchemeColors(actionBarTintColor)
-        binding.swipeRefresh.setProgressBackgroundColorSchemeColor(colorPrimaryVariant)
+        binding.swipeRefresh.setProgressBackgroundColorSchemeColor(colorSurfaceContainer)
 
         window.navigationBarColor =
             if (!lightMode) {
-                colorPrimaryVariant
+                colorSurfaceContainer
             } else {
                 Color.BLACK
             }

@@ -136,7 +136,7 @@
                     android:id="@+id/theme_bottom_bar"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/theme_bottom_bar_preview"
-                    android:background="?colorPrimaryVariant"
+                    android:background="?colorSurfaceContainer"
                     android:elevation="2dp"
                     android:orientation="horizontal"
                     app:layout_constraintBottom_toBottomOf="parent"

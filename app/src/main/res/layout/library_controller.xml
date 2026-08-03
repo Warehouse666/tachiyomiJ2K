@@ -76,7 +76,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/list_item_selector"
-            android:backgroundTint="?colorPrimaryVariant"
+            android:backgroundTint="?colorSurfaceContainer"
             android:clickable="true"
             android:ellipsize="end"
             android:focusable="true"
@@ -130,6 +130,7 @@
         android:id="@+id/fast_scroller"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        tools:visibility="gone"
         app:fastScrollerBubbleEnabled="true" />
 
     <!-- Adding bottom sheet after main content -->

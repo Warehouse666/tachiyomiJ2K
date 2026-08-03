@@ -1349,7 +1349,7 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
         sheetManageNavColor =
             when {
                 isInMultiWindowMode -> {
-                    binding.navBar.backgroundColor = getResourceColor(R.attr.colorPrimaryVariant)
+                    binding.navBar.backgroundColor = getResourceColor(R.attr.colorSurfaceContainer)
                     false
                 }
                 insets.isBottomTappable() -> {
