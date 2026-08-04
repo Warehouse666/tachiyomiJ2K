@@ -8,7 +8,6 @@ import android.view.ViewGroup
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.children
 import androidx.core.view.updateLayoutParams
-import androidx.core.view.updatePaddingRelative
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.textview.MaterialTextView
@@ -192,13 +191,8 @@ class ExpandedFilterSheet(
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val headerHeight = (activity as? MainActivity)?.toolbarHeight ?: 0
-        binding.buttonLayout.updatePaddingRelative(
-            bottom = (activity as? MainActivity)?.cachedSystemInsets?.bottom ?: 0,
-        )
-
-        binding.buttonLayout.updateLayoutParams<ConstraintLayout.LayoutParams> {
-            height = headerHeight + binding.buttonLayout.paddingBottom
+        binding.bottomSpacer.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+            height = (activity as? MainActivity)?.cachedSystemInsets?.bottom ?: 0
         }
 
         binding.clearFiltersButton.setOnClickListener {
