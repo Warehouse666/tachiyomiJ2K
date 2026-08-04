@@ -365,9 +365,9 @@
     </style>
 
     <style name="Widget.Tachiyomi.Button.OutlinedButton" parent="Widget.Material3Expressive.Button.OutlinedButton">
-        <item name="backgroundTint">@color/ext_bg_selector</item>
+<!--        <item name="backgroundTint">@color/ext_bg_selector</item>-->
         <item name="android:textColor">@color/ext_button_text_selector</item>
-        <item name="rippleColor">?colorControlHighlight</item>
+<!--        <item name="rippleColor">?colorControlHighlight</item>-->
     </style>
 
     <style name="Widget.Tachiyomi.Button.Primary" parent="Widget.Material3Expressive.Button">
