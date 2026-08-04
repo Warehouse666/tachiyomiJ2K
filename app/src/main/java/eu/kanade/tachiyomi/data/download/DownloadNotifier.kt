@@ -78,7 +78,7 @@ internal class DownloadNotifier(
                 setOngoing(true)
                 // Open download manager when clicked
                 setContentIntent(NotificationHandler.openDownloadManagerPendingActivity(context))
-                color = ContextCompat.getColor(context, R.color.secondaryTachiyomi)
+                color = ContextCompat.getColor(context, R.color.primaryTachiyomi)
                 isDownloading = true
                 // Pause action
                 addAction(
@@ -125,7 +125,7 @@ internal class DownloadNotifier(
                 clearActions()
                 setOngoing(true)
                 // Open download manager when clicked
-                color = ContextCompat.getColor(context, R.color.secondaryTachiyomi)
+                color = ContextCompat.getColor(context, R.color.primaryTachiyomi)
                 setContentIntent(NotificationHandler.openDownloadManagerPendingActivity(context))
                 isDownloading = true
                 // Pause action
@@ -174,7 +174,7 @@ internal class DownloadNotifier(
             setAutoCancel(false)
             setOngoing(false)
             setProgress(0, 0, false)
-            color = ContextCompat.getColor(context, R.color.secondaryTachiyomi)
+            color = ContextCompat.getColor(context, R.color.primaryTachiyomi)
             clearActions()
             // Open download manager when clicked
             setContentIntent(NotificationHandler.openDownloadManagerPendingActivity(context))
@@ -207,7 +207,7 @@ internal class DownloadNotifier(
         with(notification) {
             setContentTitle(context.getString(R.string.downloads))
             setContentText(reason)
-            color = ContextCompat.getColor(context, R.color.secondaryTachiyomi)
+            color = ContextCompat.getColor(context, R.color.primaryTachiyomi)
             setSmallIcon(R.drawable.ic_warning_white_24dp)
             setOngoing(false)
             setAutoCancel(true)
@@ -293,7 +293,7 @@ internal class DownloadNotifier(
             } else {
                 setContentIntent(NotificationHandler.openDownloadManagerPendingActivity(context))
             }
-            color = ContextCompat.getColor(context, R.color.secondaryTachiyomi)
+            color = ContextCompat.getColor(context, R.color.primaryTachiyomi)
             setProgress(0, 0, false)
         }
         notification.show(Notifications.ID_DOWNLOAD_CHAPTER_ERROR)

@@ -69,7 +69,7 @@ class SaveImageNotifier(
             setStyle(NotificationCompat.BigPictureStyle().bigPicture(image))
             setLargeIcon(image)
             setAutoCancel(true)
-            color = ContextCompat.getColor(context, R.color.secondaryTachiyomi)
+            color = ContextCompat.getColor(context, R.color.primaryTachiyomi)
             // Clear old actions if they exist
             clearActions()
 

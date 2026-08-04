@@ -17,11 +17,12 @@
         <!--Standard Material colors -->
         <item name="colorPrimary">@color/primaryTachiyomi</item>
         <item name="colorPrimaryInverse">@color/primaryInverseTachiyomi</item>
-        <item name="colorPrimaryVariant">@color/primaryVariantTachiyomi</item>
+        <item name="colorSecondary">@color/secondaryTachiyomi</item>
+        <item name="colorAccent">?attr/colorPrimary</item>
+        <item name="android:colorAccent" tools:targetApi="21">?attr/colorPrimary</item>
         <item name="colorSurface">@color/background</item> //old colorSecondary
         <item name="colorSurfaceVariant">?colorSurfaceContainer</item> //old colorSecondary
         <item name="colorOnSurface">@color/colorOnSurface</item>
-        <item name="colorSecondary">@color/secondaryTachiyomi</item> //colorAccent
         <item name="colorOnSecondary">@color/md_white_1000</item>
         <item name="colorOnPrimary">@color/onPrimaryTachiyomi</item>
         <item name="colorPrimaryContainer">@color/primary_container</item>
@@ -62,14 +63,13 @@
         <item name="switchPreferenceCompatStyle">@style/Widget.Tachiyomi.SwitchPreferenceCompat</item>
         <item name="android:colorBackground">?background</item>
         <item name="android:textColor">?colorOnBackground</item>
+        <item name="android:textColorPrimary">?colorOnBackground</item>
         <item name="android:textColorSecondary">@color/text_color_secondary</item>
         <item name="android:textColorHint">@color/text_color_hint</item>
         <item name="textAppearanceButton">@style/TextAppearance.Tachiyomi.Button</item>
         <item name="textAppearanceBodySecondary">@style/TextAppearance.Tachiyomi.BodySecondary</item>
         <item name="switchStyle">@style/Widget.Tachiyomi.CompoundButton.Switch</item>
         <item name="sliderStyle">@style/Widget.Tachiyomi.Slider</item>
-        <item name="checkboxStyle">@style/Widget.Tachiyomi.CompoundButton.CheckBox</item>
-        <item name="radioButtonStyle">@style/Widget.Tachiyomi.CompoundButton.RadioButton</item>
         <item name="bottomNavigationStyle">@style/Widget.Tachiyomi.BottomNavigationView</item>
         <item name="materialButtonStyle">@style/Widget.Tachiyomi.Button.Primary</item>
         <item name="navigationRailStyle">@style/Widget.Tachiyomi.NavigationRail</item>
@@ -118,9 +118,8 @@
         <item name="colorPrimary">@color/primaryLime</item>
         <item name="colorOnPrimary">@color/onPrimaryLime</item>
         <item name="colorPrimaryInverse">@color/primaryInverseLime</item>
-        <item name="colorSecondary">@color/secondaryLime</item>
         <item name="colorControlHighlight">@color/rippleColorLime</item>
-        <item name="colorPrimaryVariant">@color/primaryVariantLime</item>
+        <item name="colorSecondary">@color/secondaryLime</item>
         <item name="colorSurfaceContainer">@color/surfaceContainerLime</item>
         <item name="colorSurface">@color/backgroundLime</item>
         <item name="background">@color/backgroundLime</item>
@@ -144,9 +143,8 @@
         <item name="colorPrimary">@color/primaryDuskDawn</item>
         <item name="colorPrimaryInverse">@color/primaryInverseDuskDawn</item>
         <item name="colorOnPrimary">@color/onPrimaryDuskDawn</item>
-        <item name="colorSecondary">@color/secondaryDuskDawn</item>
         <item name="colorControlHighlight">@color/rippleColorDuskDawn</item>
-        <item name="colorPrimaryVariant">@color/primaryVariantDuskDawn</item>
+        <item name="colorSecondary">@color/secondaryDuskDawn</item>
         <item name="colorSurfaceContainer">@color/surfaceContainerDuskDawn</item>
         <item name="colorSurface">@color/backgroundDuskDawn</item>
         <item name="background">@color/backgroundDuskDawn</item>
@@ -167,9 +165,8 @@
         <item name="colorPrimary">@color/primaryTealSapphire</item>
         <item name="colorPrimaryInverse">@color/primaryInverseTealSapphire</item>
         <item name="colorOnPrimary">@color/onPrimaryTealSapphire</item>
-        <item name="colorSecondary">@color/secondaryTealSapphire</item>
         <item name="colorOnSecondary">@color/colorOnDownloadBadgeDayNight</item>
-        <item name="colorPrimaryVariant">@color/primaryVariantTealSapphire</item>
+        <item name="colorSecondary">@color/secondaryTealSapphire</item>
         <item name="colorSurfaceContainer">@color/surfaceContainerTealSapphire</item>
         <item name="colorTertiary">@color/downloadBadgeDayNightInverse</item>
         <item name="colorOnTertiary">?android:textColorPrimaryInverse</item>
@@ -194,9 +191,8 @@
         <item name="colorPrimary">@color/lavender_primary</item>
         <item name="colorPrimaryInverse">@color/lavender_primary_inverse</item>
         <item name="colorOnPrimary">@color/lavender_on_primary</item>
-        <item name="colorSecondary">@color/lavender_secondary</item>
         <item name="colorOnSecondary">@color/lavender_on_secondary</item>
-        <item name="colorPrimaryVariant">@color/lavender_primary_variant</item>
+        <item name="colorSecondary">@color/lavender_secondary</item>
         <item name="colorSurfaceContainer">@color/lavender_surface_container</item>
         <item name="colorTertiary">@color/lavender_tertiary</item>
         <item name="colorOnTertiary">@color/lavender_on_tertiary</item>
@@ -226,9 +222,8 @@
         <item name="colorPrimaryInverse">@color/primaryInverseStrawberry</item>
         <item name="colorOnPrimary">@color/onPrimaryStrawberry</item>
         <item name="colorSurface">@color/backgroundStrawberries</item>
-        <item name="colorSecondary">@color/secondaryStrawberry</item>
         <item name="colorControlHighlight">@color/rippleColorStrawberry</item>
-        <item name="colorPrimaryVariant">@color/primaryVariantStrawberry</item>
+        <item name="colorSecondary">@color/secondaryStrawberry</item>
         <item name="colorSurfaceContainer">@color/surfaceContainerStrawberry</item>
         <item name="background">@color/backgroundStrawberries</item>
         <item name="colorOnSurfaceVariant">@color/onSurfaceVariantStrawberry</item>
@@ -249,7 +244,6 @@
     <style name="Theme.Tachiyomi.TokyoNight">
         <item name="colorPrimary">@color/tokyonight_primary</item>
         <item name="colorPrimaryInverse">@color/tokyonight_primary_inverse</item>
-        <item name="colorPrimaryVariant">@color/tokyonight_primary_variant</item>
         <item name="colorOnPrimary">@color/tokyonight_on_primary</item>
         <item name="colorSecondary">@color/tokyonight_secondary</item>
         <item name="colorOnSecondary">@color/tokyonight_on_secondary</item>
@@ -262,7 +256,7 @@
         <item name="colorSurface">@color/tokyonight_surface</item>
         <item name="colorSurfaceContainer">@color/tokyonight_surface_container</item>
         <item name="tabBarIconInactive">@color/tokyonight_inactive</item>
-        <item name="tabBarTextColor">@color/tokyonight_primary_variant</item>
+        <item name="tabBarTextColor">@color/tokyonight_secondary</item>
         <item name="colorOnSurfaceVariant">@color/tokyonight_on_surface_variant</item>
         <item name="colorSurfaceContainerHigh">@color/tokyonight_surface_container_high</item>
         <item name="colorSurfaceContainerHighest">@color/tokyonight_surface_container_highest</item>
@@ -275,9 +269,8 @@
         <item name="colorPrimary">@color/primaryTako</item>
         <item name="colorPrimaryInverse">@color/primaryInverseTako</item>
         <item name="colorOnPrimary">@color/onPrimaryTako</item>
-        <item name="colorSecondary">@color/secondaryTako</item>
         <item name="colorOnSecondary">@color/onSecondaryTako</item>
-        <item name="colorPrimaryVariant">@color/primaryVariantTako</item>
+        <item name="colorSecondary">@color/secondaryTako</item>
         <item name="colorSurfaceContainer">@color/surfaceContainerTako</item>
         <item name="colorTertiary">@color/downloadBadgeDayNight</item>
         <item name="colorOnTertiary">@color/colorOnDownloadBadgeDayNight</item>
@@ -302,9 +295,8 @@
         <item name="colorPrimary">@color/primaryYotsuba</item>
         <item name="colorPrimaryInverse">@color/primaryInverseYotsuba</item>
         <item name="colorOnPrimary">@color/onPrimaryYotsuba</item>
-        <item name="colorSecondary">@color/secondaryYotsuba</item>
         <item name="colorControlHighlight">@color/rippleColorYotsuba</item>
-        <item name="colorPrimaryVariant">@color/primaryVariantYotsuba</item>
+        <item name="colorSecondary">@color/secondaryYotsuba</item>
         <item name="colorSurfaceContainer">@color/surfaceContainerYotsuba</item>
         <item name="colorOnSurfaceVariant">@color/onSurfaceVariantYotsuba</item>
         <item name="colorOutline">@color/outlineYotsuba</item>
@@ -323,10 +315,9 @@
         <item name="colorPrimary">@color/primaryYinYang</item>
         <item name="colorOnPrimary">@color/onPrimaryYinYang</item>
         <item name="colorPrimaryInverse">@color/primaryInverseYinYang</item>
-        <item name="colorSecondary">@color/secondaryYinYang</item>
         <item name="colorControlHighlight">@color/rippleColorYinYang</item>
         <item name="colorOnSecondary">@color/onSecondaryYinYang</item>
-        <item name="colorPrimaryVariant">@color/primaryVariantYinYang</item>
+        <item name="colorSecondary">@color/secondaryYinYang</item>
         <item name="colorSurfaceContainer">@color/surfaceContainerYinYang</item>
         <item name="colorTertiary">@color/downloadBadgeDayNight</item>
         <item name="colorOnTertiary">@color/colorOnDownloadBadgeDayNight</item>

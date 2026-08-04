@@ -198,7 +198,7 @@ fun Context.notificationBuilder(
     val builder =
         NotificationCompat
             .Builder(this, channelId)
-            .setColor(ContextCompat.getColor(this, R.color.secondaryTachiyomi))
+            .setColor(ContextCompat.getColor(this, R.color.primaryTachiyomi))
     if (block != null) {
         builder.block()
     }

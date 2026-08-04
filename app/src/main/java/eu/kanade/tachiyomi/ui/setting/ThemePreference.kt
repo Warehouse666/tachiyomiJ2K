@@ -266,7 +266,7 @@ class ThemePreference
                     configuration.uiMode = if (item.isDarkTheme) UI_MODE_NIGHT_YES else UI_MODE_NIGHT_NO
                     val themeContext = context.createConfigurationContext(configuration)
                     themeContext.setTheme(item.theme.styleRes)
-                    val primaryText = themeContext.getResourceColor(android.R.attr.textColorPrimary)
+                    val primaryText = themeContext.getResourceColor(R.attr.colorOnBackground)
                     val secondaryText = themeContext.getResourceColor(android.R.attr.textColorSecondary)
                     val background = themeContext.getResourceColor(R.attr.background)
                     val colorPrimary = themeContext.getResourceColor(R.attr.colorPrimary)

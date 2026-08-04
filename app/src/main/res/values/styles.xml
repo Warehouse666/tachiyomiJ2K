@@ -285,15 +285,6 @@
         <item name="trackTint">@null</item>
     </style>
 
-    <style name="Widget.Tachiyomi.CompoundButton.CheckBox" parent="Base.Widget.Material3.CompoundButton.CheckBox">
-        <item name="buttonTint">@null</item>
-        <item name="buttonIconTint">@null</item>
-    </style>
-
-    <style name="Widget.Tachiyomi.CompoundButton.RadioButton" parent="Base.Widget.Material3.CompoundButton.RadioButton">
-        <item name="buttonTint">@null</item>
-    </style>
-
     <style name="Widget.Tachiyomi.BottomNavigationView" parent="Widget.Material3Expressive.BottomNavigationView">
         <item name="itemPaddingBottom">10dp</item>
         <item name="itemPaddingTop">10dp</item>

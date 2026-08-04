@@ -39,7 +39,7 @@ class ExtensionInstallNotifier(
             setOngoing(true)
             setSilent(true)
             setOnlyAlertOnce(true)
-            color = ContextCompat.getColor(context, R.color.secondaryTachiyomi)
+            color = ContextCompat.getColor(context, R.color.primaryTachiyomi)
             addAction(R.drawable.ic_close_24dp, context.getString(android.R.string.cancel), cancelIntent)
         }
     }

@@ -231,7 +231,7 @@ internal class AppUpdateNotifier(
             setOnlyAlertOnce(false)
             setAutoCancel(false)
             setProgress(0, 0, false)
-            color = ContextCompat.getColor(context, R.color.secondaryTachiyomi)
+            color = ContextCompat.getColor(context, R.color.primaryTachiyomi)
             clearActions()
             // Retry action
             addAction(
@@ -258,7 +258,7 @@ internal class AppUpdateNotifier(
             setOnlyAlertOnce(false)
             setAutoCancel(false)
             setProgress(0, 0, false)
-            color = ContextCompat.getColor(context, R.color.secondaryTachiyomi)
+            color = ContextCompat.getColor(context, R.color.primaryTachiyomi)
             clearActions()
             // Retry action
             addAction(

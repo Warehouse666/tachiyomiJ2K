@@ -13,9 +13,8 @@
     <color name="tokyonight_on_primary">#FFFFFF</color>
     <color name="tokyonight_surface_container">#C1C9DF</color>
     <color name="tokyonight_primary_inverse">#7890DD</color>
-    <color name="tokyonight_secondary">#2E7DE9</color>
     <color name="tokyonight_on_secondary">#FFFFFF</color>
-    <color name="tokyonight_primary_variant">#006A83</color>
+    <color name="tokyonight_secondary">#006A83</color>
     <color name="tokyonight_secondary_container">#A9C6D3</color>
     <color name="tokyonight_inactive">#6172B0</color>
     <color name="tokyonight_ripple">#1F007197</color>

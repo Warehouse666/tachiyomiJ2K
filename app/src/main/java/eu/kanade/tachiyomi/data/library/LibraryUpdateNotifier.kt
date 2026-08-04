@@ -66,7 +66,7 @@ class LibraryUpdateNotifier(
             setOngoing(true)
             setOnlyAlertOnce(true)
             setProgress(0, 0, true)
-            color = ContextCompat.getColor(context, R.color.secondaryTachiyomi)
+            color = ContextCompat.getColor(context, R.color.primaryTachiyomi)
             addAction(R.drawable.ic_close_24dp, context.getString(android.R.string.cancel), cancelIntent)
         }
     }
@@ -218,7 +218,7 @@ class LibraryUpdateNotifier(
                                 }
                                 setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_SUMMARY)
                                 setContentTitle(manga.title)
-                                color = ContextCompat.getColor(context, R.color.secondaryTachiyomi)
+                                color = ContextCompat.getColor(context, R.color.primaryTachiyomi)
                                 val chaptersNames =
                                     if (chapterNames.size > MAX_CHAPTERS) {
                                         "${chapterNames.take(MAX_CHAPTERS - 1).joinToString(", ")}, " +
@@ -280,7 +280,7 @@ class LibraryUpdateNotifier(
                         setSmallIcon(R.drawable.ic_tachij2k_notification)
                         setLargeIcon(notificationBitmap)
                         setContentTitle(context.getString(R.string.new_chapters_found))
-                        color = ContextCompat.getColor(context, R.color.secondaryTachiyomi)
+                        color = ContextCompat.getColor(context, R.color.primaryTachiyomi)
                         if (updates.size > 1) {
                             setContentText(
                                 context.resources.getQuantityString(
