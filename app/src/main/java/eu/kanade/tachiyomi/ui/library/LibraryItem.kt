@@ -19,7 +19,10 @@ import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.database.models.LibraryManga
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.databinding.MangaGridItemBinding
+import eu.kanade.tachiyomi.source.LocalSource
 import eu.kanade.tachiyomi.source.SourceManager
+import eu.kanade.tachiyomi.ui.library.search.QueryNode
+import eu.kanade.tachiyomi.ui.library.search.matches
 import eu.kanade.tachiyomi.util.system.dpToPx
 import eu.kanade.tachiyomi.widget.AutofitRecyclerView
 import uy.kohesive.injekt.Injekt
@@ -39,6 +42,11 @@ class LibraryItem(
     var filter = ""
 
     private val sourceManager: SourceManager by injectLazy()
+
+    val sourceName: String by lazy { sourceManager.getOrStub(manga.source).name }
+
+    internal fun searchLanguage(): String = sourceLanguage ?: sourceManager.getOrStub(manga.source).lang
+
     private val uniformSize: Boolean
         get() = preferences.uniformGrid().get()
 
@@ -157,36 +165,17 @@ class LibraryItem(
         if (manga.isBlank() && manga.title.isBlank()) {
             return constraint.isEmpty()
         }
-        val sourceName by lazy { sourceManager.getOrStub(manga.source).name }
-        return manga.title.contains(constraint, true) ||
-            (manga.author?.contains(constraint, true) ?: false) ||
-            (manga.artist?.contains(constraint, true) ?: false) ||
-            sourceName.contains(constraint, true) ||
-            if (constraint.contains(",")) {
-                val genres = manga.genre?.split(", ")
-                constraint.split(",").all { containsGenre(it.trim(), genres) }
-            } else {
-                containsGenre(constraint, manga.genre?.split(", "))
-            }
+        return QueryNode.from(constraint).matches(this)
     }
 
-    private fun containsGenre(
-        tag: String,
-        genres: List<String>?,
-    ): Boolean {
-        if (tag.trim().isEmpty()) return true
-        context ?: return false
-        val seriesType by lazy { manga.seriesType(context, sourceManager) }
-        return if (tag.startsWith("-")) {
-            val realTag = tag.substringAfter("-")
-            genres?.find {
-                it.trim().equals(realTag, ignoreCase = true) || seriesType.equals(realTag, true)
-            } == null
-        } else {
-            genres?.find {
-                it.trim().equals(tag, ignoreCase = true) || seriesType.equals(tag, true)
-            } != null
-        }
+    internal fun matchesSourceName(value: String): Boolean =
+        sourceName.contains(value, ignoreCase = true) ||
+            (value.equals("local", ignoreCase = true) && manga.source == LocalSource.ID)
+
+    internal fun matchesGenreOrType(value: String): Boolean {
+        val seriesType = context?.let { manga.seriesType(it, sourceManager) }
+        return manga.getGenres()?.any { it.contains(value, ignoreCase = true) } == true ||
+            seriesType?.contains(value, ignoreCase = true) == true
     }
 
     override fun equals(other: Any?): Boolean {

@@ -709,9 +709,13 @@ class MangaHeaderHolder(
 
     /** Picks whichever of black/white has higher contrast against [background], guaranteeing WCAG AA-level legibility regardless of the cover's extracted accent hue. */
     private fun contrastingTextColor(background: Int): Int {
-        val whiteContrast = ColorUtils.calculateContrast(Color.WHITE, background)
-        val blackContrast = ColorUtils.calculateContrast(Color.BLACK, background)
-        return if (whiteContrast >= blackContrast) Color.WHITE else Color.BLACK
+        try {
+            val whiteContrast = ColorUtils.calculateContrast(Color.WHITE, background)
+            val blackContrast = ColorUtils.calculateContrast(Color.BLACK, background)
+            return if (whiteContrast >= blackContrast) Color.WHITE else Color.BLACK
+        } catch (_: Exception) {
+            return itemView.context.getResourceColor(R.attr.colorOnPrimary)
+        }
     }
 
     fun updateTracking() {

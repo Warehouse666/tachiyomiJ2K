@@ -9,6 +9,8 @@ import eu.kanade.tachiyomi.data.database.DatabaseHelper
 import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.source.SourceManager
+import eu.kanade.tachiyomi.ui.library.search.QueryNode
+import eu.kanade.tachiyomi.ui.library.search.matches
 import eu.kanade.tachiyomi.util.lang.chop
 import eu.kanade.tachiyomi.util.lang.removeArticles
 import eu.kanade.tachiyomi.util.system.isLTR
@@ -152,7 +154,18 @@ class LibraryCategoryAdapter(
             }
             updateDataSet(mangas)
         } else {
-            val filteredManga = withDefContext { mangas.filter { it.filter(s) } }
+            val filteredManga =
+                withDefContext {
+                    val queryNode = QueryNode.from(s)
+                    mangas.forEach { it.filter = s }
+                    mangas.filter { item ->
+                        if (item.manga.isBlank() && item.manga.title.isBlank()) {
+                            false
+                        } else {
+                            queryNode.matches(item)
+                        }
+                    }
+                }
             if (filteredManga.isEmpty() && controller?.presenter?.showAllCategories == false) {
                 val catId = mangas.firstOrNull()?.let { it.header?.catId ?: it.manga.category }
                 val blankItem = catId?.let { controller.presenter.blankItem(it) }
