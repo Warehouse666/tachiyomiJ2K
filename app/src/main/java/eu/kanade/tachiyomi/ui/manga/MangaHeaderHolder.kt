@@ -3,6 +3,7 @@ package eu.kanade.tachiyomi.ui.manga
 import android.annotation.SuppressLint
 import android.content.res.ColorStateList
 import android.graphics.Bitmap
+import android.graphics.Color
 import android.graphics.RenderEffect
 import android.graphics.Shader
 import android.graphics.drawable.BitmapDrawable
@@ -667,7 +668,7 @@ class MangaHeaderHolder(
                         root.context.getResourceColor(R.attr.colorOnSurface),
                         97,
                     ),
-                    root.context.getResourceColor(R.attr.colorOnPrimary),
+                    contrastingTextColor(accentColor),
                 )
             val overflowButton =
                 (buttonLayout as? MaterialButtonGroup)
@@ -704,6 +705,13 @@ class MangaHeaderHolder(
                 setGenreTags(this, manga)
             }
         }
+    }
+
+    /** Picks whichever of black/white has higher contrast against [background], guaranteeing WCAG AA-level legibility regardless of the cover's extracted accent hue. */
+    private fun contrastingTextColor(background: Int): Int {
+        val whiteContrast = ColorUtils.calculateContrast(Color.WHITE, background)
+        val blackContrast = ColorUtils.calculateContrast(Color.BLACK, background)
+        return if (whiteContrast >= blackContrast) Color.WHITE else Color.BLACK
     }
 
     fun updateTracking() {
