@@ -144,7 +144,7 @@
     <color name="onSurfaceVariantTealSapphire">#050505</color>
     <color name="outlineTealSapphire">#6F7977</color>
     <color name="onPrimaryContainerTealSapphire">#FFFFFF</color>
-    <color name="onSecondaryContainerTealSapphire">#FFFFFF</color>
+    <color name="onSecondaryContainerTealSapphire">#000000</color>
     <color name="onTertiaryContainerTealSapphire">#FF7F7F</color>
     <color name="surfaceContainerHighestTealSapphire">#C5ECDD</color>
     <color name="surfaceContainerHighTealSapphire">#CCEEE2</color>
@@ -168,7 +168,7 @@
     <color name="outlineLime">#6F7A6E</color>
     <color name="outlineVariantLime">#BECABC</color>
     <color name="onPrimaryContainerLime">#000000</color>
-    <color name="onSecondaryContainerLime">#FFFFFF</color>
+    <color name="onSecondaryContainerLime">#000000</color>
     <color name="onTertiaryContainerLime">#FFFFFF</color>
     <color name="surfaceContainerLowLime">#E0EFE6</color>
     <color name="surfaceContainerLowestLime">#F4FAF6</color>
@@ -186,7 +186,7 @@
     <color name="outlineStrawberry">#8D7071</color>
     <color name="outlineVariantStrawberry">#E1BEC0</color>
     <color name="onPrimaryContainerStrawberry">#68101f</color>
-    <color name="onSecondaryContainerStrawberry">#FFFFFF</color>
+    <color name="onSecondaryContainerStrawberry">#1F0101</color>
     <color name="onTertiaryContainerStrawberry">#FFFFFF</color>
     <color name="surfaceContainerHighestStrawberry">#ECD9D9</color>
     <color name="surfaceContainerHighStrawberry">#F0E0E0</color>
@@ -216,7 +216,7 @@
     <color name="surfaceContainerHighestTako">#D9CCEF</color>
     <color name="outlineTako">#7A757E</color>
     <color name="onPrimaryContainerTako">#66577E</color>
-    <color name="onSecondaryContainerTako">#F3B375</color>
+    <color name="onSecondaryContainerTako">#38294E</color>
     <color name="onTertiaryContainerTako">#221437</color>
     <color name="surfaceContainerLowTako">#EBE4F6</color>
     <color name="surfaceContainerLowestTako">#FCFBFE</color>
@@ -253,7 +253,7 @@
     <color name="surfaceContainerHighestYinYang">#F5F5F5</color>
     <color name="outlineYinYang">#838383</color>
     <color name="onPrimaryContainerYinYang">#0C0C0C</color>
-    <color name="onSecondaryContainerYinYang">#FFFFFF</color>
+    <color name="onSecondaryContainerYinYang">#000000</color>
     <color name="onTertiaryContainerYinYang">#001947</color>
     <color name="surfaceContainerLowYinYang">#FFFFFF</color>
     <color name="surfaceContainerLowestYinYang">#FFFFFF</color>

@@ -6,6 +6,8 @@
     <color name="monet_primary_inverse">@android:color/system_primary_light</color>
     <color name="monet_surface_container">@android:color/system_surface_container_highest_dark</color>
     <color name="monet_secondary">@android:color/system_secondary_dark</color>
+    <color name="monet_secondary_container">@android:color/system_secondary_container_dark</color>
+    <color name="monet_on_secondary_container">@android:color/system_on_secondary_container_dark</color>
     <color name="monet_tertiary">@android:color/system_on_tertiary_fixed_dark</color>
     <color name="monet_on_tertiary">@android:color/system_on_tertiary_light</color>
     <color name="monet_surface">@android:color/system_surface_container_dark</color>

@@ -7,6 +7,8 @@
         <item name="colorPrimaryInverse">@color/monet_primary_inverse</item>
         <item name="colorSurfaceContainer">@color/monet_surface_container</item>
         <item name="colorSecondary">@color/monet_secondary</item>
+        <item name="colorSecondaryContainer">@color/monet_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/monet_on_secondary_container</item>
         <item name="colorControlHighlight">@color/primary_highlight</item>
         <item name="colorTertiary">@color/monet_tertiary</item>
         <item name="colorOnTertiary">@color/monet_on_tertiary</item>

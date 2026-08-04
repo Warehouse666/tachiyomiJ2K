@@ -352,7 +352,7 @@
         <item name="android:paddingLeft">16dp</item>
         <item name="android:paddingRight">@dimen/m3_btn_icon_btn_padding_right</item>
         <item name="rippleColor">?colorControlHighlight</item>
-        <item name="android:textColor">?attr/colorOnBackground</item>
+        <item name="android:textColor">@color/outline_icon_text_selector</item>
     </style>
 
     <style name="ThemeOverlay.Tachiyomi.Button.Outlined" parent="">
@@ -360,8 +360,8 @@
         <item name="colorContainerChecked">?colorSecondaryContainer</item>
         <item name="colorContainerUnchecked">@android:color/transparent</item>
         <item name="colorOnContainer">?colorPrimary</item>
-        <item name="colorOnContainerChecked">?colorOnBackground</item>
-        <item name="colorOnContainerUnchecked">?colorPrimary</item>
+        <item name="colorOnContainerChecked">?colorOnSecondaryContainer</item>
+        <item name="colorOnContainerUnchecked">?colorOnBackground</item>
     </style>
 
     <style name="Widget.Tachiyomi.Button.OutlinedButton" parent="Widget.Material3Expressive.Button.OutlinedButton">

@@ -124,7 +124,7 @@
     <color name="surfaceContainerHighestTako">#4C455D</color>
     <color name="outlineTako">#958F99</color>
     <color name="onPrimaryContainerTako">#F3B375</color>
-    <color name="onSecondaryContainerTako">#38294E</color>
+    <color name="onSecondaryContainerTako">#F3B375</color>
     <color name="onTertiaryContainerTako">#EDDCFF</color>
     <color name="surfaceContainerLowTako">#2F2B3A</color>
     <color name="surfaceContainerLowestTako">#211E28</color>
@@ -167,7 +167,7 @@
     <color name="surfaceContainerHighestTealSapphire">#324046</color>
     <color name="outlineTealSapphire">#899391</color>
     <color name="onPrimaryContainerTealSapphire">#40E0D0</color>
-    <color name="onSecondaryContainerTealSapphire">#000000</color>
+    <color name="onSecondaryContainerTealSapphire">#FFFFFF</color>
     <color name="onTertiaryContainerTealSapphire">#BF1F2F</color>
     <color name="surfaceContainerLowTealSapphire">#192022</color>
     <color name="surfaceContainerLowestTealSapphire">#0C0F10</color>
@@ -186,7 +186,7 @@
     <color name="surfaceContainerHighestYinYang">#464646</color>
     <color name="outlineYinYang">#999999</color>
     <color name="onPrimaryContainerYinYang">#E4E4E4</color>
-    <color name="onSecondaryContainerYinYang">#000000</color>
+    <color name="onSecondaryContainerYinYang">#FFFFFF</color>
     <color name="onTertiaryContainerYinYang">#D8E2FF</color>
     <color name="surfaceContainerLowYinYang">#272727</color>
     <color name="surfaceContainerLowestYinYang">#181818</color>
