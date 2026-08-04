@@ -47,7 +47,6 @@
     <color name="splashBackground">#212121</color>
     <color name="actionModeShadow">@color/md_white_1000_38</color>
 
-<!--    <color name="textColorPrimaryInverse">@color/md_black_1000_87</color>-->
     <color name="strong_divider">@color/md_white_1000_38</color>
     <color name="divider">@color/md_white_1000_12</color>
     <color name="download">#0a7e07</color>
@@ -64,7 +63,6 @@
     <!-- Chocolate Strawberries Theme -->
     <color name="primaryStrawberry">@color/holo_red</color>
     <color name="primaryInverseStrawberry">#9f1414</color>
-<!--    <color name="onPrimaryStrawberry">#330303</color>-->
     <color name="onPrimaryStrawberry">#FFFFFF</color>
     <color name="rippleColorStrawberry">#1FAA2200</color>
     <color name="secondaryStrawberry">#f9bab2</color>
