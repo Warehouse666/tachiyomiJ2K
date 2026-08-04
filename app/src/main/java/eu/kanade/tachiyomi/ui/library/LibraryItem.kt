@@ -172,10 +172,13 @@ class LibraryItem(
         sourceName.contains(value, ignoreCase = true) ||
             (value.equals("local", ignoreCase = true) && manga.source == LocalSource.ID)
 
-    internal fun matchesGenreOrType(value: String): Boolean {
-        val seriesType = context?.let { manga.seriesType(it, sourceManager) }
-        return manga.getGenres()?.any { it.contains(value, ignoreCase = true) } == true ||
-            seriesType?.contains(value, ignoreCase = true) == true
+    internal fun matchesGenreOrType(value: String): Boolean =
+        manga.getGenres()?.any { it.contains(value, ignoreCase = true) } == true ||
+            matchesSeriesType(value)
+
+    internal fun matchesSeriesType(value: String): Boolean {
+        val seriesType = context?.let { manga.seriesType(it, sourceManager) } ?: return false
+        return seriesType.contains(value, ignoreCase = true)
     }
 
     override fun equals(other: Any?): Boolean {
