@@ -10,6 +10,7 @@
 -->
 <resources>
     <color name="tokyonight_primary">#007197</color>
+    <color name="tokyonight_primary_container">#D6EDF5</color>
     <color name="tokyonight_on_primary">#FFFFFF</color>
     <color name="tokyonight_surface_container">#C1C9DF</color>
     <color name="tokyonight_primary_inverse">#7890DD</color>

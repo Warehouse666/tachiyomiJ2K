@@ -2,6 +2,7 @@
 <resources>
     <style name="Theme.Tachiyomi.Monet">
         <item name="colorPrimary">@color/monet_primary</item>
+        <item name="colorPrimaryContainer">@color/monet_primary_container</item>
         <item name="colorOnPrimary">@color/monet_on_primary</item>
         <item name="colorPrimaryInverse">@color/monet_primary_inverse</item>
         <item name="colorSurfaceContainer">@color/monet_surface_container</item>

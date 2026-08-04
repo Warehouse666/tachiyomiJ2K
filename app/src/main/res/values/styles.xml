@@ -357,7 +357,7 @@
 
     <style name="ThemeOverlay.Tachiyomi.Button.Outlined" parent="">
         <item name="colorContainer">@android:color/transparent</item>
-        <item name="colorContainerChecked">?colorPrimaryContainer</item>
+        <item name="colorContainerChecked">?colorSecondaryContainer</item>
         <item name="colorContainerUnchecked">@android:color/transparent</item>
         <item name="colorOnContainer">?colorPrimary</item>
         <item name="colorOnContainerChecked">?colorOnBackground</item>

@@ -25,7 +25,7 @@
         <item name="colorOnSurface">@color/colorOnSurface</item>
         <item name="colorOnSecondary">@color/md_white_1000</item>
         <item name="colorOnPrimary">@color/onPrimaryTachiyomi</item>
-        <item name="colorPrimaryContainer">@color/primary_container</item>
+        <item name="colorPrimaryContainer">@color/primaryContainerTachiyomi</item>
         <item name="colorSecondaryContainer">@color/secondary_container</item>
         <item name="colorTertiaryContainer">@color/tertiary_container</item>
         <item name="colorSurfaceContainer">@color/surfaceContainerTachiyomi</item>
@@ -128,6 +128,7 @@
         <item name="colorOnSurfaceVariant">@color/onSurfaceVariantLime</item>
         <item name="colorOutline">@color/outlineLime</item>
         <item name="colorOutlineVariant">@color/outlineVariantLime</item>
+        <item name="colorPrimaryContainer">@color/primaryContainerLime</item>
         <item name="colorOnPrimaryContainer">@color/onPrimaryContainerLime</item>
         <item name="colorOnSecondaryContainer">@color/onSecondaryContainerLime</item>
         <item name="colorOnTertiaryContainer">@color/onTertiaryContainerLime</item>
@@ -152,6 +153,7 @@
         <item name="actionBarTintColor">@color/appBarTextDuskDawn</item>
         <item name="colorOnSurfaceVariant">@color/onSurfaceVariantDuskDawn</item>
         <item name="colorOutline">@color/outlineDuskDawn</item>
+        <item name="colorPrimaryContainer">@color/primaryContainerDuskDawn</item>
         <item name="colorOnPrimaryContainer">@color/onPrimaryContainerDuskDawn</item>
         <item name="colorOnSecondaryContainer">@color/onSecondaryContainerDuskDawn</item>
         <item name="colorOnTertiaryContainer">@color/onTertiaryContainerDuskDawn</item>
@@ -178,6 +180,7 @@
         <item name="actionBarTintColor">@color/appBarTextTealSapphire</item>
         <item name="colorOnSurfaceVariant">@color/onSurfaceVariantTealSapphire</item>
         <item name="colorOutline">@color/outlineTealSapphire</item>
+        <item name="colorPrimaryContainer">@color/primaryContainerTealSapphire</item>
         <item name="colorOnPrimaryContainer">@color/onPrimaryContainerTealSapphire</item>
         <item name="colorOnSecondaryContainer">@color/onSecondaryContainerTealSapphire</item>
         <item name="colorOnTertiaryContainer">@color/onTertiaryContainerTealSapphire</item>
@@ -206,6 +209,7 @@
         <item name="colorOnSurfaceVariant">@color/lavender_on_surface_variant</item>
         <item name="colorOutline">@color/lavender_outline</item>
         <item name="colorOutlineVariant">@color/lavender_outline_variant</item>
+        <item name="colorPrimaryContainer">@color/lavender_primary_container</item>
         <item name="colorOnPrimaryContainer">@color/lavender_on_primary_container</item>
         <item name="colorOnSecondaryContainer">@color/lavender_on_secondary_container</item>
         <item name="colorOnTertiaryContainer">@color/lavender_on_tertiary_container</item>
@@ -229,6 +233,7 @@
         <item name="colorOnSurfaceVariant">@color/onSurfaceVariantStrawberry</item>
         <item name="colorOutline">@color/outlineStrawberry</item>
         <item name="colorOutlineVariant">@color/outlineVariantStrawberry</item>
+        <item name="colorPrimaryContainer">@color/primaryContainerStrawberry</item>
         <item name="colorOnPrimaryContainer">@color/onPrimaryContainerStrawberry</item>
         <item name="colorOnSecondaryContainer">@color/onSecondaryContainerStrawberry</item>
         <item name="colorOnTertiaryContainer">@color/onTertiaryContainerStrawberry</item>
@@ -243,6 +248,7 @@
     <!--== Tokyo Night Theme ==-->
     <style name="Theme.Tachiyomi.TokyoNight">
         <item name="colorPrimary">@color/tokyonight_primary</item>
+        <item name="colorPrimaryContainer">@color/tokyonight_primary_container</item>
         <item name="colorPrimaryInverse">@color/tokyonight_primary_inverse</item>
         <item name="colorOnPrimary">@color/tokyonight_on_primary</item>
         <item name="colorSecondary">@color/tokyonight_secondary</item>
@@ -282,6 +288,7 @@
         <item name="tabBarIconInactive">@color/inactiveTabTako</item>
         <item name="colorOnSurfaceVariant">@color/onSurfaceVariantTako</item>
         <item name="colorOutline">@color/outlineTako</item>
+        <item name="colorPrimaryContainer">@color/primaryContainerTako</item>
         <item name="colorOnPrimaryContainer">@color/onPrimaryContainerTako</item>
         <item name="colorOnSecondaryContainer">@color/onSecondaryContainerTako</item>
         <item name="colorOnTertiaryContainer">@color/onTertiaryContainerTako</item>
@@ -300,6 +307,7 @@
         <item name="colorSurfaceContainer">@color/surfaceContainerYotsuba</item>
         <item name="colorOnSurfaceVariant">@color/onSurfaceVariantYotsuba</item>
         <item name="colorOutline">@color/outlineYotsuba</item>
+        <item name="colorPrimaryContainer">@color/primaryContainerYotsuba</item>
         <item name="colorOnPrimaryContainer">@color/onPrimaryContainerYotsuba</item>
         <item name="colorOnSecondaryContainer">@color/onSecondaryContainerYotsuba</item>
         <item name="colorOnTertiaryContainer">@color/onTertiaryContainerYotsuba</item>
@@ -323,6 +331,7 @@
         <item name="colorOnTertiary">@color/colorOnDownloadBadgeDayNight</item>
         <item name="colorOnSurfaceVariant">@color/onSurfaceVariantYinYang</item>
         <item name="colorOutline">@color/outlineYinYang</item>
+        <item name="colorPrimaryContainer">@color/primaryContainerYinYang</item>
         <item name="colorOnPrimaryContainer">@color/onPrimaryContainerYinYang</item>
         <item name="colorOnSecondaryContainer">@color/onSecondaryContainerYinYang</item>
         <item name="colorOnTertiaryContainer">@color/onTertiaryContainerYinYang</item>

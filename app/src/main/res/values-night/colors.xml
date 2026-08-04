@@ -37,6 +37,7 @@
     <color name="colorPrimaryInactive">@color/md_white_1000_76</color>
     <color name="onPrimaryTachiyomi">#071D39</color>
     <color name="primaryTachiyomi">#3399FF</color>
+    <color name="primaryContainerTachiyomi">#172E45</color>
     <color name="primaryInverseTachiyomi">#2c517f</color>
     <color name="legacyRippleColor">@color/md_white_1000_20</color>
     <color name="colorOnSurface">@color/md_white_1000</color>
@@ -62,6 +63,7 @@
 
     <!-- Chocolate Strawberries Theme -->
     <color name="primaryStrawberry">@color/holo_red</color>
+    <color name="primaryContainerStrawberry">#F5DCD6</color>
     <color name="primaryInverseStrawberry">#9f1414</color>
     <color name="onPrimaryStrawberry">#FFFFFF</color>
     <color name="rippleColorStrawberry">#1FAA2200</color>
@@ -72,7 +74,7 @@
     <color name="surfaceContainerHighestStrawberry">#483B36</color>
     <color name="outlineStrawberry">#A9898B</color>
     <color name="outlineVariantStrawberry">#594042</color>
-    <color name="onPrimaryContainerStrawberry">#FFFFFF</color>
+    <color name="onPrimaryContainerStrawberry">#68101f</color>
     <color name="onSecondaryContainerStrawberry">#FFFFFF</color>
     <color name="onTertiaryContainerStrawberry">#FFF7F1</color>
     <color name="surfaceContainerLowStrawberry">#251E1C</color>
@@ -83,6 +85,7 @@
 
     <!-- Flat Lime Theme -->
     <color name="primaryLime">#7CF7A5</color>
+    <color name="primaryContainerLime">#1A4227</color>
     <color name="surfaceContainerLime">#121A14</color>
     <color name="onPrimaryLime">#043314</color>
     <color name="primaryInverseLime">#09933c</color>
@@ -104,6 +107,7 @@
 
     <!-- Tako Theme -->
     <color name="primaryTako">#F3B375</color>
+    <color name="primaryContainerTako">#412E1B</color>
     <color name="surfaceContainerTako">#342F40</color>
     <color name="primaryInverseTako">#a85d14</color>
     <color name="onPrimaryTako">#242431</color>
@@ -133,6 +137,7 @@
     <color name="backgroundDuskDawn">#16151D</color>
     <color name="surfaceContainerDuskDawn">#272026</color>
     <color name="primaryDuskDawn">#F02475</color>
+    <color name="primaryContainerDuskDawn">#421A2A</color>
     <color name="colorOnBackgroundDuskDawn">@color/md_white_1000</color>
     <color name="appBarTextDuskDawn">@color/md_white_1000</color>
     <color name="onSurfaceVariantDuskDawn">#D6C1C4</color>
@@ -149,6 +154,7 @@
     <color name="rippleColorTealSapphire">#1F589ab8</color>
     <color name="secondaryTealSapphire">#b5ebff</color>
     <color name="primaryTealSapphire">#589ab8</color>
+    <color name="primaryContainerTealSapphire">#253137</color>
     <color name="primaryInverseTealSapphire">#1d698b</color>
     <color name="surfaceContainerTealSapphire">#1d2528</color>
     <color name="onPrimaryTealSapphire">#02212C</color>
@@ -168,6 +174,7 @@
 
     <!-- Yin Yang Theme -->
     <color name="primaryYinYang">#FFFFFF</color>
+    <color name="primaryContainerYinYang">#2E2E2E</color>
     <color name="primaryInverseYinYang">#000000</color>
     <color name="onPrimaryYinYang">@color/md_black_1000</color>
     <color name="rippleColorYinYang">#1FFFFFFF</color>
