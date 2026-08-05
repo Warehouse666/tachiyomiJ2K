@@ -30,6 +30,19 @@ class DownloadHolder(
     init {
         setDragHandleView(binding.reorder)
         binding.downloadMenu.setOnClickListener { it.post { showPopupMenu(it) } }
+        view.addOnAttachStateChangeListener(
+            object : View.OnAttachStateChangeListener {
+                override fun onViewAttachedToWindow(v: View) {}
+
+                override fun onViewDetachedFromWindow(v: View) {
+                    waveAnimation?.cancel()
+                    binding.downloadProgress.isIndeterminate = false
+                    binding.downloadProgress.setProgress(binding.downloadProgress.progress, false)
+                    binding.downloadProgress.progressDrawable?.jumpToCurrentState()
+                    binding.downloadProgress.indeterminateDrawable?.jumpToCurrentState()
+                }
+            },
+        )
     }
 
     private lateinit var download: Download

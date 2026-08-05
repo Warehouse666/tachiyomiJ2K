@@ -156,6 +156,7 @@ import kotlin.time.Duration.Companion.seconds
 @SuppressLint("ResourceType")
 open class MainActivity : BaseActivity<MainActivityBinding>() {
     protected lateinit var router: Router
+    private var recreatingForSettingsChange = false
 
     protected val searchDrawable by lazy { contextCompatDrawable(R.drawable.ic_search_24dp) }
     protected val backDrawable by lazy { contextCompatDrawable(R.drawable.ic_arrow_back_24dp) }
@@ -1214,6 +1215,22 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
             }
         }
     }
+
+    /**
+     * Conductor treats [Activity.recreate] the same as a real configuration change (the
+     * framework reports [isChangingConfigurations] as true during it either way), and only
+     * fully destroys its Controller backstack when that's false. That's correct for a genuine
+     * rotation, but when we trigger `recreate()` ourselves (e.g. from a settings change) it
+     * means the entire old Controller/view graph is retained instead of released, leaking one
+     * screen's worth of views per call. [recreateFully] forces the real-destroy path for those
+     * self-triggered recreates while leaving rotation handling untouched.
+     */
+    fun recreateFully() {
+        recreatingForSettingsChange = true
+        recreate()
+    }
+
+    override fun isChangingConfigurations(): Boolean = !recreatingForSettingsChange && super.isChangingConfigurations()
 
     override fun onDestroy() {
         super.onDestroy()

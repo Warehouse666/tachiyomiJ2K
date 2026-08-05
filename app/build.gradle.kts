@@ -197,6 +197,9 @@ dependencies {
 //    releaseImplementation("com.github.ChuckerTeam.Chucker:library-no-op:$chuckerVersion")
 //    add("betaImplementation", "com.github.ChuckerTeam.Chucker:library-no-op:$chuckerVersion")
 
+    // TEMP: diagnosing theme-swap OOM, remove once resolved
+//    debugImplementation("com.squareup.leakcanary:leakcanary-android:2.14")
+
     implementation(kotlin("reflect", version = AndroidVersions.kotlin))
 
     // JSON

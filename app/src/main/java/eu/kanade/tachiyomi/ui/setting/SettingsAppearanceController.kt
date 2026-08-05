@@ -10,6 +10,7 @@ import androidx.preference.PreferenceScreen
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.preference.asImmediateFlow
 import eu.kanade.tachiyomi.data.preference.asImmediateFlowIn
+import eu.kanade.tachiyomi.ui.main.MainActivity
 import eu.kanade.tachiyomi.util.system.SideNavMode
 import eu.kanade.tachiyomi.util.system.appDelegateNightMode
 import eu.kanade.tachiyomi.util.system.dpToPx
@@ -54,7 +55,7 @@ class SettingsAppearanceController : SettingsController() {
                     onChange {
                         if (it == true) {
                             preferences.nightMode().set(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
-                            activity?.recreate()
+                            (activity as? MainActivity)?.recreateFully() ?: activity?.recreate()
                         } else {
                             preferences.nightMode().set(context.appDelegateNightMode())
                             themePreference?.fastAdapterLight?.notifyDataSetChanged()
@@ -80,7 +81,7 @@ class SettingsAppearanceController : SettingsController() {
 
                     onChange {
                         if (context.isInNightMode()) {
-                            activity?.recreate()
+                            (activity as? MainActivity)?.recreateFully() ?: activity?.recreate()
                         } else {
                             themePreference?.fastAdapterDark?.notifyDataSetChanged()
                         }
@@ -163,7 +164,7 @@ class SettingsAppearanceController : SettingsController() {
                     defaultValue = SideNavMode.DEFAULT.prefValue
 
                     onChange {
-                        activity?.recreate()
+                        (activity as? MainActivity)?.recreateFully() ?: activity?.recreate()
                         true
                     }
                 }

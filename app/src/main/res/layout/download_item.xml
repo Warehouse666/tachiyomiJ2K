@@ -105,9 +105,6 @@
         <com.google.android.material.progressindicator.LinearProgressIndicator
             android:id="@+id/download_progress"
             android:layout_width="0dp"
-            app:wavelength="30dp"
-            app:waveAmplitude="2dp"
-            app:waveSpeed="10dp"
             tools:progress="30"
             android:layout_marginTop="6dp"
             android:layout_height="30dp"

@@ -14,7 +14,9 @@ import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.download.model.Download
 import eu.kanade.tachiyomi.databinding.DownloadButtonBinding
+import eu.kanade.tachiyomi.util.system.dpToPx
 import eu.kanade.tachiyomi.util.system.getResourceColor
+import kotlin.math.roundToInt
 
 class DownloadButton
     @JvmOverloads
@@ -66,11 +68,27 @@ class DownloadButton
             binding = DownloadButtonBinding.bind(this)
         }
 
+        // Zeroing the wave stops its animator, which otherwise keeps running (and leaking this
+        // view's Activity) after detach - stop()/setVisible(false) don't touch it.
+        override fun onDetachedFromWindow() {
+            super.onDetachedFromWindow()
+            iconAnimation?.cancel()
+            isAnimating = false
+            binding.downloadProgress.waveSpeed = 0
+            binding.downloadProgress.waveAmplitude = 0
+            binding.downloadProgress.setWavelength(0)
+        }
+
         fun setDownloadStatus(
             state: Download.State,
             progress: Int = 0,
             animated: Boolean = false,
         ) {
+            if (binding.downloadProgress.waveSpeed == 0) {
+                binding.downloadProgress.waveSpeed = 7.dpToPx
+                binding.downloadProgress.waveAmplitude = (0.5f.dpToPx).roundToInt()
+                binding.downloadProgress.setWavelength(4.dpToPx)
+            }
             if (state != Download.State.DOWNLOADING) {
                 iconAnimation?.cancel()
                 binding.downloadIcon.alpha = 1f
