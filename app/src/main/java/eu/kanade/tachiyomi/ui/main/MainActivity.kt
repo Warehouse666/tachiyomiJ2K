@@ -803,7 +803,7 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
 
     fun isOnStartingTab(): Boolean =
         if (startingTab() == R.id.nav_recents) {
-            nav.selectedItemId in
+            currentTabId() in
                 listOf(
                     R.id.nav_summary,
                     R.id.nav_ungrouped,
@@ -812,7 +812,16 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
                     R.id.nav_recents,
                 )
         } else {
-            startingTab() == nav.selectedItemId
+            startingTab() == currentTabId()
+        }
+
+    // nav.selectedItemId can report -1 after the side nav's recents submenu toggles visibility and leaves nothing checked
+    @IdRes
+    private fun currentTabId(): Int =
+        nav.selectedItemId.takeIf { it != -1 } ?: when (router.backstack.firstOrNull()?.controller) {
+            is RecentsController -> R.id.nav_recents
+            is BrowseController -> R.id.nav_browse
+            else -> R.id.nav_library
         }
 
     override fun onTitleChanged(
@@ -1288,11 +1297,12 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
 
     private fun setStartingTab() {
         if (this is SearchActivity || !isBindingInitialized) return
-        if (nav.selectedItemId != R.id.nav_browse &&
+        val tabId = currentTabId()
+        if (tabId != R.id.nav_browse &&
             preferences.startingTab().get() >= 0
         ) {
             preferences.startingTab().set(
-                when (nav.selectedItemId) {
+                when (tabId) {
                     R.id.nav_library -> 0
                     else -> 1
                 },
