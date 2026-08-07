@@ -48,6 +48,7 @@ import io.noties.markwon.Markwon
 import io.noties.markwon.SoftBreakAddsNewLinePlugin
 import io.noties.markwon.image.coil.CoilImagesPlugin
 import io.noties.markwon.linkify.LinkifyPlugin
+import kotlin.FloatArray
 
 @SuppressLint("ClickableViewAccessibility")
 class MangaHeaderHolder(
@@ -678,25 +679,60 @@ class MangaHeaderHolder(
             startReadingButton.setTextColor(ColorStateList(states, textColors))
             trackButton.iconTint = ColorStateList.valueOf(accentColor)
             favoriteButton.iconTint = ColorStateList.valueOf(accentColor)
+
+            val onBGHsl = FloatArray(3)
+            val accentHsl = FloatArray(3)
+            ColorUtils.colorToHSL(root.context.getResourceColor(R.attr.colorOnBackground), onBGHsl)
+            ColorUtils.colorToHSL(accentColor, accentHsl)
+
+            var checkedIconColor =
+                ColorUtils.HSLToColor(
+                    floatArrayOf(
+                        accentHsl[0],
+                        onBGHsl[1],
+                        onBGHsl[2],
+                    ),
+                )
             val checkedStates =
                 arrayOf(
                     intArrayOf(android.R.attr.state_checked),
                     intArrayOf(),
                 )
-            val checkedColors =
-                intArrayOf(
-                    root.context.getResourceColor(R.attr.colorOnBackground),
+            val bgCheckedColor =
+                ColorUtils.blendARGB(
                     accentColor,
+                    root.context.getResourceColor(R.attr.background),
+                    0.706f,
                 )
             val bgCheckedColors =
                 intArrayOf(
-                    ColorUtils.blendARGB(
-                        accentColor,
-                        root.context.getResourceColor(R.attr.background),
-                        0.706f,
-                    ),
+                    bgCheckedColor,
                     root.context.getResourceColor(R.attr.background),
                 )
+            val checkedTextColors =
+                intArrayOf(
+                    contrastingTextColor(bgCheckedColor),
+                    root.context.getResourceColor(R.attr.colorOnBackground),
+                )
+            // Some themes have colorful text/icons by default with not good contrast
+            if (ColorUtils.calculateContrast(checkedIconColor, bgCheckedColor) < 5) {
+                val dark = root.context.isInNightMode()
+                checkedIconColor =
+                    ColorUtils.HSLToColor(
+                        floatArrayOf(
+                            accentHsl[0],
+                            onBGHsl[1],
+                            onBGHsl[2] + (0.25f * if (dark) 1 else -1),
+                        ),
+                    )
+            }
+            val checkedColors =
+                intArrayOf(
+                    checkedIconColor,
+                    accentColor,
+                )
+            trackButton.setTextColor(ColorStateList(checkedStates, checkedTextColors))
+            favoriteButton.setTextColor(ColorStateList(checkedStates, checkedTextColors))
             trackButton.iconTint = ColorStateList(checkedStates, checkedColors)
             favoriteButton.iconTint = ColorStateList(checkedStates, checkedColors)
             trackButton.backgroundTintList = ColorStateList(checkedStates, bgCheckedColors)

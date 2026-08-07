@@ -26,9 +26,9 @@
         <item name="colorOnSecondary">@color/md_white_1000</item>
         <item name="colorOnPrimary">@color/onPrimaryTachiyomi</item>
         <item name="colorPrimaryContainer">@color/primaryContainerTachiyomi</item>
-        <item name="colorSecondaryContainer">@color/secondary_container</item>
+        <item name="colorSecondaryContainer">@color/secondaryContainerTachiyomi</item>
         <item name="colorTertiaryContainer">@color/tertiary_container</item>
-        <item name="colorSurfaceContainer">@color/surfaceContainerTachiyomi</item>
+        <item name="colorSurfaceContainer">@color/tachiyomi_surfaceContainer</item>
         <item name="colorSurfaceContainerHigh">@color/tachiyomi_surfaceContainerHigh</item>
         <item name="colorSurfaceContainerHighest">@color/tachiyomi_surfaceContainerHighest</item>
         <item name="colorSurfaceContainerLow">@color/tachiyomi_surfaceContainerLow</item>
@@ -48,9 +48,9 @@
         <item name="colorBackgroundFloating">?colorSurface</item>
 
         <item name="colorTertiary">@color/download_badge</item>
-        <item name="colorOnTertiary">@color/black</item>
+        <item name="colorOnTertiary">@color/download_badge_text</item>
 
-        <item name="readerBackground">@color/surfaceContainerTachiyomi</item>
+        <item name="readerBackground">@color/tachiyomi_surfaceContainer</item>
         <item name="android:listSelector">?attr/colorPrimary</item>
         <item name="android:divider">@color/divider</item>
         <item name="android:listDivider">@drawable/line_divider</item>
@@ -129,6 +129,7 @@
         <item name="colorOutline">@color/outlineLime</item>
         <item name="colorOutlineVariant">@color/outlineVariantLime</item>
         <item name="colorPrimaryContainer">@color/primaryContainerLime</item>
+        <item name="colorSecondaryContainer">@color/secondaryContainerLime</item>
         <item name="colorOnPrimaryContainer">@color/onPrimaryContainerLime</item>
         <item name="colorOnSecondaryContainer">@color/onSecondaryContainerLime</item>
         <item name="colorOnTertiaryContainer">@color/onTertiaryContainerLime</item>
@@ -154,6 +155,7 @@
         <item name="colorOnSurfaceVariant">@color/onSurfaceVariantDuskDawn</item>
         <item name="colorOutline">@color/outlineDuskDawn</item>
         <item name="colorPrimaryContainer">@color/primaryContainerDuskDawn</item>
+        <item name="colorSecondaryContainer">@color/secondaryContainerDuskDawn</item>
         <item name="colorOnPrimaryContainer">@color/onPrimaryContainerDuskDawn</item>
         <item name="colorOnSecondaryContainer">@color/onSecondaryContainerDuskDawn</item>
         <item name="colorOnTertiaryContainer">@color/onTertiaryContainerDuskDawn</item>
@@ -170,8 +172,8 @@
         <item name="colorOnSecondary">@color/colorOnDownloadBadgeDayNight</item>
         <item name="colorSecondary">@color/secondaryTealSapphire</item>
         <item name="colorSurfaceContainer">@color/surfaceContainerTealSapphire</item>
-        <item name="colorTertiary">@color/downloadBadgeDayNightInverse</item>
-        <item name="colorOnTertiary">?android:textColorPrimaryInverse</item>
+        <item name="colorTertiary">@color/download_badge_light</item>
+        <item name="colorOnTertiary">@color/download_badge_light_text</item>
         <item name="colorControlHighlight">@color/rippleColorTealSapphire</item>
         <item name="tabBarIconColor">@color/tabBarIconColorTealSapphire</item>
         <item name="background">@color/backgroundTealSapphire</item>
@@ -181,6 +183,7 @@
         <item name="colorOnSurfaceVariant">@color/onSurfaceVariantTealSapphire</item>
         <item name="colorOutline">@color/outlineTealSapphire</item>
         <item name="colorPrimaryContainer">@color/primaryContainerTealSapphire</item>
+        <item name="colorSecondaryContainer">@color/secondaryContainerTealSapphire</item>
         <item name="colorOnPrimaryContainer">@color/onPrimaryContainerTealSapphire</item>
         <item name="colorOnSecondaryContainer">@color/onSecondaryContainerTealSapphire</item>
         <item name="colorOnTertiaryContainer">@color/onTertiaryContainerTealSapphire</item>
@@ -210,6 +213,7 @@
         <item name="colorOutline">@color/lavender_outline</item>
         <item name="colorOutlineVariant">@color/lavender_outline_variant</item>
         <item name="colorPrimaryContainer">@color/lavender_primary_container</item>
+        <item name="colorSecondaryContainer">@color/lavender_secondary_container</item>
         <item name="colorOnPrimaryContainer">@color/lavender_on_primary_container</item>
         <item name="colorOnSecondaryContainer">@color/lavender_on_secondary_container</item>
         <item name="colorOnTertiaryContainer">@color/lavender_on_tertiary_container</item>
@@ -228,12 +232,15 @@
         <item name="colorSurface">@color/backgroundStrawberries</item>
         <item name="colorControlHighlight">@color/rippleColorStrawberry</item>
         <item name="colorSecondary">@color/secondaryStrawberry</item>
+        <item name="colorTertiary">@color/downloadBadgeDayNightInverse</item>
+        <item name="colorOnTertiary">@color/colorOnDownloadBadgeDayNightInverse</item>
         <item name="colorSurfaceContainer">@color/surfaceContainerStrawberry</item>
         <item name="background">@color/backgroundStrawberries</item>
         <item name="colorOnSurfaceVariant">@color/onSurfaceVariantStrawberry</item>
         <item name="colorOutline">@color/outlineStrawberry</item>
         <item name="colorOutlineVariant">@color/outlineVariantStrawberry</item>
         <item name="colorPrimaryContainer">@color/primaryContainerStrawberry</item>
+        <item name="colorSecondaryContainer">@color/secondaryContainerStrawberry</item>
         <item name="colorOnPrimaryContainer">@color/onPrimaryContainerStrawberry</item>
         <item name="colorOnSecondaryContainer">@color/onSecondaryContainerStrawberry</item>
         <item name="colorOnTertiaryContainer">@color/onTertiaryContainerStrawberry</item>
@@ -289,6 +296,7 @@
         <item name="colorOnSurfaceVariant">@color/onSurfaceVariantTako</item>
         <item name="colorOutline">@color/outlineTako</item>
         <item name="colorPrimaryContainer">@color/primaryContainerTako</item>
+        <item name="colorSecondaryContainer">@color/secondaryContainerTako</item>
         <item name="colorOnPrimaryContainer">@color/onPrimaryContainerTako</item>
         <item name="colorOnSecondaryContainer">@color/onSecondaryContainerTako</item>
         <item name="colorOnTertiaryContainer">@color/onTertiaryContainerTako</item>
@@ -308,6 +316,7 @@
         <item name="colorOnSurfaceVariant">@color/onSurfaceVariantYotsuba</item>
         <item name="colorOutline">@color/outlineYotsuba</item>
         <item name="colorPrimaryContainer">@color/primaryContainerYotsuba</item>
+        <item name="colorSecondaryContainer">@color/secondaryContainerYotsuba</item>
         <item name="colorOnPrimaryContainer">@color/onPrimaryContainerYotsuba</item>
         <item name="colorOnSecondaryContainer">@color/onSecondaryContainerYotsuba</item>
         <item name="colorOnTertiaryContainer">@color/onTertiaryContainerYotsuba</item>
@@ -327,11 +336,12 @@
         <item name="colorOnSecondary">@color/onSecondaryYinYang</item>
         <item name="colorSecondary">@color/secondaryYinYang</item>
         <item name="colorSurfaceContainer">@color/surfaceContainerYinYang</item>
-        <item name="colorTertiary">@color/downloadBadgeDayNight</item>
+        <item name="colorTertiary">@color/onSecondaryYinYang</item>
         <item name="colorOnTertiary">@color/colorOnDownloadBadgeDayNight</item>
         <item name="colorOnSurfaceVariant">@color/onSurfaceVariantYinYang</item>
         <item name="colorOutline">@color/outlineYinYang</item>
         <item name="colorPrimaryContainer">@color/primaryContainerYinYang</item>
+        <item name="colorSecondaryContainer">@color/secondaryContainerYinYang</item>
         <item name="colorOnPrimaryContainer">@color/onPrimaryContainerYinYang</item>
         <item name="colorOnSecondaryContainer">@color/onSecondaryContainerYinYang</item>
         <item name="colorOnTertiaryContainer">@color/onTertiaryContainerYinYang</item>
