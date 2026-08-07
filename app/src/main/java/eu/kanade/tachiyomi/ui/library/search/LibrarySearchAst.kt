@@ -7,7 +7,7 @@ enum class MangaField(
     TITLE("title"),
     AUTHOR("author"),
     ARTIST("artist"),
-    DESCRIPTION("description", "desc"),
+    DESCRIPTION("description", "desc", fieldOnly = true),
     GENRE("genre", "tag"),
     SOURCE("source", "src"),
     LANGUAGE("language", "lang", fieldOnly = true),

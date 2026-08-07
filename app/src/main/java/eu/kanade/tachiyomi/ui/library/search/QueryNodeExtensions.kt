@@ -27,12 +27,15 @@ private fun GeneralQueryNode.matches(item: LibraryItem): Boolean {
                 MangaField.TITLE -> manga.title.contains(value, ignoreCase = true)
                 MangaField.AUTHOR -> manga.author?.contains(value, ignoreCase = true) ?: false
                 MangaField.ARTIST -> manga.artist?.contains(value, ignoreCase = true) ?: false
-                MangaField.DESCRIPTION -> manga.description?.contains(value, ignoreCase = true) ?: false
                 MangaField.GENRE -> item.matchesGenreOrType(value)
                 MangaField.SOURCE -> item.matchesSourceName(value)
 
                 // field-only queries; unreachable; added here to make `when` exhaustive
-                MangaField.LANGUAGE, MangaField.SOURCE_ID, MangaField.SERIES_TYPE -> error("How did we get here?")
+                MangaField.DESCRIPTION,
+                MangaField.LANGUAGE,
+                MangaField.SOURCE_ID,
+                MangaField.SERIES_TYPE,
+                -> error("How did we get here?")
             }
         }
     return if (negated) !match else match
