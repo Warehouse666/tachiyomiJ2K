@@ -13,18 +13,21 @@ import androidx.activity.addCallback
 import androidx.core.graphics.ColorUtils
 import androidx.core.view.isVisible
 import eu.kanade.tachiyomi.R
+import eu.kanade.tachiyomi.network.NetworkHelper
 import eu.kanade.tachiyomi.source.SourceManager
 import eu.kanade.tachiyomi.source.online.HttpSource
 import eu.kanade.tachiyomi.util.system.WebViewClientCompat
 import eu.kanade.tachiyomi.util.system.extensionIntentForText
 import eu.kanade.tachiyomi.util.system.getResourceColor
 import eu.kanade.tachiyomi.util.system.openInBrowser
+import eu.kanade.tachiyomi.util.system.setUserAgent
 import eu.kanade.tachiyomi.util.system.toast
 import timber.log.Timber
 import uy.kohesive.injekt.injectLazy
 
 open class WebViewActivity : BaseWebViewActivity() {
     private val sourceManager by injectLazy<SourceManager>()
+    private val network by injectLazy<NetworkHelper>()
     private var bundle: Bundle? = null
 
     private var backPressedCallback: OnBackPressedCallback? = null
@@ -75,9 +78,7 @@ open class WebViewActivity : BaseWebViewActivity() {
                 }
             }
 
-            headers["user-agent"]?.let {
-                binding.webview.settings.userAgentString = it
-            }
+            binding.webview.setUserAgent(headers["user-agent"] ?: network.defaultUserAgent)
 
             binding.webview.webViewClient =
                 object : WebViewClientCompat() {
