@@ -11,6 +11,8 @@ import android.content.res.ColorStateList
 import android.os.Build
 import android.os.Bundle
 import android.os.Parcelable
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.TypedValue
 import android.view.GestureDetector
 import android.view.Gravity
@@ -24,7 +26,9 @@ import android.view.ViewGroup
 import android.view.ViewPropertyAnimator
 import android.view.ViewTreeObserver
 import android.view.inputmethod.InputMethodManager
+import android.widget.EditText
 import android.widget.ImageView
+import androidx.activity.ComponentActivity
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.ActionMode
@@ -46,6 +50,10 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
+import androidx.transition.ChangeBounds
+import androidx.transition.Fade
+import androidx.transition.TransitionManager
+import androidx.transition.TransitionSet
 import com.bluelinelabs.conductor.ControllerChangeHandler
 import com.bluelinelabs.conductor.ControllerChangeType
 import com.fredporciuncula.flow.preferences.Preference
@@ -83,6 +91,9 @@ import eu.kanade.tachiyomi.ui.library.LibraryGroup.BY_TRACK_STATUS
 import eu.kanade.tachiyomi.ui.library.LibraryGroup.UNGROUPED
 import eu.kanade.tachiyomi.ui.library.display.TabbedLibraryDisplaySheet
 import eu.kanade.tachiyomi.ui.library.filter.FilterBottomSheet
+import eu.kanade.tachiyomi.ui.library.search.compose.LibrarySearchFieldOption
+import eu.kanade.tachiyomi.ui.library.search.compose.LibrarySearchFilterSheetContent
+import eu.kanade.tachiyomi.ui.library.search.compose.SearchCombinator
 import eu.kanade.tachiyomi.ui.main.BottomSheetController
 import eu.kanade.tachiyomi.ui.main.FloatingSearchInterface
 import eu.kanade.tachiyomi.ui.main.MainActivity
@@ -119,7 +130,9 @@ import eu.kanade.tachiyomi.util.view.setStyle
 import eu.kanade.tachiyomi.util.view.smoothScrollToTop
 import eu.kanade.tachiyomi.util.view.snack
 import eu.kanade.tachiyomi.util.view.withFadeTransaction
+import eu.kanade.tachiyomi.widget.ComposeAnchoredDialog
 import eu.kanade.tachiyomi.widget.EmptyView
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.launchIn
@@ -258,6 +271,15 @@ open class LibraryController(
 
     // Dynamically injected into the search bar, controls category visibility during search
     private var showAllCategoriesView: ImageView? = null
+
+    // Range of the token last inserted by insertSearchToken() within the search box's text - if
+    // the very next edit is a single backspace landing inside it, the whole token is removed
+    // instead of leaving a malformed partial (e.g. `title:"` after only the opening quote gets
+    // deleted). Cleared after any edit, matched or not - a one-shot "undo the insertion" affordance.
+    private var pendingTokenRange: IntRange? = null
+    private var tokenBackspaceWatcher: TextWatcher? = null
+
+    private var filterJob: Job? = null
 
     override fun getTitle(): String? {
         setSubtitle()
@@ -1115,6 +1137,7 @@ open class LibraryController(
                 binding.filterBottomSheet.filterBottomSheet.isInvisible = true
             }
             activityBinding?.searchToolbar?.setOnLongClickListener(null)
+            setToolbarFilterButtonVisible(false, animated = false)
         }
     }
 
@@ -1158,6 +1181,13 @@ open class LibraryController(
         showAllCategoriesView?.let {
             (activityBinding?.searchToolbar?.searchView as? MiniSearchView)?.removeSearchModifierIcon(it)
         }
+        activityBinding?.toolbarFilterButton?.let {
+            it.isGone = true
+            it.setOnClickListener(null)
+        }
+        tokenBackspaceWatcher?.let { searchEditText()?.removeTextChangedListener(it) }
+        tokenBackspaceWatcher = null
+        pendingTokenRange = null
         super.onDestroyView(view)
     }
 
@@ -1527,9 +1557,11 @@ open class LibraryController(
         }
         adapter.setFilter(query)
         if (presenter.allLibraryItems.isEmpty()) return
-        viewScope.launchUI {
-            adapter.performFilterAsync()
-        }
+        filterJob?.cancel()
+        filterJob =
+            viewScope.launchUI {
+                adapter.performFilterAsync()
+            }
     }
 
     @SuppressLint("NotifyDataSetChanged")
@@ -2039,6 +2071,7 @@ open class LibraryController(
         val searchItem = activityBinding?.searchToolbar?.searchItem
         val searchView = activityBinding?.searchToolbar?.searchView
         activityBinding?.searchToolbar?.setQueryHint(resources?.getString(R.string.library_search_hint), query.isEmpty())
+        attachTokenBackspaceWatcher()
 
         showAllCategoriesView = showAllCategoriesView ?: (searchView as? MiniSearchView)?.addSearchModifierIcon { context ->
             ImageView(context).apply {
@@ -2058,6 +2091,8 @@ open class LibraryController(
             }
         }!!
 
+        activityBinding?.toolbarFilterButton?.setOnClickListener { openSearchFilterSheet() }
+
         if (query.isNotEmpty()) {
             if (activityBinding?.searchToolbar?.isSearchExpanded != true) {
                 searchItem?.expandActionView()
@@ -2070,6 +2105,7 @@ open class LibraryController(
         } else if (activityBinding?.searchToolbar?.isSearchExpanded == true) {
             searchItem?.collapseActionView()
         }
+        activityBinding?.toolbarFilterButton?.isGone = activityBinding?.searchToolbar?.isSearchExpanded != true
 
         setOnQueryTextChangeListener(activityBinding?.searchToolbar?.searchView) {
             if (!it.isNullOrEmpty() && binding.recyclerCover.isClickable) {
@@ -2081,6 +2117,7 @@ open class LibraryController(
     }
 
     override fun onActionViewExpand(item: MenuItem?) {
+        setToolbarFilterButtonVisible(true, animated = true)
         if (!binding.recyclerCover.isClickable &&
             query.isBlank() &&
             !singleCategory &&
@@ -2090,10 +2127,184 @@ open class LibraryController(
         }
     }
 
+    private fun openSearchFilterSheet() {
+        val activity = activity as? ComponentActivity ?: return
+        val anchor = activityBinding?.toolbarFilterButton ?: return
+        val dialog = ComposeAnchoredDialog(activity, anchor)
+        dialog.setContent {
+            LibrarySearchFilterSheetContent(
+                minDateAddedMillis = presenter.earliestDateAdded,
+                showOptional = query.isNotBlank(),
+                seriesTypeOptions = presenter.availableSeriesTypes,
+                onFieldSelected = { combinator, optional, field, separator, value ->
+                    insertSearchToken(combinator, optional, field, separator, value)
+                    dialog.dismiss()
+                },
+                onDateRangeSelected = { combinator, optional, field, startValue, endValue ->
+                    insertSearchDateRangeToken(combinator, optional, field, startValue, endValue)
+                    dialog.dismiss()
+                },
+            )
+        }
+        dialog.show()
+    }
+
+    private fun insertSearchToken(
+        combinator: SearchCombinator,
+        optional: Boolean,
+        field: LibrarySearchFieldOption,
+        separator: String,
+        value: String?,
+    ) {
+        // For non-comparison fields with no value yet, insert an empty quoted pair and drop the
+        // cursor inside it, ready to type - a comparison field's value is either typed after a
+        // bare "=" or already filled in (e.g. a picked date), so it doesn't get this treatment.
+        val wrapInQuotes = !field.isComparison && value == null
+        val insertedValue = if (wrapInQuotes) "\"\"" else value.orEmpty()
+
+        insertSearchTokenText(
+            combinator = combinator,
+            optional = optional,
+            core = "${field.token}$separator$insertedValue",
+            // A quoted-empty insertion always has a cursor slot to place, and a date-picked value
+            // is a single already-complete token - neither needs the backspace-removal tracking a
+            // date range's two-comparison group does (see insertSearchDateRangeToken).
+            trackBackspaceRange = !field.opensDatePicker,
+            cursorInsideQuotes = wrapInQuotes,
+        )
+    }
+
+    /** Inserts a date range as a single `(field>=start, field<=end)` group. */
+    private fun insertSearchDateRangeToken(
+        combinator: SearchCombinator,
+        optional: Boolean,
+        field: LibrarySearchFieldOption,
+        startValue: String,
+        endValue: String,
+    ) {
+        insertSearchTokenText(
+            combinator = combinator,
+            optional = optional,
+            core = "(${field.token}>=$startValue, ${field.token}<=$endValue)",
+            trackBackspaceRange = false,
+            cursorInsideQuotes = false,
+        )
+    }
+
+    /**
+     * Builds the join prefix from two independent axes and the [core]: [combinator] decides to
+     * include/exclude the new term (whether it gets a leading `-`). [optional] decides
+     * whether to join the existing query with AND (",") logic or with OR ("||") logic.
+     */
+    private fun insertSearchTokenText(
+        combinator: SearchCombinator,
+        optional: Boolean,
+        core: String,
+        trackBackspaceRange: Boolean,
+        cursorInsideQuotes: Boolean,
+    ) {
+        val searchView = activityBinding?.searchToolbar?.searchView ?: return
+        val existing =
+            searchView.query
+                ?.toString()
+                .orEmpty()
+                .trimEnd()
+                .removeSuffix(",")
+                .removeSuffix("||")
+                .removeSuffix("-")
+                .trimEnd()
+        val excluding = combinator == SearchCombinator.NOT
+        val prefix =
+            when {
+                existing.isEmpty() -> if (excluding) "-" else ""
+                optional -> if (excluding) "$existing || -" else "$existing || "
+                else -> if (excluding) "$existing -" else "$existing, "
+            }
+
+        val newQuery = "$prefix$core"
+        val searchItem = activityBinding?.searchToolbar?.searchItem
+        if (searchItem?.isActionViewExpanded != true) {
+            searchItem?.expandActionView()
+        }
+        searchView.setQuery(newQuery, false)
+        searchView.requestFocus()
+
+        if (trackBackspaceRange) {
+            pendingTokenRange = existing.length until newQuery.length
+        }
+
+        if (cursorInsideQuotes) {
+            searchEditText()?.setSelection(newQuery.length - 1)
+        }
+    }
+
+    private fun searchEditText(): EditText? =
+        activityBinding?.searchToolbar?.searchView?.findViewById(androidx.appcompat.R.id.search_src_text)
+
+    /** See [pendingTokenRange]. Attached once per view lifecycle; torn down in [onDestroyView]. */
+    private fun attachTokenBackspaceWatcher() {
+        if (tokenBackspaceWatcher != null) return
+        val editText = searchEditText() ?: return
+
+        val watcher =
+            object : TextWatcher {
+                override fun beforeTextChanged(
+                    s: CharSequence?,
+                    start: Int,
+                    count: Int,
+                    after: Int,
+                ) {}
+
+                override fun onTextChanged(
+                    s: CharSequence?,
+                    start: Int,
+                    before: Int,
+                    count: Int,
+                ) {
+                    val range = pendingTokenRange
+                    pendingTokenRange = null
+                    if (range == null || before != 1 || count != 0 || start !in range) return
+
+                    // Deferred: mutating the Editable synchronously from within its own change
+                    // dispatch is unsafe (this callback's own edit will still re-enter the
+                    // watcher, but pendingTokenRange is already null by then, so it's a no-op).
+                    editText.post {
+                        val text = editText.text ?: return@post
+                        text.delete(range.first, range.last)
+                        editText.setSelection(range.first.coerceIn(0, text.length))
+                    }
+                }
+
+                override fun afterTextChanged(s: Editable?) {}
+            }
+        editText.addTextChangedListener(watcher)
+        tokenBackspaceWatcher = watcher
+    }
+
     override fun onActionViewCollapse(item: MenuItem?) {
+        setToolbarFilterButtonVisible(false, animated = true)
         if (binding.recyclerCover.isClickable) {
             showCategories(false)
         }
+    }
+
+    private fun setToolbarFilterButtonVisible(
+        visible: Boolean,
+        animated: Boolean = false,
+    ) {
+        val button = activityBinding?.toolbarFilterButton ?: return
+        if (animated) {
+            (button.parent as? ViewGroup)?.let { parent ->
+                TransitionManager.beginDelayedTransition(
+                    parent,
+                    TransitionSet()
+                        .addTransition(Fade())
+                        .addTransition(ChangeBounds())
+                        .setDuration(200L),
+                )
+            }
+        }
+        button.isVisible = visible
     }
 
     override fun onSearchActionViewLongClickQuery(): String? {

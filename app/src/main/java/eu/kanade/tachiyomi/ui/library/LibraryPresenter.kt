@@ -96,7 +96,35 @@ class LibraryPresenter(
     var currentCategory = -1
         private set
     var allLibraryItems: List<LibraryItem> = emptyList()
-        private set
+        private set(value) {
+            field = value
+            availableSeriesTypesCache = null
+            presenterScope.launchIO {
+                earliestDateAddedCache =
+                    allLibraryItems
+                        .mapNotNull { it.manga.date_added.takeIf { added -> added > 0L } }
+                        .minOrNull()
+                availableSeriesTypesCache =
+                    allLibraryItems.map { it.manga.seriesType(context, sourceManager) }.distinct()
+            }
+        }
+
+    private var earliestDateAddedCache: Long? = null
+
+    val earliestDateAdded: Long?
+        get() {
+            return earliestDateAddedCache ?: allLibraryItems.mapNotNull { it.manga.date_added.takeIf { added -> added > 0L } }.minOrNull()
+        }
+
+    private var availableSeriesTypesCache: List<String>? = null
+
+    val availableSeriesTypes: List<String>
+        get() =
+            availableSeriesTypesCache ?: allLibraryItems
+                .map { it.manga.seriesType(context, sourceManager) }
+                .distinct()
+                .also { availableSeriesTypesCache = it }
+
     private var hiddenLibraryItems: List<LibraryItem> = emptyList()
     var forceShowAllCategories = false
     val showAllCategories

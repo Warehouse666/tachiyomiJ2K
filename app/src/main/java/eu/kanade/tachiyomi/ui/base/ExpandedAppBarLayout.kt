@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewPropertyAnimator
 import android.widget.FrameLayout
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.math.MathUtils
 import androidx.core.view.ScrollingView
@@ -20,6 +21,7 @@ import androidx.core.widget.TextViewCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.bluelinelabs.conductor.Controller
 import com.google.android.material.appbar.AppBarLayout
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
@@ -45,7 +47,8 @@ ExpandedAppBarLayout@JvmOverloads
         attrs: AttributeSet? = null,
     ) : AppBarLayout(context, attrs) {
         var searchToolbar: FloatingToolbar? = null
-        var cardFrame: FrameLayout? = null
+        var cardFrame: LinearLayout? = null
+        var toolbarFilterButton: MaterialButton? = null
         private var cardView: MaterialCardView? = null
         private var cardShadowAnimator: ValueAnimator? = null
         private var showingCardShadow = false
@@ -210,6 +213,7 @@ ExpandedAppBarLayout@JvmOverloads
             mainToolbar = findViewById(R.id.toolbar)
             bigView = findViewById(R.id.big_toolbar)
             cardFrame = findViewById(R.id.card_frame)
+            toolbarFilterButton = findViewById(R.id.toolbar_filter_button)
             tabsFrameLayout = findViewById(R.id.tabs_frame_layout)
             imageView = findViewById(R.id.big_icon)
             imageLayout = findViewById(R.id.big_icon_layout)
@@ -523,7 +527,10 @@ ExpandedAppBarLayout@JvmOverloads
             cardShadowAnimator =
                 ValueAnimator.ofFloat(cardView.cardElevation, target).apply {
                     duration = 150L
-                    addUpdateListener { cardView.cardElevation = it.animatedValue as Float }
+                    addUpdateListener {
+                        toolbarFilterButton?.elevation = it.animatedValue as Float
+                        cardView.cardElevation = it.animatedValue as Float
+                    }
                     start()
                 }
         }

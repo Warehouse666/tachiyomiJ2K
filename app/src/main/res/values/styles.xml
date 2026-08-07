@@ -175,6 +175,11 @@
         <item name="android:windowBlurBehindRadius" tools:targetApi="31">10dp</item>
     </style>
 
+    <style name="SearchDialogTheme" parent="BottomSheetDialogTheme">
+        <item name="android:windowAnimationStyle">@style/Theme.Widget.Animation.DropFromAbove</item>
+        <item name="android:windowIsTranslucent">true</item>
+    </style>
+
     <style name="Theme.Widget.Animation.DropFromAbove" parent="android:Animation">
         <item name="android:windowEnterAnimation">@anim/fade_in_grow_from_top</item>
         <item name="android:windowExitAnimation">@anim/fade_out_short</item>
@@ -323,6 +328,16 @@
     <style name="Widget.Tachiyomi.Button.IconButton.Tonal" parent="Widget.Material3Expressive.Button.IconButton.Tonal">
         <item name="iconGravity">textStart</item>
         <item name="iconTint">?colorOnBackground</item>
+    </style>
+
+    <style name="Widget.Tachiyomi.Button.IconButton.ToolbarFilled" parent="Widget.Material3Expressive.Button.IconButton.Filled">
+        <item name="iconGravity">textStart</item>
+        <item name="materialThemeOverlay">@style/ThemeOverlay.Tachiyomi.Button.ToolbarFilled</item>
+    </style>
+
+    <style name="ThemeOverlay.Tachiyomi.Button.ToolbarFilled" parent="ThemeOverlay.Material3Expressive.Button.Filled">
+        <item name="colorContainer">?colorSecondaryContainer</item>
+        <item name="colorOnContainer">?colorOnSecondaryContainer</item>
     </style>
 
     <style name="Widget.Tachiyomi.Button.IconButton.Tonal.Connected">
