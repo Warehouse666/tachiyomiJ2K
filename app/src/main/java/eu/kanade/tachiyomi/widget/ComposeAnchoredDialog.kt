@@ -16,7 +16,9 @@ import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat.Type.captionBar
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.setViewTreeLifecycleOwner
 import androidx.lifecycle.setViewTreeViewModelStoreOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
@@ -25,7 +27,11 @@ import eu.kanade.tachiyomi.ui.main.MainActivity
 import eu.kanade.tachiyomi.util.compose.AppComposeTheme
 import eu.kanade.tachiyomi.util.system.dpToPx
 import eu.kanade.tachiyomi.util.system.end
+import eu.kanade.tachiyomi.util.system.ignoredSystemInsets
 import eu.kanade.tachiyomi.util.system.isLTR
+import eu.kanade.tachiyomi.util.system.rootWindowInsetsCompat
+import eu.kanade.tachiyomi.util.system.start
+import eu.kanade.tachiyomi.util.view.doOnApplyWindowInsetsCompat
 
 /**
  * A [Dialog] that hosts Compose content anchored below [anchor] and pinned to the end (right, in
@@ -51,7 +57,7 @@ class ComposeAnchoredDialog(
             }
 
         val anchorLocation = IntArray(2)
-        anchor.getLocationOnScreen(anchorLocation)
+        anchor.getLocationInWindow(anchorLocation)
 
         val insets = activity.cachedSystemInsets
         val root =
@@ -64,11 +70,24 @@ class ComposeAnchoredDialog(
                     composeView,
                     FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
                         gravity = Gravity.TOP or Gravity.END
-                        topMargin = anchorLocation[1] + anchor.height + 2.dpToPx
+                        topMargin = anchorLocation[1] + anchor.height + 2.dpToPx -
+                            (
+                                activity.window.decorView.rootWindowInsetsCompat
+                                    ?.getInsets(captionBar())
+                                    ?.top ?: 0
+                            )
                         marginEnd = 14.dpToPx + insets.end(context.resources.isLTR)
+                        marginStart = 14.dpToPx + insets.start(context.resources.isLTR)
+                        bottomMargin = 4.dpToPx + insets.bottom
                     },
                 )
             }
+
+        root.doOnApplyWindowInsetsCompat { _, insets, _ ->
+            composeView.updateLayoutParams<FrameLayout.LayoutParams> {
+                bottomMargin = 4.dpToPx + insets.ignoredSystemInsets.bottom
+            }
+        }
 
         // Compose's window-level recomposer looks up these owners starting from the dialog's
         // actual content root (root), not from composeView itself - setting them only on
