@@ -1207,10 +1207,12 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
             val systemInsets = insets.getInsetsIgnoringVisibility(systemBars())
             val currentOrientation = resources.configuration.orientation
             val isLandscapeFully =
-                currentOrientation == Configuration.ORIENTATION_LANDSCAPE && preferences.landscapeCutoutBehavior().get() == 1
+                currentOrientation == Configuration.ORIENTATION_LANDSCAPE &&
+                    (preferences.landscapeCutoutBehavior().get() == 1 || Build.VERSION.SDK_INT < Build.VERSION_CODES.P)
             val vis = insets.isVisible(statusBars())
             val fullscreen = preferences.fullscreen().get()
             val systemCutoutInsets = insets.getInsetsIgnoringVisibility(systemBars() or displayCutout())
+            val cutoutInsets = insets.getInsetsIgnoringVisibility(displayCutout())
             if (!firstPass && lastVis != vis && fullscreen && !isInMultiWindowMode) {
                 onVisibilityChange(vis)
             }
@@ -1257,16 +1259,16 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
                 height = 280.dpToPx + systemInsets.bottom
             }
             binding.toolbar.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                leftMargin = systemCutoutInsets.left
-                rightMargin = systemCutoutInsets.right
+                leftMargin = cutoutInsets.left
+                rightMargin = cutoutInsets.right
             }
             binding.chaptersSheet.topbarLayout.updatePadding(
-                left = systemCutoutInsets.left,
-                right = systemCutoutInsets.right,
+                left = cutoutInsets.left,
+                right = cutoutInsets.right,
             )
             binding.chaptersSheet.chapterRecycler.updatePadding(
-                left = systemCutoutInsets.left,
-                right = systemCutoutInsets.right,
+                left = cutoutInsets.left,
+                right = cutoutInsets.right,
             )
             binding.navLayout.updateLayoutParams<ViewGroup.MarginLayoutParams> {
                 leftMargin = 12.dpToPx + systemCutoutInsets.left
