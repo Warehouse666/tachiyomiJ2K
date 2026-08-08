@@ -14,7 +14,7 @@
     <color name="monet_background">@android:color/system_surface_container_dark</color>
     <color name="monet_on_background">@android:color/system_on_background_dark</color>
     <color name="monet_action_bar_tint">@android:color/system_on_surface_dark</color>
-    <color name="monet_surface_container_lowest">@android:color/system_surface_container_lowest_dark</color>
+    <color name="monet_surface_container_lowest">@android:color/system_surface_container_low_dark</color>
     <color name="monet_surface_container_low">@android:color/system_surface_container_low_dark</color>
     <color name="monet_surface_container_high">@android:color/system_surface_container_high_dark</color>
     <color name="monet_surface_container_highest">@android:color/system_surface_container_highest_dark</color>
