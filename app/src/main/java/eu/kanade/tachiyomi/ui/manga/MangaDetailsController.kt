@@ -714,6 +714,8 @@ class MangaDetailsController :
                 setStatusBarAndToolbar()
             }
         } else {
+            floatingActionMode?.finish()
+            floatingActionMode = null
             if (router.backstack.lastOrNull()?.controller is DialogController) {
                 return
             }
