@@ -1,11 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="tachiyomi_primary">#AEC6FF</color>
-    <color name="tachiyomi_onPrimary">#002C71</color>
-    <color name="tachiyomi_primaryContainer">#00419E</color>
     <color name="tachiyomi_onPrimaryContainer">#D8E2FF</color>
-    <color name="tachiyomi_secondary">#AEC6FF</color>
-    <color name="tachiyomi_onSecondary">#002C71</color>
     <color name="tachiyomi_secondaryContainer">#00419E</color>
     <color name="tachiyomi_onSecondaryContainer">#D8E2FF</color>
     <color name="tachiyomi_tertiary">#7ADC77</color>
