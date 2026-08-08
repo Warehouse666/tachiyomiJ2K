@@ -315,7 +315,6 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
 
         wic.isAppearanceLightStatusBars = themeLightStatusBars
         wic.isAppearanceLightNavigationBars = themeLightStatusBars
-
         binding.appBar.setBackgroundColor(contextCompatColor(R.color.surface_alpha))
         ViewCompat.setBackgroundTintList(
             binding.readerNav.root,
@@ -1223,6 +1222,9 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
             }
             binding.navBar.isVisible = insets.isVisible(navigationBars())
             if (insets.hasSideNavBar()) {
+                if (!fullscreen) {
+                    wic.isAppearanceLightNavigationBars = themeLightStatusBars
+                }
                 val tappableElement = insets.getInsetsIgnoringVisibility(tappableElement())
                 val navOnLeft = tappableElement.left > tappableElement.right
                 binding.navBar.updateLayoutParams<CoordinatorLayout.LayoutParams> {
@@ -1465,7 +1467,7 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
                 wic.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_DEFAULT
             } else {
                 wic.isAppearanceLightStatusBars = false
-                wic.isAppearanceLightNavigationBars = false
+                wic.isAppearanceLightNavigationBars = window.decorView.rootWindowInsetsCompat?.hasSideNavBar() == true
             }
 
             if (animate && binding.appBar.isVisible) {
