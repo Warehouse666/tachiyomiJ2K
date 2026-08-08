@@ -419,9 +419,16 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
             }
             true
         }
-        for (id in listOf(R.id.nav_recents, R.id.nav_browse)) {
+        for (id in listOf(
+            R.id.nav_recents,
+            R.id.nav_browse,
+            R.id.nav_summary,
+            R.id.nav_ungrouped,
+            R.id.nav_history,
+            R.id.nav_updates,
+        )) {
             nav.getItemView(id)?.setOnLongClickListener {
-                nav.selectedItemId = id
+                nav.selectedItemId = if (R.id.nav_browse == id) id else R.id.nav_recents
                 nav.post {
                     val controller =
                         router.backstack.firstOrNull()?.controller as? BottomSheetController
@@ -1011,7 +1018,12 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
             !preferences.shownDownloadQueueTutorial().get()
         ) {
             if (!isBindingInitialized) return
-            val recentsItem = nav.getItemView(R.id.nav_recents) ?: return
+            val recentsItem =
+                if (isTablet() && binding.sideNav != null) {
+                    nav.getItemView(R.id.nav_summary)
+                } else {
+                    nav.getItemView(R.id.nav_recents)
+                } ?: return
             preferences.shownDownloadQueueTutorial().set(true)
             TapTargetView.showFor(
                 this,
