@@ -118,26 +118,14 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
-                <data
-                    android:host="reader.kireicake.com"
-                    android:pathPattern="/read/..*/..*/..*/..*"
-                    android:scheme="https" />
-
-                <data
-                    android:host="mangaplus.shueisha.co.jp"
-                    android:pathPattern="/viewer/..*"
-                    android:scheme="https" />
-
-                <data
-                    android:host="cubari.moe"
-                    android:pathPattern="/read/imgur/..*"
-                    android:scheme="https" />
+                <data android:scheme="https" />
+                <data android:host="cubari.moe" />
+                <data android:pathPattern="/read/imgur/..*" />
 
                 <!-- Only link to a chapter if the gist contains a chapter number -->
-                <data
-                    android:host="cubari.moe"
-                    android:pathPattern="/read/gist/..*/..*"
-                    android:scheme="https" />
+                <data android:scheme="https" />
+                <data android:host="cubari.moe" />
+                <data android:pathPattern="/read/gist/..*/..*" />
             </intent-filter>
 
             <intent-filter>

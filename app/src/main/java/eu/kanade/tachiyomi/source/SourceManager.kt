@@ -9,9 +9,6 @@ import eu.kanade.tachiyomi.source.model.SManga
 import eu.kanade.tachiyomi.source.online.DelegatedHttpSource
 import eu.kanade.tachiyomi.source.online.HttpSource
 import eu.kanade.tachiyomi.source.online.all.Cubari
-import eu.kanade.tachiyomi.source.online.all.MangaDex
-import eu.kanade.tachiyomi.source.online.english.KireiCake
-import eu.kanade.tachiyomi.source.online.english.MangaPlus
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -38,21 +35,6 @@ class SourceManager(
 
     private val delegatedSources =
         listOf(
-            DelegatedSource(
-                "reader.kireicake.com",
-                5509224355268673176,
-                KireiCake(),
-            ),
-            DelegatedSource(
-                "mangadex.org",
-                2499283573021220255,
-                MangaDex(),
-            ),
-            DelegatedSource(
-                "mangaplus.shueisha.co.jp",
-                1998944621602463790,
-                MangaPlus(),
-            ),
             DelegatedSource(
                 "cubari.moe",
                 6338219619148105941,
