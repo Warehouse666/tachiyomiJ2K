@@ -5,7 +5,6 @@ import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
-import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -16,13 +15,17 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.unit.dp
+import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.setViewTreeLifecycleOwner
 import androidx.lifecycle.setViewTreeViewModelStoreOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import eu.kanade.tachiyomi.R
+import eu.kanade.tachiyomi.ui.main.MainActivity
 import eu.kanade.tachiyomi.util.compose.AppComposeTheme
 import eu.kanade.tachiyomi.util.system.dpToPx
+import eu.kanade.tachiyomi.util.system.end
+import eu.kanade.tachiyomi.util.system.isLTR
 
 /**
  * A [Dialog] that hosts Compose content anchored below [anchor] and pinned to the end (right, in
@@ -34,7 +37,7 @@ import eu.kanade.tachiyomi.util.system.dpToPx
  * always the same relative to the window.
  */
 class ComposeAnchoredDialog(
-    private val activity: ComponentActivity,
+    private val activity: MainActivity,
     private val anchor: View,
 ) : Dialog(activity, R.style.SearchDialogTheme) {
     private val composeView = ComposeView(activity)
@@ -50,6 +53,7 @@ class ComposeAnchoredDialog(
         val anchorLocation = IntArray(2)
         anchor.getLocationOnScreen(anchorLocation)
 
+        val insets = activity.cachedSystemInsets
         val root =
             FrameLayout(activity).apply {
                 addView(
@@ -61,7 +65,7 @@ class ComposeAnchoredDialog(
                     FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
                         gravity = Gravity.TOP or Gravity.END
                         topMargin = anchorLocation[1] + anchor.height + 2.dpToPx
-                        marginEnd = 14.dpToPx
+                        marginEnd = 14.dpToPx + insets.end(context.resources.isLTR)
                     },
                 )
             }
@@ -77,6 +81,7 @@ class ComposeAnchoredDialog(
         window?.let { window ->
             window.decorView.fitsSystemWindows = false
             val wic = WindowInsetsControllerCompat(window, window.decorView)
+            WindowCompat.setDecorFitsSystemWindows(window, false)
             wic.isAppearanceLightStatusBars = false
             wic.isAppearanceLightNavigationBars = false
         }

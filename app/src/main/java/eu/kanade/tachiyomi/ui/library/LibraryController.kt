@@ -28,7 +28,6 @@ import android.view.ViewTreeObserver
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.ImageView
-import androidx.activity.ComponentActivity
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.ActionMode
@@ -2128,7 +2127,7 @@ open class LibraryController(
     }
 
     private fun openSearchFilterSheet() {
-        val activity = activity as? ComponentActivity ?: return
+        val activity = activity as? MainActivity ?: return
         val anchor = activityBinding?.toolbarFilterButton ?: return
         val dialog = ComposeAnchoredDialog(activity, anchor)
         dialog.setContent {

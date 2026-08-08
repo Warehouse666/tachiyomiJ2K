@@ -203,12 +203,14 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/toolbar_filter_button"
-                android:layout_marginStart="6dp"
                 style="@style/Widget.Tachiyomi.Button.IconButton.ToolbarFilled"
                 android:layout_width="?mainActionBarSize"
-                android:layout_height="match_parent"
+                android:layout_marginStart="6dp"
                 android:contentDescription="@string/filter"
+                android:visibility="gone"
                 android:tooltipText="@string/search_filters"
+                tools:visibility="visible"
+                android:layout_height="match_parent"
                 app:icon="@drawable/ic_filter_alt_24dp" />
         </LinearLayout>
 

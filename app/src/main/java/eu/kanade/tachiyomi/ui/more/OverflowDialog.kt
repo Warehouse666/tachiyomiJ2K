@@ -6,6 +6,7 @@ import android.view.ViewGroup
 import androidx.core.graphics.ColorUtils
 import androidx.core.text.buildSpannedString
 import androidx.core.text.color
+import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.updateLayoutParams
 import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat
@@ -131,6 +132,7 @@ class OverflowDialog(
         window?.let { window ->
             window.decorView.fitsSystemWindows = false
             val wic = WindowInsetsControllerCompat(window, window.decorView)
+            WindowCompat.setDecorFitsSystemWindows(window, false)
             wic.isAppearanceLightStatusBars = false
             wic.isAppearanceLightNavigationBars = false
         }
