@@ -30,7 +30,6 @@ import eu.kanade.tachiyomi.ui.manga.chapter.BaseChapterHolder
 import eu.kanade.tachiyomi.util.chapter.ChapterUtil
 import eu.kanade.tachiyomi.util.chapter.ChapterUtil.Companion.preferredChapterName
 import eu.kanade.tachiyomi.util.isLocal
-import eu.kanade.tachiyomi.util.system.cardColor
 import eu.kanade.tachiyomi.util.system.contextCompatColor
 import eu.kanade.tachiyomi.util.system.dpToPx
 import eu.kanade.tachiyomi.util.system.getResourceColor
@@ -52,7 +51,6 @@ class RecentMangaHolder(
     var extraChapterMaxSize = 10
 
     init {
-        binding.recentCard.setCardBackgroundColor(itemView.context.cardColor)
         binding.cardLayout.setOnClickListener { adapter.delegate.onCoverClick(flexibleAdapterPosition) }
         binding.removeHistory.setOnClickListener { adapter.delegate.onRemoveHistoryClicked(flexibleAdapterPosition) }
         binding.showMoreChapters.setOnClickListener { _ ->
@@ -416,7 +414,6 @@ class RecentMangaHolder(
         chapter: ChapterHistory?,
         item: RecentMangaItem,
     ) {
-        root.setCardBackgroundColor(root.context.cardColor)
         if (chapter?.id == null) {
             configureBlankView(item.mch.extraChapters.size - extraChapterMaxSize)
             return
@@ -579,7 +576,7 @@ class RecentMangaHolder(
         }
         val margins = if (enabled) 8.dpToPx else 0
         val bgColor by lazy { itemView.context.getResourceColor(R.attr.background) }
-        val cardColor by lazy { itemView.context.cardColor }
+        val cardColor by lazy { itemView.context.getResourceColor(R.attr.colorSurfaceContainerLowest) }
         cardList.forEach {
             it.updateLayoutParams<ViewGroup.MarginLayoutParams> {
                 marginStart = margins

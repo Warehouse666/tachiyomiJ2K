@@ -448,18 +448,6 @@ fun Context.appDelegateNightMode(): Int =
         AppCompatDelegate.MODE_NIGHT_NO
     }
 
-val Context.cardColor: Int
-    get() {
-        val cardContainer = getColor(R.color.card_container)
-        return if (isInNightMode()) {
-            cardContainer
-//            val bgColor = getResourceColor(R.attr.background)
-//            ColorUtils.blendARGB(cardContainer, bgColor, 0.25f)
-        } else {
-            cardContainer
-        }
-    }
-
 fun Context.isOnline(): Boolean {
     val networkCapabilities = connectivityManager.activeNetwork ?: return false
     val actNw = connectivityManager.getNetworkCapabilities(networkCapabilities) ?: return false
