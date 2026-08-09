@@ -18,6 +18,7 @@
 -keep,allowoptimization class uy.kohesive.injekt.** { public protected *; }
 -keep,allowoptimization class eu.davidea.flexibleadapter.** { public protected *; }
 -keep class io.requery.android.database.** { public protected *; }
+-keep,allowoptimization class com.squareup.zstd.** { public protected *; }
 
 # From extensions-lib
 -keep,allowoptimization class eu.kanade.tachiyomi.network.interceptor.RateLimitInterceptorKt { public protected *; }
