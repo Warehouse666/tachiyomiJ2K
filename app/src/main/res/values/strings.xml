@@ -83,6 +83,14 @@
         <item quantity="one">%1$d page left</item>
         <item quantity="other">%1$d pages left</item>
     </plurals>
+    <plurals name="num_sources">
+        <item quantity="one">%1$d source</item>
+        <item quantity="other">%1$d sources</item>
+    </plurals>
+    <plurals name="num_pages">
+        <item quantity="one">%1$d page</item>
+        <item quantity="other">%1$d pages</item>
+    </plurals>
 
     <!-- Category -->
     <string name="category">Category</string>
@@ -1036,6 +1044,9 @@
     <string name="save_chapters_as_cbz">Save as CBZ archive</string>
     <string name="split_tall_images">Split tall images</string>
     <string name="split_tall_images_summary">Improves reader performance</string>
+    <string name="concurrent_source_downloads">Concurrent source downloads</string>
+    <string name="concurrent_page_downloads">Concurrent page downloads</string>
+    <string name="concurrent_page_downloads_summary">Pages downloaded simultaneously per source</string>
 
     <!-- Stats -->
     <string name="stat">Stat</string>

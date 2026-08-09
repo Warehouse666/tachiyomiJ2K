@@ -376,6 +376,10 @@ class PreferencesHelper(
 
     fun splitTallImages() = flowPrefs.getBoolean("split_tall_images", false)
 
+    fun numberOfConcurrentSourceDownloads() = flowPrefs.getInt("concurrent_source_downloads", 5)
+
+    fun numberOfConcurrentPageDownloads() = flowPrefs.getInt("concurrent_page_downloads", 5)
+
     fun downloadNewChapters() = flowPrefs.getBoolean(Keys.downloadNew, false)
 
     fun downloadNewChaptersInCategories() = flowPrefs.getStringSet("download_new_categories", emptySet())

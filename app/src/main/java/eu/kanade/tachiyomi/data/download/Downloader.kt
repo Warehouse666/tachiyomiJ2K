@@ -231,7 +231,7 @@ class Downloader(
         subscription =
             downloadsRelay
                 .concatMapIterable { it }
-                // Concurrently download from 5 different sources
+                // Concurrently download from N different sources
                 .groupBy { it.source }
                 .flatMap(
                     { bySource ->
@@ -243,7 +243,7 @@ class Downloader(
                                 }.subscribeOn(Schedulers.io())
                         }
                     },
-                    5,
+                    preferences.numberOfConcurrentSourceDownloads().get(),
                 ).onBackpressureLatest()
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
@@ -412,10 +412,9 @@ class Downloader(
             }
 
             // Start downloading images, consider we can have downloaded images already
-            // Concurrently do 2 pages at a time
             pageList
                 .asFlow()
-                .flatMapMerge(concurrency = 2) { page ->
+                .flatMapMerge(concurrency = preferences.numberOfConcurrentPageDownloads().get()) { page ->
                     flow {
                         withIOContext { getOrDownloadImage(page, download, tmpDir) }
                         emit(page)

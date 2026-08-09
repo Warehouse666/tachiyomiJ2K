@@ -54,6 +54,19 @@ class SettingsDownloadController : SettingsController() {
                 titleRes = R.string.split_tall_images
                 summaryRes = R.string.split_tall_images_summary
             }
+            sliderPreference {
+                bindTo(preferences.numberOfConcurrentSourceDownloads())
+                titleRes = R.string.concurrent_source_downloads
+                entryValues = (1..10).toList()
+                valueFormatter = { context.resources.getQuantityString(R.plurals.num_sources, it, it) }
+            }
+            sliderPreference {
+                bindTo(preferences.numberOfConcurrentPageDownloads())
+                titleRes = R.string.concurrent_page_downloads
+                summaryRes = R.string.concurrent_page_downloads_summary
+                entryValues = (1..15).toList()
+                valueFormatter = { context.resources.getQuantityString(R.plurals.num_pages, it, it) }
+            }
 
             val dbCategories = db.getCategories().executeAsBlocking()
             val categories = listOf(Category.createDefault(context)) + dbCategories
