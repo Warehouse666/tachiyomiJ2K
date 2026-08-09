@@ -2,6 +2,7 @@ package eu.kanade.tachiyomi
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.ActivityManager
 import android.app.Application
 import android.app.PendingIntent
 import android.content.BroadcastReceiver
@@ -21,6 +22,8 @@ import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.multidex.MultiDex
 import eu.kanade.tachiyomi.appwidget.TachiyomiWidgetManager
+import eu.kanade.tachiyomi.crash.CrashActivity
+import eu.kanade.tachiyomi.crash.GlobalExceptionHandler
 import eu.kanade.tachiyomi.data.image.coil.CoilSetup
 import eu.kanade.tachiyomi.data.notification.Notifications
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
@@ -67,8 +70,19 @@ open class App :
 
         Injekt.importModule(AppModule(this))
 
-        CoilSetup(this)
+        GlobalExceptionHandler.initialize(applicationContext, CrashActivity::class.java)
+
         setupNotificationChannels()
+
+        if (isErrorHandlerProcess()) {
+            // CrashActivity runs in this process and only needs Injekt (for
+            // PreferencesHelper/theming) and notification channels (for CrashLogUtil).
+            // Everything below touches WorkManager-backed services (widgets) that aren't
+            // initialized outside the main process and would crash this process too.
+            return
+        }
+
+        CoilSetup(this)
 
         ProcessLifecycleOwner.get().lifecycle.addObserver(this)
 
@@ -143,6 +157,13 @@ open class App :
 
     protected open fun setupNotificationChannels() {
         Notifications.createChannels(this)
+    }
+
+    private fun isErrorHandlerProcess(): Boolean {
+        val pid = android.os.Process.myPid()
+        val manager = getSystemService(Context.ACTIVITY_SERVICE) as? ActivityManager
+        val processName = manager?.runningAppProcesses?.firstOrNull { it.pid == pid }?.processName
+        return processName?.endsWith(":error_handler") == true
     }
 
     override fun getPackageName(): String {

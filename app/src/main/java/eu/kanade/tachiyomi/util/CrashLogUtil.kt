@@ -25,11 +25,12 @@ class CrashLogUtil(
             setSmallIcon(R.drawable.ic_tachij2k_notification)
         }
 
-    fun dumpLogs() {
+    fun dumpLogs(stackTrace: String? = null) {
         try {
             val file = context.createFileInCacheDir("tachiyomi_crash_logs.txt")
             file.appendText(getDebugInfo() + "\n\n")
             file.appendText(getExtensionsInfo() + "\n\n")
+            stackTrace?.let { file.appendText("$it\n\n") }
             Runtime.getRuntime().exec("logcat *:E -d -f ${file.absolutePath}")
             showNotification(file.getUriCompat(context))
         } catch (e: IOException) {
