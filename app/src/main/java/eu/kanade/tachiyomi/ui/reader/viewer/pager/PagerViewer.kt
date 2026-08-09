@@ -19,7 +19,15 @@ import eu.kanade.tachiyomi.ui.reader.model.ReaderChapter
 import eu.kanade.tachiyomi.ui.reader.model.ReaderPage
 import eu.kanade.tachiyomi.ui.reader.model.ViewerChapters
 import eu.kanade.tachiyomi.ui.reader.viewer.BaseViewer
+import eu.kanade.tachiyomi.ui.reader.viewer.GamepadHoldLoop
+import eu.kanade.tachiyomi.ui.reader.viewer.JOYSTICK_DEADZONE
+import eu.kanade.tachiyomi.ui.reader.viewer.JOYSTICK_PAN_INTERVAL_MS
+import eu.kanade.tachiyomi.ui.reader.viewer.JOYSTICK_PAN_STEP
+import eu.kanade.tachiyomi.ui.reader.viewer.PAN_STEP
 import eu.kanade.tachiyomi.ui.reader.viewer.ViewerNavigation
+import eu.kanade.tachiyomi.ui.reader.viewer.ZOOM_HOLD_INTERVAL_MS
+import eu.kanade.tachiyomi.ui.reader.viewer.gamepadZoomRate
+import eu.kanade.tachiyomi.ui.reader.viewer.isDpadHatMotion
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
@@ -111,15 +119,14 @@ abstract class PagerViewer(
 
     /**
      * Last known combined zoom rate from the L2/R2 triggers and the right stick's Y axis, in
-     * [-1, 1] (negative zooms out, positive zooms in). Used by [startZoomLoop].
+     * [-1, 1] (negative zooms out, positive zooms in). Applied by [zoomLoop].
      */
     private var zoomRate = 0f
 
     /**
-     * Job for the loop that keeps zooming while a trigger/right stick input is held, see
-     * [startZoomLoop].
+     * Keeps zooming for as long as [zoomRate] is non-zero, e.g. while a trigger is held.
      */
-    private var zoomJob: Job? = null
+    private val zoomLoop = GamepadHoldLoop(scope, activity, ZOOM_HOLD_INTERVAL_MS, { zoomRate }, ::zoomBy)
 
     private var pagerListener =
         object : ViewPager.SimpleOnPageChangeListener() {
@@ -623,10 +630,7 @@ abstract class PagerViewer(
             }
         }
         if (event.isFromSource(InputDevice.SOURCE_JOYSTICK) && event.action == MotionEvent.ACTION_MOVE) {
-            val isHatMotion =
-                event.getAxisValue(MotionEvent.AXIS_HAT_X) != 0f ||
-                    event.getAxisValue(MotionEvent.AXIS_HAT_Y) != 0f
-            if (isHatMotion) return false
+            if (event.isDpadHatMotion()) return false
 
             joystickX = event.getAxisValue(MotionEvent.AXIS_X)
             joystickY = event.getAxisValue(MotionEvent.AXIS_Y)
@@ -637,18 +641,8 @@ abstract class PagerViewer(
                 joystickPanJob?.cancel()
             }
 
-            // L2/R2 zoom out/in, along with the right stick's Y axis (pushed up to zoom in).
-            val leftTrigger = maxOf(event.getAxisValue(MotionEvent.AXIS_LTRIGGER), event.getAxisValue(MotionEvent.AXIS_BRAKE))
-            val rightTrigger = maxOf(event.getAxisValue(MotionEvent.AXIS_RTRIGGER), event.getAxisValue(MotionEvent.AXIS_GAS))
-            val triggerRate = if (abs(rightTrigger - leftTrigger) > TRIGGER_DEADZONE) rightTrigger - leftTrigger else 0f
-            val rightStickY = event.getAxisValue(MotionEvent.AXIS_RZ)
-            val rightStickRate = if (abs(rightStickY) > JOYSTICK_DEADZONE) -rightStickY else 0f
-            zoomRate = (triggerRate + rightStickRate).coerceIn(-1f, 1f)
-            if (zoomRate != 0f && !activity.menuVisible) {
-                startZoomLoop()
-            } else {
-                zoomJob?.cancel()
-            }
+            zoomRate = event.gamepadZoomRate()
+            zoomLoop.update()
 
             return (deflected && !activity.menuVisible && isZoomedIn()) || zoomRate != 0f
         }
@@ -680,24 +674,6 @@ abstract class PagerViewer(
             }
     }
 
-    /**
-     * The L2/R2 triggers and right stick Y axis only send a [MotionEvent] when they change, but
-     * zooming should continue for as long as they're held. This starts a loop that keeps zooming
-     * using the last known [zoomRate] until it's released, re-centered, or the menu opens.
-     */
-    private fun startZoomLoop() {
-        if (zoomJob?.isActive == true) return
-        zoomJob =
-            scope.launch {
-                while (isActive) {
-                    val rate = zoomRate
-                    if (activity.menuVisible || rate == 0f) break
-                    zoomBy(rate)
-                    delay(ZOOM_HOLD_INTERVAL_MS.milliseconds)
-                }
-            }
-    }
-
     fun hideMenuIfVisible(item: Any) {
         val currentItem = adapter.joinedItems.getOrNull(pager.currentItem)
         if (item == currentItem && isIdle) {
@@ -705,21 +681,3 @@ abstract class PagerViewer(
         }
     }
 }
-
-/** Fraction of the page's width/height panned per dpad/keyboard press while zoomed in. */
-private const val PAN_STEP = 0.15f
-
-/** Ignore small unintentional deflection on analog sticks. */
-private const val JOYSTICK_DEADZONE = 0.2f
-
-/** Fraction of the page's width/height panned per joystick tick at full deflection. */
-private const val JOYSTICK_PAN_STEP = 0.05f
-
-/** Delay between pan steps while the joystick is held away from center. */
-private const val JOYSTICK_PAN_INTERVAL_MS = 16L
-
-/** Ignore small unintentional deflection on the L2/R2 analog triggers. */
-private const val TRIGGER_DEADZONE = 0.1f
-
-/** Delay between zoom steps while a trigger/right stick input is held. */
-private const val ZOOM_HOLD_INTERVAL_MS = 16L

@@ -942,30 +942,24 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
                 viewer?.moveToPrevious()
                 return true
             }
-            // Gamepad start button toggles the menu, same as the keyboard's menu key.
             KeyEvent.KEYCODE_BUTTON_START -> {
                 toggleMenu()
                 return true
             }
-            // Some gamepads fire a KEYCODE_MENU alongside KEYCODE_BUTTON_SELECT for the same
-            // Select/Back button press. Swallow it when it came from a gamepad so it doesn't
-            // also toggle the menu - KEYCODE_BUTTON_SELECT below already handles that press.
             KeyEvent.KEYCODE_MENU -> {
                 if (event?.isFromSource(InputDevice.SOURCE_GAMEPAD) != true) {
                     toggleMenu()
                 }
                 return true
             }
-            // Gamepad select button (or keyboard C) opens/expands the chapter list.
             KeyEvent.KEYCODE_BUTTON_SELECT, KeyEvent.KEYCODE_C -> {
                 toggleChapterList()
                 return true
             }
-            // Gamepad B closes the menu if it's open, otherwise it acts like the back button.
-            // The hardware back button's own behavior is untouched by this.
             KeyEvent.KEYCODE_BUTTON_B -> {
                 if (binding.chaptersSheet.root.sheetBehavior
-                        .isExpanded()
+                        .isExpanded() &&
+                    menuVisible
                 ) {
                     binding.chaptersSheet.root.lastScale = binding.chaptersSheet.root.scaleX
                     binding.chaptersSheet.root.sheetBehavior
@@ -973,7 +967,7 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
                 } else if (menuVisible) {
                     hideMenu()
                 } else {
-                    onBackPressedDispatcher.onBackPressed()
+                    return false
                 }
                 return true
             }
