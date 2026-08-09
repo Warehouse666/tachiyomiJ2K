@@ -52,6 +52,13 @@ jobs:
           set -x
           echo "VERSION_TAG=${{ github.event.inputs.version }}" >> $GITHUB_ENV
 
+      - name: Detect installed build-tools version
+        if: env.VERSION_TAG != ''
+        run: |
+          BTV=$(ls -1 "${ANDROID_SDK_ROOT}/build-tools" | sort -V | tail -1)
+          echo "Using build-tools $BTV"
+          echo "BUILD_TOOLS_VERSION=$BTV" >> $GITHUB_ENV
+
       - name: Sign APK
         if: env.VERSION_TAG != ''
         uses: r0adkll/sign-android-release@v1
@@ -61,6 +68,8 @@ jobs:
           alias: ${{ secrets.ALIAS }}
           keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
           keyPassword: ${{ secrets.KEY_PASSWORD }}
+        env:
+          BUILD_TOOLS_VERSION: ${{ env.BUILD_TOOLS_VERSION }}
 
       - name: Clean up build artifacts
         if: env.VERSION_TAG != ''
