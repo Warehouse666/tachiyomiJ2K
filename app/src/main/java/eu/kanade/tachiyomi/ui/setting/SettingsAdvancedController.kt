@@ -38,6 +38,7 @@ import eu.kanade.tachiyomi.network.PREF_DOH_GOOGLE
 import eu.kanade.tachiyomi.network.PREF_DOH_QUAD101
 import eu.kanade.tachiyomi.network.PREF_DOH_QUAD9
 import eu.kanade.tachiyomi.source.SourceManager
+import eu.kanade.tachiyomi.ui.main.MainActivity
 import eu.kanade.tachiyomi.ui.setting.database.ClearDatabaseController
 import eu.kanade.tachiyomi.ui.setting.debug.DebugController
 import eu.kanade.tachiyomi.util.CrashLogUtil
@@ -85,6 +86,7 @@ class SettingsAdvancedController : SettingsController() {
         screen.apply {
             titleRes = R.string.advanced
 
+            (activity as? MainActivity)?.showNotificationPermissionPrompt(true)
 
             preference {
                 key = "dump_crash_logs"
