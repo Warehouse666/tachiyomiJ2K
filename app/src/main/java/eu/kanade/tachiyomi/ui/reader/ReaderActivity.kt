@@ -25,6 +25,7 @@ import android.text.style.ImageSpan
 import android.view.GestureDetector
 import android.view.Gravity
 import android.view.HapticFeedbackConstants
+import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.Menu
 import android.view.MenuItem
@@ -137,6 +138,7 @@ import eu.kanade.tachiyomi.util.system.withUIContext
 import eu.kanade.tachiyomi.util.view.backgroundColor
 import eu.kanade.tachiyomi.util.view.collapse
 import eu.kanade.tachiyomi.util.view.doOnApplyWindowInsetsCompat
+import eu.kanade.tachiyomi.util.view.expand
 import eu.kanade.tachiyomi.util.view.hide
 import eu.kanade.tachiyomi.util.view.isCollapsed
 import eu.kanade.tachiyomi.util.view.isExpanded
@@ -940,7 +942,55 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
                 viewer?.moveToPrevious()
                 return true
             }
+            // Gamepad start button toggles the menu, same as the keyboard's menu key.
+            KeyEvent.KEYCODE_BUTTON_START -> {
+                toggleMenu()
+                return true
+            }
+            // Some gamepads fire a KEYCODE_MENU alongside KEYCODE_BUTTON_SELECT for the same
+            // Select/Back button press. Swallow it when it came from a gamepad so it doesn't
+            // also toggle the menu - KEYCODE_BUTTON_SELECT below already handles that press.
+            KeyEvent.KEYCODE_MENU -> {
+                if (event?.isFromSource(InputDevice.SOURCE_GAMEPAD) != true) {
+                    toggleMenu()
+                }
+                return true
+            }
+            // Gamepad select button (or keyboard C) opens/expands the chapter list.
+            KeyEvent.KEYCODE_BUTTON_SELECT, KeyEvent.KEYCODE_C -> {
+                toggleChapterList()
+                return true
+            }
+            // Gamepad B closes the menu if it's open, otherwise it acts like the back button.
+            // The hardware back button's own behavior is untouched by this.
+            KeyEvent.KEYCODE_BUTTON_B -> {
+                if (binding.chaptersSheet.root.sheetBehavior
+                        .isExpanded()
+                ) {
+                    binding.chaptersSheet.root.lastScale = binding.chaptersSheet.root.scaleX
+                    binding.chaptersSheet.root.sheetBehavior
+                        ?.collapse()
+                } else if (menuVisible) {
+                    hideMenu()
+                } else {
+                    onBackPressedDispatcher.onBackPressed()
+                }
+                return true
+            }
             else -> return super.onKeyUp(keyCode, event)
+        }
+    }
+
+    /**
+     * Shows the menu and expands the chapter list sheet, or collapses it if it's already
+     * expanded.
+     */
+    private fun toggleChapterList() {
+        toggleMenu()
+        with(binding.chaptersSheet.chaptersBottomSheet) {
+            if (menuVisible) {
+                sheetBehavior?.expand()
+            }
         }
     }
 

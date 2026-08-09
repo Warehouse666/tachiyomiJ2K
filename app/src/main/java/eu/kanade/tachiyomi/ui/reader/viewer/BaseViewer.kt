@@ -44,6 +44,38 @@ interface BaseViewer {
     fun moveToPrevious()
 
     /**
+     * Returns whether the current page is zoomed in past its default scale. Used to decide
+     * whether a dpad/analog stick input should pan the page or turn to the next/previous one.
+     */
+    fun isZoomedIn(): Boolean = false
+
+    /**
+     * Zooms the current page in, e.g. from a gamepad or keyboard press. No-op if unsupported.
+     */
+    fun zoomIn() {}
+
+    /**
+     * Zooms the current page out, e.g. from a gamepad or keyboard press. No-op if unsupported.
+     */
+    fun zoomOut() {}
+
+    /**
+     * Pans the current page by [dxRatio]/[dyRatio] of its width/height, if zoomed in. No-op if
+     * unsupported.
+     */
+    fun pan(
+        dxRatio: Float,
+        dyRatio: Float,
+    ) {}
+
+    /**
+     * Applies one non-animated zoom step scaled by [rate] (-1 = fastest zoom out, 1 = fastest
+     * zoom in). Meant to be called repeatedly (e.g. every frame) while a zoom input is held,
+     * such as the L2/R2 trigger axes. No-op if unsupported.
+     */
+    fun zoomBy(rate: Float) {}
+
+    /**
      * Called from the containing activity when a key [event] is received. It should return true
      * if the event was handled, false otherwise.
      */

@@ -313,6 +313,75 @@ class PagerPageHolder(
     }
 
     /**
+     * Whether the image is currently zoomed in past its default scale.
+     */
+    fun isZoomedIn(): Boolean {
+        val view = pageView as? SubsamplingScaleImageView ?: return false
+        return view.scale > view.minScale + 0.01f
+    }
+
+    /**
+     * Zooms the image in by one step, e.g. from a gamepad or keyboard press.
+     */
+    fun zoomIn() = animateZoomBy(ZOOM_STEP)
+
+    /**
+     * Zooms the image out by one step, e.g. from a gamepad or keyboard press.
+     */
+    fun zoomOut() = animateZoomBy(1 / ZOOM_STEP)
+
+    private fun animateZoomBy(factor: Float) {
+        (pageView as? SubsamplingScaleImageView)?.let { view ->
+            val target = (view.scale * factor).coerceIn(view.minScale, view.maxScale)
+            view
+                .animateScale(target)!!
+                .withEasing(SubsamplingScaleImageView.EASE_OUT_QUAD)
+                .withDuration(200)
+                .withInterruptible(true)
+                .start()
+        }
+    }
+
+    /**
+     * Applies one non-animated zoom step scaled by [rate] (-1 = fastest zoom out, 1 = fastest
+     * zoom in). Meant to be called repeatedly (e.g. every frame) while a zoom input is held,
+     * such as the L2/R2 trigger axes or right stick.
+     */
+    fun zoomBy(rate: Float) {
+        (pageView as? SubsamplingScaleImageView)?.let { view ->
+            val center = view.center ?: return
+            val factor = 1f + (ZOOM_HOLD_FACTOR - 1f) * rate.coerceIn(-1f, 1f)
+            val target = (view.scale * factor).coerceIn(view.minScale, view.maxScale)
+            view.setScaleAndCenter(target, center)
+        }
+    }
+
+    /**
+     * Pans the image by a fraction of its width/height, used for gamepad/keyboard panning
+     * while the image is zoomed in.
+     */
+    fun panBy(
+        dxRatio: Float,
+        dyRatio: Float,
+    ) {
+        (pageView as? SubsamplingScaleImageView)?.let { view ->
+            if (view.scale <= view.minScale) return
+            val center = view.center ?: return
+            val target =
+                PointF(
+                    center.x + view.width * dxRatio / view.scale,
+                    center.y + view.height * dyRatio / view.scale,
+                )
+            view
+                .animateCenter(target)!!
+                .withEasing(SubsamplingScaleImageView.EASE_OUT_QUAD)
+                .withDuration(100)
+                .withInterruptible(true)
+                .start()
+        }
+    }
+
+    /**
      * Pans the image.
      * @param fn a function that computes the new center of the image
      */
@@ -974,3 +1043,8 @@ class PagerPageHolder(
             0 + (context.resources.configuration?.orientation ?: 0) * 10
         } + item.hashCode()
 }
+
+private const val ZOOM_STEP = 1.25f
+
+/** Per-tick scale multiplier at full rate for [PagerPageHolder.zoomBy]'s held zoom. */
+private const val ZOOM_HOLD_FACTOR = 1.035f

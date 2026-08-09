@@ -177,7 +177,17 @@ open class WebtoonRecyclerView
             return true
         }
 
-        private fun zoomScrollBy(
+        /**
+         * Whether the recycler is currently zoomed in past its default scale. Used to decide
+         * whether a dpad/analog stick input should pan the content or scroll to another page.
+         */
+        fun isZoomedIn(): Boolean = currentScale > DEFAULT_RATE + 0.01f
+
+        /**
+         * Pans the zoomed content by [dx]/[dy] pixels, clamped to the content bounds - the same
+         * translation a touch drag applies while zoomed in.
+         */
+        fun zoomScrollBy(
             dx: Int,
             dy: Int,
         ) {

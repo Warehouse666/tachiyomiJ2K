@@ -2,6 +2,7 @@ package eu.kanade.tachiyomi.ui.reader.viewer.webtoon
 
 import android.graphics.Color
 import android.graphics.PointF
+import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
@@ -18,12 +19,19 @@ import eu.kanade.tachiyomi.ui.reader.model.ReaderPage
 import eu.kanade.tachiyomi.ui.reader.model.ViewerChapters
 import eu.kanade.tachiyomi.ui.reader.viewer.BaseViewer
 import eu.kanade.tachiyomi.ui.reader.viewer.ViewerNavigation
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import uy.kohesive.injekt.injectLazy
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.roundToInt
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * Implementation of a [BaseViewer] to display pages with a [RecyclerView].
@@ -70,6 +78,31 @@ class WebtoonViewer(
      * Configuration used by this viewer, like allow taps, or crop image borders.
      */
     val config = WebtoonConfig(scope)
+
+    /**
+     * Last known left analog stick position, used by [startJoystickPanLoop] to keep panning (X,
+     * while zoomed in) and scrolling (Y, always) for as long as it's held away from center.
+     */
+    private var joystickX = 0f
+    private var joystickY = 0f
+
+    /**
+     * Job for the loop that keeps panning/scrolling while the joystick is held, see
+     * [startJoystickPanLoop].
+     */
+    private var joystickPanJob: Job? = null
+
+    /**
+     * Last known combined zoom rate from the L2/R2 triggers and the right stick's Y axis, in
+     * [-1, 1] (negative zooms out, positive zooms in). Used by [startZoomLoop].
+     */
+    private var zoomRate = 0f
+
+    /**
+     * Job for the loop that keeps zooming while a trigger/right stick input is held, see
+     * [startZoomLoop].
+     */
+    private var zoomJob: Job? = null
 
     init {
         recycler.setBackgroundColor(Color.BLACK)
@@ -282,6 +315,44 @@ class WebtoonViewer(
         recycler.smoothScrollBy(0, scrollDistance)
     }
 
+    override fun isZoomedIn(): Boolean = recycler.isZoomedIn()
+
+    /**
+     * Zooms the recycler in by one step, e.g. from a gamepad or keyboard press.
+     */
+    override fun zoomIn() {
+        recycler.onScale(ZOOM_STEP)
+    }
+
+    /**
+     * Zooms the recycler out by one step, e.g. from a gamepad or keyboard press.
+     */
+    override fun zoomOut() {
+        recycler.onScale(1f / ZOOM_STEP)
+    }
+
+    /**
+     * Pans the zoomed recycler content by [dxRatio]/[dyRatio] of its width/height - the same
+     * translation a touch drag applies while zoomed in.
+     */
+    override fun pan(
+        dxRatio: Float,
+        dyRatio: Float,
+    ) {
+        if (!recycler.isZoomedIn()) return
+        recycler.zoomScrollBy((recycler.width * dxRatio).roundToInt(), (recycler.height * dyRatio).roundToInt())
+    }
+
+    /**
+     * Applies one non-animated zoom step scaled by [rate] to the whole recycler, the same way a
+     * pinch gesture does.
+     */
+    override fun zoomBy(rate: Float) {
+        if (rate == 0f) return
+        val factor = 1f + (ZOOM_HOLD_FACTOR - 1f) * rate.coerceIn(-1f, 1f)
+        recycler.onScale(factor)
+    }
+
     /**
      * Called from the containing activity when a key [event] is received. It should return true
      * if the event was handled, false otherwise.
@@ -304,17 +375,41 @@ class WebtoonViewer(
                     if (!config.volumeKeysInverted) moveToPrevious() else moveToNext()
                 }
             }
-            KeyEvent.KEYCODE_MENU -> if (isUp) activity.toggleMenu()
+            // While the menu is open, let the dpad/arrow keys drive normal Android focus
+            // navigation between the menu's buttons instead of scrolling/panning pages. Up/down
+            // always scroll - the reading motion is vertical, so it should never get hijacked
+            // into panning. Left/right pan while zoomed in (matching the bumpers' direction
+            // below), otherwise scroll like up/down do.
+            KeyEvent.KEYCODE_DPAD_RIGHT -> {
+                if (activity.menuVisible) return false
+                if (isUp) {
+                    if (isZoomedIn()) pan(-PAN_STEP, 0f) else moveToNext()
+                }
+            }
+            KeyEvent.KEYCODE_DPAD_LEFT -> {
+                if (activity.menuVisible) return false
+                if (isUp) {
+                    if (isZoomedIn()) pan(PAN_STEP, 0f) else moveToPrevious()
+                }
+            }
+            KeyEvent.KEYCODE_DPAD_UP -> {
+                if (activity.menuVisible) return false
+                if (isUp) moveToPrevious()
+            }
+            KeyEvent.KEYCODE_DPAD_DOWN -> {
+                if (activity.menuVisible) return false
+                if (isUp) moveToNext()
+            }
+            KeyEvent.KEYCODE_PAGE_UP -> if (isUp) moveToPrevious()
+            KeyEvent.KEYCODE_PAGE_DOWN -> if (isUp) moveToNext()
 
-            KeyEvent.KEYCODE_DPAD_RIGHT,
-            KeyEvent.KEYCODE_DPAD_UP,
-            KeyEvent.KEYCODE_PAGE_UP,
-            -> if (isUp) moveToPrevious()
+            // Gamepad shoulder buttons scroll up/down.
+            KeyEvent.KEYCODE_BUTTON_L1 -> if (isUp) moveToPrevious()
+            KeyEvent.KEYCODE_BUTTON_R1 -> if (isUp) moveToNext()
 
-            KeyEvent.KEYCODE_DPAD_LEFT,
-            KeyEvent.KEYCODE_DPAD_DOWN,
-            KeyEvent.KEYCODE_PAGE_DOWN,
-            -> if (isUp) moveToNext()
+            // Gamepad X/Y zoom the recycler in/out.
+            KeyEvent.KEYCODE_BUTTON_Y -> if (isUp) zoomIn()
+            KeyEvent.KEYCODE_BUTTON_X -> if (isUp) zoomOut()
             else -> return false
         }
         return true
@@ -324,7 +419,93 @@ class WebtoonViewer(
      * Called from the containing activity when a generic motion [event] is received. It should
      * return true if the event was handled, false otherwise.
      */
-    override fun handleGenericMotionEvent(event: MotionEvent): Boolean = false
+    override fun handleGenericMotionEvent(event: MotionEvent): Boolean {
+        if (!event.isFromSource(InputDevice.SOURCE_JOYSTICK) || event.action != MotionEvent.ACTION_MOVE) {
+            return false
+        }
+
+        // Many gamepads report the d-pad as a hat switch (AXIS_HAT_X/Y) rather than
+        // KEYCODE_DPAD_* key presses. If we consume that motion event here, Android's
+        // SyntheticJoystickHandler never gets a chance to turn it into the DPAD KeyEvent that
+        // handleKeyEvent relies on for page turning, so the d-pad would stop working.
+        val isHatMotion =
+            event.getAxisValue(MotionEvent.AXIS_HAT_X) != 0f ||
+                event.getAxisValue(MotionEvent.AXIS_HAT_Y) != 0f
+        if (isHatMotion) return false
+
+        // The horizontal axis pans while zoomed in; the vertical axis always scrolls the strip
+        // instead, regardless of zoom (see the d-pad up/down comment above). The loop itself
+        // runs whenever either axis is deflected - it's only the pan action that's zoom-gated.
+        joystickX = event.getAxisValue(MotionEvent.AXIS_X)
+        joystickY = event.getAxisValue(MotionEvent.AXIS_Y)
+        val deflected = abs(joystickX) > JOYSTICK_DEADZONE || abs(joystickY) > JOYSTICK_DEADZONE
+        if (deflected && !activity.menuVisible) {
+            startJoystickPanLoop()
+        } else {
+            joystickPanJob?.cancel()
+        }
+
+        // L2/R2 zoom out/in, along with the right stick's Y axis (pushed up to zoom in).
+        val leftTrigger = maxOf(event.getAxisValue(MotionEvent.AXIS_LTRIGGER), event.getAxisValue(MotionEvent.AXIS_BRAKE))
+        val rightTrigger = maxOf(event.getAxisValue(MotionEvent.AXIS_RTRIGGER), event.getAxisValue(MotionEvent.AXIS_GAS))
+        val triggerRate = if (abs(rightTrigger - leftTrigger) > TRIGGER_DEADZONE) rightTrigger - leftTrigger else 0f
+        val rightStickY = event.getAxisValue(MotionEvent.AXIS_RZ)
+        val rightStickRate = if (abs(rightStickY) > JOYSTICK_DEADZONE) -rightStickY else 0f
+        zoomRate = (triggerRate + rightStickRate).coerceIn(-1f, 1f)
+        if (zoomRate != 0f && !activity.menuVisible) {
+            startZoomLoop()
+        } else {
+            zoomJob?.cancel()
+        }
+
+        return deflected || zoomRate != 0f
+    }
+
+    /**
+     * The joystick only sends a [MotionEvent] when its axes change, but panning/scrolling should
+     * continue for as long as it's held away from center. This starts a loop, independent of
+     * zoom level, that keeps applying the last known [joystickX]/[joystickY] values until both
+     * axes are released/re-centered or the menu opens - panning horizontally while zoomed in,
+     * and always scrolling vertically.
+     */
+    private fun startJoystickPanLoop() {
+        if (joystickPanJob?.isActive == true) return
+        joystickPanJob =
+            scope.launch {
+                while (isActive) {
+                    val x = joystickX
+                    val y = joystickY
+                    if (activity.menuVisible || (abs(x) <= JOYSTICK_DEADZONE && abs(y) <= JOYSTICK_DEADZONE)) {
+                        break
+                    }
+                    if (isZoomedIn() && abs(x) > JOYSTICK_DEADZONE) {
+                        pan(x * -JOYSTICK_PAN_STEP, 0f)
+                    }
+                    if (abs(y) > JOYSTICK_DEADZONE) {
+                        recycler.scrollBy(0, (recycler.height * y * JOYSTICK_SCROLL_STEP).roundToInt())
+                    }
+                    delay(JOYSTICK_PAN_INTERVAL_MS.milliseconds)
+                }
+            }
+    }
+
+    /**
+     * The L2/R2 triggers and right stick Y axis only send a [MotionEvent] when they change, but
+     * zooming should continue for as long as they're held. This starts a loop that keeps zooming
+     * using the last known [zoomRate] until it's released, re-centered, or the menu opens.
+     */
+    private fun startZoomLoop() {
+        if (zoomJob?.isActive == true) return
+        zoomJob =
+            scope.launch {
+                while (isActive) {
+                    val rate = zoomRate
+                    if (activity.menuVisible || rate == 0f) break
+                    zoomBy(rate)
+                    delay(ZOOM_HOLD_INTERVAL_MS.milliseconds)
+                }
+            }
+    }
 
     /**
      * Notifies adapter of changes around the current page to trigger a relayout in the recycler.
@@ -338,3 +519,30 @@ class WebtoonViewer(
         )
     }
 }
+
+/** Fraction of the recycler's width/height panned per dpad/keyboard press while zoomed in. */
+private const val PAN_STEP = 0.15f
+
+/** Ignore small unintentional deflection on analog sticks. */
+private const val JOYSTICK_DEADZONE = 0.2f
+
+/** Fraction of the recycler's width/height panned per joystick tick at full deflection. */
+private const val JOYSTICK_PAN_STEP = 0.05f
+
+/** Fraction of the recycler's height scrolled per joystick tick at full deflection. */
+private const val JOYSTICK_SCROLL_STEP = 0.03f
+
+/** Delay between pan/scroll steps while the joystick is held away from center. */
+private const val JOYSTICK_PAN_INTERVAL_MS = 16L
+
+/** Ignore small unintentional deflection on the L2/R2 analog triggers. */
+private const val TRIGGER_DEADZONE = 0.1f
+
+/** Delay between zoom steps while a trigger/right stick input is held. */
+private const val ZOOM_HOLD_INTERVAL_MS = 16L
+
+/** Per-tick scale multiplier at full rate for [WebtoonViewer.zoomBy]'s held zoom. */
+private const val ZOOM_HOLD_FACTOR = 1.035f
+
+/** Scale multiplier applied per gamepad/keyboard press for [WebtoonViewer.zoomIn]/[WebtoonViewer.zoomOut]. */
+private const val ZOOM_STEP = 1.25f

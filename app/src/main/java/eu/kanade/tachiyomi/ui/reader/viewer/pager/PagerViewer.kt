@@ -20,10 +20,16 @@ import eu.kanade.tachiyomi.ui.reader.model.ReaderPage
 import eu.kanade.tachiyomi.ui.reader.model.ViewerChapters
 import eu.kanade.tachiyomi.ui.reader.viewer.BaseViewer
 import eu.kanade.tachiyomi.ui.reader.viewer.ViewerNavigation
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import uy.kohesive.injekt.injectLazy
+import kotlin.math.abs
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * Implementation of a [BaseViewer] to display pages with a [ViewPager].
@@ -90,6 +96,30 @@ abstract class PagerViewer(
      * Without this var landscapezoom wont work with activity transitions
      * */
     var heldForwardZoom: Pair<Int, Boolean>? = null
+
+    /**
+     * Last known left analog stick position, used by [startJoystickPanLoop] to keep panning
+     * for as long as it's held away from center.
+     */
+    private var joystickX = 0f
+    private var joystickY = 0f
+
+    /**
+     * Job for the loop that keeps panning while the joystick is held, see [startJoystickPanLoop].
+     */
+    private var joystickPanJob: Job? = null
+
+    /**
+     * Last known combined zoom rate from the L2/R2 triggers and the right stick's Y axis, in
+     * [-1, 1] (negative zooms out, positive zooms in). Used by [startZoomLoop].
+     */
+    private var zoomRate = 0f
+
+    /**
+     * Job for the loop that keeps zooming while a trigger/right stick input is held, see
+     * [startZoomLoop].
+     */
+    private var zoomJob: Job? = null
 
     private var pagerListener =
         object : ViewPager.SimpleOnPageChangeListener() {
@@ -180,6 +210,32 @@ abstract class PagerViewer(
         pager.children
             .filterIsInstance(PagerPageHolder::class.java)
             .firstOrNull { it.item.first.index == page.index || it.item.second?.index == page.index }
+
+    /**
+     * Returns the [PagerPageHolder] of the page that's currently on screen, if any.
+     */
+    private fun currentPageHolder(): PagerPageHolder? = (currentPage as? ReaderPage)?.let { getPageHolder(it) }
+
+    override fun isZoomedIn(): Boolean = currentPageHolder()?.isZoomedIn() ?: false
+
+    override fun zoomIn() {
+        currentPageHolder()?.zoomIn()
+    }
+
+    override fun zoomOut() {
+        currentPageHolder()?.zoomOut()
+    }
+
+    override fun pan(
+        dxRatio: Float,
+        dyRatio: Float,
+    ) {
+        currentPageHolder()?.panBy(dxRatio, dyRatio)
+    }
+
+    override fun zoomBy(rate: Float) {
+        currentPageHolder()?.zoomBy(rate)
+    }
 
     /**
      * Called when a new page (either a [ReaderPage] or [ChapterTransition]) is marked as active
@@ -488,13 +544,58 @@ abstract class PagerViewer(
                     if (!config.volumeKeysInverted) moveUp() else moveDown()
                 }
             }
-            KeyEvent.KEYCODE_DPAD_RIGHT -> if (isUp) moveRight()
-            KeyEvent.KEYCODE_DPAD_LEFT -> if (isUp) moveLeft()
-            KeyEvent.KEYCODE_DPAD_DOWN -> if (isUp) moveDown()
-            KeyEvent.KEYCODE_DPAD_UP -> if (isUp) moveUp()
+            // While the menu is open, let the dpad/arrow keys drive normal Android focus
+            // navigation between the menu's buttons instead of turning/panning pages.
+            KeyEvent.KEYCODE_DPAD_RIGHT -> {
+                if (activity.menuVisible) return false
+                if (isUp) {
+                    if (isZoomedIn()) {
+                        pan(PAN_STEP, 0f)
+                    } else {
+                        moveRight()
+                    }
+                }
+            }
+            KeyEvent.KEYCODE_DPAD_LEFT -> {
+                if (activity.menuVisible) return false
+                if (isUp) {
+                    if (isZoomedIn()) {
+                        pan(-PAN_STEP, 0f)
+                    } else {
+                        moveLeft()
+                    }
+                }
+            }
+            KeyEvent.KEYCODE_DPAD_DOWN -> {
+                if (activity.menuVisible) return false
+                if (isUp) {
+                    if (isZoomedIn()) {
+                        pan(0f, PAN_STEP)
+                    } else {
+                        moveDown()
+                    }
+                }
+            }
+            KeyEvent.KEYCODE_DPAD_UP -> {
+                if (activity.menuVisible) return false
+                if (isUp) {
+                    if (isZoomedIn()) {
+                        pan(0f, -PAN_STEP)
+                    } else {
+                        moveUp()
+                    }
+                }
+            }
             KeyEvent.KEYCODE_PAGE_DOWN -> if (isUp) moveDown()
             KeyEvent.KEYCODE_PAGE_UP -> if (isUp) moveUp()
-            KeyEvent.KEYCODE_MENU -> if (isUp) activity.toggleMenu()
+
+            // Gamepad shoulder buttons seek pages left/right, matching the dpad's spatial mapping.
+            KeyEvent.KEYCODE_BUTTON_L1 -> if (isUp) pager.setCurrentItem(pager.currentItem - 1, config.usePageTransitions)
+            KeyEvent.KEYCODE_BUTTON_R1 -> if (isUp) pager.setCurrentItem(pager.currentItem + 1, config.usePageTransitions)
+
+            // Gamepad X/Y zoom the current page in/out.
+            KeyEvent.KEYCODE_BUTTON_Y -> if (isUp) zoomIn()
+            KeyEvent.KEYCODE_BUTTON_X -> if (isUp) zoomOut()
             else -> return false
         }
         return true
@@ -509,7 +610,7 @@ abstract class PagerViewer(
      * return true if the event was handled, false otherwise.
      */
     override fun handleGenericMotionEvent(event: MotionEvent): Boolean {
-        if (event.source and InputDevice.SOURCE_CLASS_POINTER != 0) {
+        if (event.isFromSource(InputDevice.SOURCE_CLASS_POINTER)) {
             when (event.action) {
                 MotionEvent.ACTION_SCROLL -> {
                     if (event.getAxisValue(MotionEvent.AXIS_VSCROLL) < 0.0f) {
@@ -521,7 +622,80 @@ abstract class PagerViewer(
                 }
             }
         }
+        if (event.isFromSource(InputDevice.SOURCE_JOYSTICK) && event.action == MotionEvent.ACTION_MOVE) {
+            val isHatMotion =
+                event.getAxisValue(MotionEvent.AXIS_HAT_X) != 0f ||
+                    event.getAxisValue(MotionEvent.AXIS_HAT_Y) != 0f
+            if (isHatMotion) return false
+
+            joystickX = event.getAxisValue(MotionEvent.AXIS_X)
+            joystickY = event.getAxisValue(MotionEvent.AXIS_Y)
+            val deflected = abs(joystickX) > JOYSTICK_DEADZONE || abs(joystickY) > JOYSTICK_DEADZONE
+            if (deflected && !activity.menuVisible && isZoomedIn()) {
+                startJoystickPanLoop()
+            } else {
+                joystickPanJob?.cancel()
+            }
+
+            // L2/R2 zoom out/in, along with the right stick's Y axis (pushed up to zoom in).
+            val leftTrigger = maxOf(event.getAxisValue(MotionEvent.AXIS_LTRIGGER), event.getAxisValue(MotionEvent.AXIS_BRAKE))
+            val rightTrigger = maxOf(event.getAxisValue(MotionEvent.AXIS_RTRIGGER), event.getAxisValue(MotionEvent.AXIS_GAS))
+            val triggerRate = if (abs(rightTrigger - leftTrigger) > TRIGGER_DEADZONE) rightTrigger - leftTrigger else 0f
+            val rightStickY = event.getAxisValue(MotionEvent.AXIS_RZ)
+            val rightStickRate = if (abs(rightStickY) > JOYSTICK_DEADZONE) -rightStickY else 0f
+            zoomRate = (triggerRate + rightStickRate).coerceIn(-1f, 1f)
+            if (zoomRate != 0f && !activity.menuVisible) {
+                startZoomLoop()
+            } else {
+                zoomJob?.cancel()
+            }
+
+            return (deflected && !activity.menuVisible && isZoomedIn()) || zoomRate != 0f
+        }
         return false
+    }
+
+    /**
+     * The joystick only sends a [MotionEvent] when its axes change, but panning should continue
+     * for as long as the stick is held away from center. This starts a loop that keeps panning
+     * using the last known [joystickX]/[joystickY] values until it's released, re-centered, the
+     * menu opens, or the page is no longer zoomed in.
+     */
+    private fun startJoystickPanLoop() {
+        if (joystickPanJob?.isActive == true) return
+        joystickPanJob =
+            scope.launch {
+                while (isActive) {
+                    val x = joystickX
+                    val y = joystickY
+                    if (activity.menuVisible ||
+                        !isZoomedIn() ||
+                        (abs(x) <= JOYSTICK_DEADZONE && abs(y) <= JOYSTICK_DEADZONE)
+                    ) {
+                        break
+                    }
+                    pan(x * JOYSTICK_PAN_STEP, y * JOYSTICK_PAN_STEP)
+                    delay(JOYSTICK_PAN_INTERVAL_MS.milliseconds)
+                }
+            }
+    }
+
+    /**
+     * The L2/R2 triggers and right stick Y axis only send a [MotionEvent] when they change, but
+     * zooming should continue for as long as they're held. This starts a loop that keeps zooming
+     * using the last known [zoomRate] until it's released, re-centered, or the menu opens.
+     */
+    private fun startZoomLoop() {
+        if (zoomJob?.isActive == true) return
+        zoomJob =
+            scope.launch {
+                while (isActive) {
+                    val rate = zoomRate
+                    if (activity.menuVisible || rate == 0f) break
+                    zoomBy(rate)
+                    delay(ZOOM_HOLD_INTERVAL_MS.milliseconds)
+                }
+            }
     }
 
     fun hideMenuIfVisible(item: Any) {
@@ -531,3 +705,21 @@ abstract class PagerViewer(
         }
     }
 }
+
+/** Fraction of the page's width/height panned per dpad/keyboard press while zoomed in. */
+private const val PAN_STEP = 0.15f
+
+/** Ignore small unintentional deflection on analog sticks. */
+private const val JOYSTICK_DEADZONE = 0.2f
+
+/** Fraction of the page's width/height panned per joystick tick at full deflection. */
+private const val JOYSTICK_PAN_STEP = 0.05f
+
+/** Delay between pan steps while the joystick is held away from center. */
+private const val JOYSTICK_PAN_INTERVAL_MS = 16L
+
+/** Ignore small unintentional deflection on the L2/R2 analog triggers. */
+private const val TRIGGER_DEADZONE = 0.1f
+
+/** Delay between zoom steps while a trigger/right stick input is held. */
+private const val ZOOM_HOLD_INTERVAL_MS = 16L
