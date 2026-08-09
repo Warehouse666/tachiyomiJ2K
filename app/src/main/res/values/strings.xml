@@ -799,7 +799,7 @@
     <string name="starting_screen">Starting screen</string>
     <string name="back_to_start">Back to start</string>
     <string name="pref_manage_notifications">Manage notifications</string>
-    <string name="pressing_back_to_start">Pressing back to starting screen</string>
+    <string name="pressing_back_to_start">Pressing back goes to the starting screen before exiting the app</string>
     <string name="auto_updates">Auto-updates</string>
     <string name="auto_update_app">Auto-update app</string>
     <string name="over_wifi_only">Over Wi-Fi only</string>
