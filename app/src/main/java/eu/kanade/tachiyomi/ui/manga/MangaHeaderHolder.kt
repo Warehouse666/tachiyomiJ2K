@@ -699,10 +699,13 @@ class MangaHeaderHolder(
                     intArrayOf(),
                 )
             val bgCheckedColor =
-                ColorUtils.blendARGB(
-                    accentColor,
-                    root.context.getResourceColor(R.attr.background),
-                    0.706f,
+                ColorUtils.setAlphaComponent(
+                    ColorUtils.blendARGB(
+                        accentColor,
+                        root.context.getResourceColor(R.attr.background),
+                        0.706f,
+                    ),
+                    255,
                 )
             val bgCheckedColors =
                 intArrayOf(
@@ -745,13 +748,10 @@ class MangaHeaderHolder(
 
     /** Picks whichever of black/white has higher contrast against [background], guaranteeing WCAG AA-level legibility regardless of the cover's extracted accent hue. */
     private fun contrastingTextColor(background: Int): Int {
-        try {
-            val whiteContrast = ColorUtils.calculateContrast(Color.WHITE, background)
-            val blackContrast = ColorUtils.calculateContrast(Color.BLACK, background)
-            return if (whiteContrast >= blackContrast) Color.WHITE else Color.BLACK
-        } catch (_: Exception) {
-            return itemView.context.getResourceColor(R.attr.colorOnPrimary)
-        }
+        val fullBackground = ColorUtils.setAlphaComponent(background, 255)
+        val whiteContrast = ColorUtils.calculateContrast(Color.WHITE, fullBackground)
+        val blackContrast = ColorUtils.calculateContrast(Color.BLACK, fullBackground)
+        return if (whiteContrast >= blackContrast) Color.WHITE else Color.BLACK
     }
 
     fun updateTracking() {
