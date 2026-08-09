@@ -1,12 +1,7 @@
 package eu.kanade.tachiyomi.crash
 
-import android.Manifest
 import android.content.Intent
-import android.content.pm.PackageManager
-import android.os.Build
 import android.os.Bundle
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.app.ActivityCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat.Type.displayCutout
 import androidx.core.view.WindowInsetsCompat.Type.systemBars
@@ -21,13 +16,6 @@ import eu.kanade.tachiyomi.util.system.launchIO
 import eu.kanade.tachiyomi.util.view.doOnApplyWindowInsetsCompat
 
 class CrashActivity : BaseActivity<CrashActivityBinding>() {
-    private var stackTrace: String? = null
-
-    private val requestNotificationPermissionLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) {
-            dumpCrashLogs()
-        }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = CrashActivityBinding.inflate(layoutInflater)
@@ -39,35 +27,19 @@ class CrashActivity : BaseActivity<CrashActivityBinding>() {
             v.updatePadding(left = bars.left, top = bars.top, right = bars.right, bottom = bars.bottom)
         }
 
-        stackTrace = GlobalExceptionHandler.getStackTraceFromIntent(intent)
+        val stackTrace = GlobalExceptionHandler.getStackTraceFromIntent(intent)
 
         binding.crashSubtitle.text = getString(R.string.crash_screen_description, getString(R.string.app_name))
         binding.crashStackTrace.text = stackTrace.orEmpty()
 
         binding.btnShareCrashLogs.setOnClickListener {
-            if (needsNotificationPermission()) {
-                requestNotificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-            } else {
-                dumpCrashLogs()
+            lifecycleScope.launchIO {
+                CrashLogUtil(this@CrashActivity).shareLogs(stackTrace)
             }
         }
         binding.btnRestart.setOnClickListener {
             finishAffinity()
             startActivity(Intent(this, MainActivity::class.java))
-        }
-    }
-
-    private fun needsNotificationPermission(): Boolean {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return false
-        return ActivityCompat.checkSelfPermission(
-            this,
-            Manifest.permission.POST_NOTIFICATIONS,
-        ) != PackageManager.PERMISSION_GRANTED
-    }
-
-    private fun dumpCrashLogs() {
-        lifecycleScope.launchIO {
-            CrashLogUtil(this@CrashActivity).dumpLogs(stackTrace)
         }
     }
 }

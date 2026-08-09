@@ -1,6 +1,8 @@
 package eu.kanade.tachiyomi.util
 
+import android.content.ClipData
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import eu.kanade.tachiyomi.BuildConfig
@@ -15,6 +17,7 @@ import eu.kanade.tachiyomi.util.system.notificationManager
 import eu.kanade.tachiyomi.util.system.toast
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
+import java.io.File
 import java.io.IOException
 
 class CrashLogUtil(
@@ -27,15 +30,38 @@ class CrashLogUtil(
 
     fun dumpLogs(stackTrace: String? = null) {
         try {
-            val file = context.createFileInCacheDir("tachiyomi_crash_logs.txt")
-            file.appendText(getDebugInfo() + "\n\n")
-            file.appendText(getExtensionsInfo() + "\n\n")
-            stackTrace?.let { file.appendText("$it\n\n") }
-            Runtime.getRuntime().exec("logcat *:E -d -f ${file.absolutePath}")
+            val file = writeCrashLogFile(stackTrace)
             showNotification(file.getUriCompat(context))
         } catch (e: IOException) {
             context.toast("Failed to get logs")
         }
+    }
+
+    /** Writes the crash log file and immediately opens the share sheet for it. */
+    fun shareLogs(stackTrace: String? = null) {
+        try {
+            val file = writeCrashLogFile(stackTrace)
+            val uri = file.getUriCompat(context)
+            val shareIntent =
+                Intent(Intent.ACTION_SEND).apply {
+                    putExtra(Intent.EXTRA_STREAM, uri)
+                    clipData = ClipData.newRawUri(null, uri)
+                    type = "text/plain"
+                    flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+                }
+            context.startActivity(Intent.createChooser(shareIntent, context.getString(R.string.share)))
+        } catch (e: IOException) {
+            context.toast("Failed to get logs")
+        }
+    }
+
+    private fun writeCrashLogFile(stackTrace: String?): File {
+        val file = context.createFileInCacheDir("tachiyomi_crash_logs.txt")
+        file.appendText(getDebugInfo() + "\n\n")
+        file.appendText(getExtensionsInfo() + "\n\n")
+        stackTrace?.let { file.appendText("$it\n\n") }
+        Runtime.getRuntime().exec("logcat *:E -d -f ${file.absolutePath}")
+        return file
     }
 
     fun getDebugInfo(): String =

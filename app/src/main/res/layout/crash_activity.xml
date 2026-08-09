@@ -83,7 +83,7 @@
             style="@style/Widget.Material3.Button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/dump_crash_logs" />
+            android:text="@string/share_crash_logs" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_restart"

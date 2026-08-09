@@ -881,6 +881,7 @@
     <string name="saves_error_logs">Saves error logs to a file for sharing with the developers</string>
     <string name="about_dont_kill_my_app">Some manufacturers have additional app restrictions that kill background services. This website has more info on how to fix it.</string>
     <string name="crash_log_saved">Crash logs saved</string>
+    <string name="share_crash_logs">Share crash logs</string>
     <string name="crash_screen_title">Whoops!</string>
     <string name="crash_screen_description">%s ran into an unexpected error. You can share the crash logs to help track down the issue.</string>
     <string name="crash_screen_restart_application">Restart the application</string>
