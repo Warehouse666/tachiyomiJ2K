@@ -6,39 +6,36 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version'     
+        description: 'Version'
         required: true
         type: string
-        
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
 jobs:
   build:
     name: Build app
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
-      - name: Cancel previous runs
-        uses: styfle/cancel-workflow-action@0.11.0
-        with:
-          access_token: ${{ github.token }}
-          all_but_latest: true
-
-      - name: Clone repo
-        uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
 
-      - name: Validate Gradle Wrapper
-        uses: gradle/wrapper-validation-action@v1
-        
-      - name: Setup Android SDK
-        run: |
-          ${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager "build-tools;29.0.3"
-
       - name: Set up JDK
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
         with:
-          java-version: 17
+          java-version: 21
           distribution: temurin
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
 
       - name: Copy CI gradle.properties
         run: |
@@ -46,16 +43,14 @@ jobs:
           cp .github/runner-files/ci-gradle.properties ~/.gradle/gradle.properties
 
       - name: Build app
-        uses: gradle/gradle-command-action@v2
-        with:
-          arguments: assembleStandardRelease
+        run: ./gradlew assembleStandardRelease
 
       # Sign APK and create release for tags
       - name: Get tag name
         if: github.event.inputs.version != ''
         run: |
           set -x
-          echo "VERSION_TAG=${{github.event.inputs.version}}" >> $GITHUB_ENV
+          echo "VERSION_TAG=${{ github.event.inputs.version }}" >> $GITHUB_ENV
 
       - name: Sign APK
         if: env.VERSION_TAG != ''
@@ -87,14 +82,14 @@ jobs:
           cp app/build/outputs/apk/standard/release/app-standard-x86-release-unsigned-signed.apk tachiyomij2k-x86-${{ env.VERSION_TAG }}.apk
           sha=`sha256sum tachiyomij2k-x86-${{ env.VERSION_TAG }}.apk | awk '{ print $1 }'`
           echo "APK_X86_SHA=$sha" >> $GITHUB_ENV
-          
+
           cp app/build/outputs/apk/standard/release/app-standard-x86_64-release-unsigned-signed.apk tachiyomij2k-x86_64-${{ env.VERSION_TAG }}.apk
           sha=`sha256sum tachiyomij2k-x86_64-${{ env.VERSION_TAG }}.apk | awk '{ print $1 }'`
           echo "APK_X86_64_SHA=$sha" >> $GITHUB_ENV
 
       - name: Create Release
         if: env.VERSION_TAG != ''
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3.0.2
         with:
           tag_name: ${{ env.VERSION_TAG }}
           name: TachiyomiJ2K ${{ env.VERSION_TAG }}
