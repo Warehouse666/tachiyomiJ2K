@@ -510,6 +510,8 @@ class PreferencesHelper(
 
     fun renderDescriptionImages() = flowPrefs.getBoolean(Keys.renderDescriptionImages, true)
 
+    fun showChapterMissingWarnings() = flowPrefs.getBoolean(Keys.showChapterMissingWarnings, true)
+
     fun useLargeToolbar() = flowPrefs.getBoolean("use_large_toolbar", true)
 
     fun dohProvider() = prefs.getInt(Keys.dohProvider, -1)

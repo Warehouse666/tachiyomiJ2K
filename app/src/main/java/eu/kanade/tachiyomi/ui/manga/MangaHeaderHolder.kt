@@ -6,9 +6,11 @@ import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.RenderEffect
 import android.graphics.Shader
+import android.graphics.Typeface
 import android.graphics.drawable.BitmapDrawable
 import android.os.Build
 import android.text.method.LinkMovementMethod
+import android.text.style.StyleSpan
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
@@ -19,6 +21,8 @@ import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.text.buildSpannedString
+import androidx.core.text.color
+import androidx.core.text.inSpans
 import androidx.core.text.scale
 import androidx.core.view.children
 import androidx.core.view.isInvisible
@@ -39,6 +43,7 @@ import eu.kanade.tachiyomi.databinding.MangaHeaderItemBinding
 import eu.kanade.tachiyomi.source.SourceManager
 import eu.kanade.tachiyomi.source.model.SManga
 import eu.kanade.tachiyomi.ui.base.holder.BaseFlexibleViewHolder
+import eu.kanade.tachiyomi.ui.reader.viewer.calculateChapterDifference
 import eu.kanade.tachiyomi.util.isLocal
 import eu.kanade.tachiyomi.util.lang.toNormalized
 import eu.kanade.tachiyomi.util.system.getResourceColor
@@ -318,15 +323,52 @@ class MangaHeaderHolder(
     fun bindChapters() {
         val presenter = adapter.delegate.mangaPresenter()
         val count = presenter.chapters.size
+        val titleText = chaptersTitleText(count, presenter)
         if (binding != null) {
-            binding.chaptersTitle.text =
-                itemView.resources.getQuantityString(R.plurals.chapters_plural, count, count)
+            binding.chaptersTitle.text = titleText
             binding.filtersText.text = presenter.currentFilters()
         } else if (chapterBinding != null) {
-            chapterBinding.chaptersTitle.text =
-                itemView.resources.getQuantityString(R.plurals.chapters_plural, count, count)
+            chapterBinding.chaptersTitle.text = titleText
             chapterBinding.filtersText.text = presenter.currentFilters()
         }
+    }
+
+    private fun chaptersTitleText(
+        count: Int,
+        presenter: MangaDetailsPresenter,
+    ): CharSequence {
+        val base = itemView.resources.getQuantityString(R.plurals.chapters_plural, count, count)
+        val missingCount = missingChapterCount(presenter)
+        if (missingCount <= 0 || !adapter.preferences.showChapterMissingWarnings().get()) return base
+        return buildSpannedString {
+            append(base)
+            append(" ")
+            inSpans(StyleSpan(Typeface.NORMAL)) {
+                scale(0.75f) {
+                    color(itemView.context.getResourceColor(R.attr.colorError)) {
+                        append(
+                            "(" +
+                                itemView.context.getString(
+                                    R.string.missing_chapters_count,
+                                    missingCount,
+                                ) + ")",
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    private fun missingChapterCount(presenter: MangaDetailsPresenter): Int {
+        val chapters = presenter.chapters
+        if (chapters.size < 2) return 0
+        val descending = presenter.sortDescending()
+        var total = 0
+        for (i in 0 until chapters.size - 1) {
+            val (higher, lower) = if (descending) chapters[i] to chapters[i + 1] else chapters[i + 1] to chapters[i]
+            total += calculateChapterDifference(higher.chapter, lower.chapter).toInt().coerceAtLeast(0)
+        }
+        return total
     }
 
     @SuppressLint("SetTextI18n")
@@ -338,8 +380,7 @@ class MangaHeaderHolder(
         if (binding == null) {
             if (chapterBinding != null) {
                 val count = presenter.chapters.size
-                chapterBinding.chaptersTitle.text =
-                    itemView.resources.getQuantityString(R.plurals.chapters_plural, count, count)
+                chapterBinding.chaptersTitle.text = chaptersTitleText(count, presenter)
                 chapterBinding.filtersText.text = presenter.currentFilters()
                 if (adapter.preferences.themeMangaDetails()) {
                     val accentColor = adapter.delegate.accentColor() ?: return
@@ -462,7 +503,7 @@ class MangaHeaderHolder(
         }
 
         val count = presenter.chapters.size
-        binding.chaptersTitle.text = itemView.resources.getQuantityString(R.plurals.chapters_plural, count, count)
+        binding.chaptersTitle.text = chaptersTitleText(count, presenter)
 
         binding.topView.updateLayoutParams<ConstraintLayout.LayoutParams> {
             height = adapter.delegate.topCoverHeight()

@@ -886,13 +886,9 @@ class MangaDetailsController :
             } else {
                 val rangeMode = rangeMode ?: return false
                 val startingPosition = startingRangeChapterPos ?: return false
-                var chapterList = listOf<ChapterItem>()
-                when {
-                    startingPosition > position ->
-                        chapterList = presenter.chapters.subList(position - 1, startingPosition)
-                    startingPosition <= position ->
-                        chapterList = presenter.chapters.subList(startingPosition - 1, position)
-                }
+                val rangeStart = minOf(startingPosition, position)
+                val rangeEnd = maxOf(startingPosition, position)
+                val chapterList = (rangeStart..rangeEnd).mapNotNull { adapter?.getItem(it) as? ChapterItem }
                 when (rangeMode) {
                     RangeMode.Download -> downloadChapters(chapterList)
                     RangeMode.RemoveDownload ->

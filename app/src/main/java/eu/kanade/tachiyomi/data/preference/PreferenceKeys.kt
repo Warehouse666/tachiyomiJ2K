@@ -211,6 +211,8 @@ object PreferenceKeys {
 
     const val renderDescriptionImages = "render_description_images"
 
+    const val showChapterMissingWarnings = "show_chapter_missing_warnings"
+
     const val incognitoMode = "incognito_mode"
 
     const val sideNavMode = "side_nav_mode"

@@ -131,6 +131,12 @@ class SettingsAppearanceController : SettingsController() {
                     summaryRes = R.string.render_description_images_summary
                     defaultValue = true
                 }
+                switchPreference {
+                    key = Keys.showChapterMissingWarnings
+                    titleRes = R.string.show_missing_chapters
+                    summaryRes = R.string.show_missing_chapters_summary
+                    defaultValue = true
+                }
             }
 
             preferenceCategory {

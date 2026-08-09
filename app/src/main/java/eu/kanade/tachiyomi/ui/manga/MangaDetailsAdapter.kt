@@ -9,11 +9,14 @@ import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.ui.manga.chapter.BaseChapterAdapter
 import eu.kanade.tachiyomi.ui.manga.chapter.ChapterItem
+import eu.kanade.tachiyomi.ui.manga.chapter.MissingChaptersItem
+import eu.kanade.tachiyomi.ui.reader.viewer.calculateChapterDifference
 import eu.kanade.tachiyomi.util.chapter.ChapterUtil
 import eu.kanade.tachiyomi.util.system.isLTR
 import uy.kohesive.injekt.injectLazy
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
+import kotlin.math.floor
 
 class MangaDetailsAdapter(
     val controller: MangaDetailsController,
@@ -47,7 +50,7 @@ class MangaDetailsAdapter(
     fun performFilter() {
         val s = getFilter(String::class.java)
         if (s.isNullOrBlank()) {
-            updateDataSet(items)
+            updateDataSet(insertMissingChapterItems(items))
         } else {
             updateDataSet(
                 items.filter {
@@ -56,6 +59,27 @@ class MangaDetailsAdapter(
                 },
             )
         }
+    }
+
+    private fun insertMissingChapterItems(chapters: List<ChapterItem>): List<IFlexible<*>> {
+        if (chapters.size < 2 || !preferences.showChapterMissingWarnings().get()) return chapters
+
+        val descending = presenter.sortDescending()
+        val result = ArrayList<IFlexible<*>>(chapters.size)
+        chapters.forEachIndexed { index, chapterItem ->
+            result.add(chapterItem)
+            val next = chapters.getOrNull(index + 1) ?: return@forEachIndexed
+            val (higher, lower) = if (descending) chapterItem to next else next to chapterItem
+            val gap = calculateChapterDifference(higher.chapter, lower.chapter).toInt()
+            if (gap > 0) {
+                val startChapter = floor(lower.chapter.chapter_number).toInt() + 1
+                val endChapter = floor(higher.chapter.chapter_number).toInt() - 1
+                result.add(
+                    MissingChaptersItem("${lower.chapter.id}-${higher.chapter.id}", gap, startChapter, endChapter),
+                )
+            }
+        }
+        return result
     }
 
     override fun onItemSwiped(
@@ -80,8 +104,11 @@ class MangaDetailsAdapter(
     }
 
     override fun onCreateBubbleText(position: Int): String {
-        val chapter =
-            getItem(position) as? ChapterItem ?: return recyclerView.context.getString(R.string.top)
+        val item = getItem(position)
+        if (item is MissingChaptersItem) {
+            return missingChaptersRangeText(item)
+        }
+        val chapter = item as? ChapterItem ?: return recyclerView.context.getString(R.string.top)
         return when (val scrollType = presenter.scrollType) {
             MangaDetailsPresenter.MULTIPLE_VOLUMES, MangaDetailsPresenter.MULTIPLE_SEASONS -> {
                 val volume = ChapterUtil.getGroupNumber(chapter)
@@ -105,6 +132,16 @@ class MangaDetailsAdapter(
                 )
             else -> getChapterName(chapter)
         }
+    }
+
+    private fun missingChaptersRangeText(item: MissingChaptersItem): String {
+        val range =
+            if (item.startChapter >= item.endChapter) {
+                item.startChapter.toString()
+            } else {
+                "${item.startChapter}-${item.endChapter}"
+            }
+        return recyclerView.context.getString(R.string.missing_chapters_range, range)
     }
 
     private fun getChapterName(item: ChapterItem): String =

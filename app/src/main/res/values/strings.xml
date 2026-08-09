@@ -551,6 +551,12 @@
         <item quantity="one">Skipping %d chapter, either the source is missing it or it has been filtered out</item>
         <item quantity="other">Skipping %d chapters, either the source is missing them or they have been filtered out</item>
     </plurals>
+    <plurals name="missing_chapters">
+        <item quantity="one">Missing %d chapter</item>
+        <item quantity="other">Missing %d chapters</item>
+    </plurals>
+    <string name="missing_chapters_count">Missing %d</string>
+    <string name="missing_chapters_range">Missing chapters %1$s</string>
 
     <!-- Manga details -->
     <string name="about_this_">About this %1$s</string>
@@ -791,11 +797,12 @@
     <string name="theme_buttons_based_on_cover">Theme buttons based on cover</string>
     <string name="render_description_images">Render images in descriptions</string>
     <string name="render_description_images_summary">Show images embedded in Markdown-formatted descriptions</string>
+    <string name="show_missing_chapters">Show missing chapters</string>
+    <string name="show_missing_chapters_summary">Show a divider for missing chapters in the chapter list, and a subtitle beside the chapter count</string>
     <string name="expanded_toolbar">Expanded toolbar</string>
     <string name="show_larger_toolbar">Show a larger, expanded toolbar at the top of most pages (does not show on smaller devices regardless of setting)</string>
     <string name="hides_on_scroll">Hides when scrolling</string>
     <string name="hide_notification_content">Hide notification content</string>
-    <string name="security">Security</string>
     <string name="security">Security and privacy</string>
     <string name="pref_firebase">Analytics and crash logs</string>
     <string name="firebase_summary">Sending crash logs and analytics will allow us to identify and fix issues, improve performance, and make future updates more relevant to your needs</string>
