@@ -101,13 +101,16 @@ class BackupRestorer(
             restoreAppPreferences(backup.backupPreferences)
             restoreSourcePreferences(backup.backupSourcePreferences)
 
-            // Restore individual manga
-            backup.backupManga.forEach {
+            // Restore individual manga, batched into transactions to avoid
+            // committing to disk on every single database write
+            backup.backupManga.chunked(100).forEach { mangaChunk ->
                 if (!isActive) {
                     return@coroutineScope false
                 }
 
-                restoreManga(it, backup.backupCategories)
+                db.inTransaction {
+                    mangaChunk.forEach { restoreManga(it, backup.backupCategories) }
+                }
             }
             true
         }
