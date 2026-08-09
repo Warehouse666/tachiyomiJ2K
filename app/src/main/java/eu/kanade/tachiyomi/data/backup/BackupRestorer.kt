@@ -24,8 +24,10 @@ import eu.kanade.tachiyomi.data.database.models.Track
 import eu.kanade.tachiyomi.data.library.CustomMangaManager
 import eu.kanade.tachiyomi.data.library.LibraryUpdateJob
 import eu.kanade.tachiyomi.data.preference.AndroidPreferenceStore
+import eu.kanade.tachiyomi.data.preference.PreferenceKeys
 import eu.kanade.tachiyomi.data.preference.PreferenceStore
 import eu.kanade.tachiyomi.extension.ExtensionUpdateJob
+import eu.kanade.tachiyomi.extension.util.ExtensionInstaller
 import eu.kanade.tachiyomi.source.model.SChapter
 import eu.kanade.tachiyomi.source.sourcePreferences
 import eu.kanade.tachiyomi.ui.library.LibrarySort
@@ -414,6 +416,27 @@ class BackupRestorer(
                 preferenceStore.getInt(key).set(intValue.mainValue)
                 return@forEach
             }
+            // Upstream (Mihon) stores these chapter filter/sort keys as Long, but J2K
+            // stores them as Int. When a key hasn't been written locally yet, the type
+            // check below can't tell the two forks apart (prefs[key] is null for both),
+            // so a Mihon backup would otherwise write a raw Long into a slot J2K reads
+            // with getInt(), causing a ClassCastException on next read.
+            if (key in mihonLongToJ2kIntPreferenceKeys && value is LongPreferenceValue) {
+                preferenceStore.getInt(key).set(value.value.toInt())
+                return@forEach
+            }
+            // Upstream stores the installer choice as a String enum name, J2K stores it
+            // as an Int (see ExtensionInstaller.PACKAGE_INSTALLER/SHIZUKU/PRIVATE).
+            if (key == "extension_installer" && value is StringPreferenceValue) {
+                val intValue =
+                    when (value.value) {
+                        "SHIZUKU" -> ExtensionInstaller.SHIZUKU
+                        "PRIVATE" -> ExtensionInstaller.PRIVATE
+                        else -> ExtensionInstaller.PACKAGE_INSTALLER // PACKAGEINSTALLER, LEGACY
+                    }
+                preferenceStore.getInt(key).set(intValue)
+                return@forEach
+            }
             // end j2k fork differences
             when (value) {
                 is IntPreferenceValue -> {
@@ -482,5 +505,17 @@ class BackupRestorer(
             // Empty
         }
         return File("")
+    }
+
+    companion object {
+        // Keys upstream (Mihon) stores as Long that J2K stores as Int.
+        private val mihonLongToJ2kIntPreferenceKeys =
+            setOf(
+                PreferenceKeys.defaultChapterFilterByRead,
+                PreferenceKeys.defaultChapterFilterByDownloaded,
+                PreferenceKeys.defaultChapterFilterByBookmarked,
+                PreferenceKeys.defaultChapterSortBySourceOrNumber,
+                PreferenceKeys.defaultChapterSortByAscendingOrDescending,
+            )
     }
 }
