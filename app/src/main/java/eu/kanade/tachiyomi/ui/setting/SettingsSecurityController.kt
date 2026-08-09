@@ -2,6 +2,9 @@ package eu.kanade.tachiyomi.ui.setting
 
 import androidx.fragment.app.FragmentActivity
 import androidx.preference.PreferenceScreen
+import com.google.firebase.Firebase
+import com.google.firebase.analytics.analytics
+import com.google.firebase.crashlytics.crashlytics
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.preference.PreferenceKeys
 import eu.kanade.tachiyomi.data.preference.PreferenceValues
@@ -73,5 +76,39 @@ class SettingsSecurityController : SettingsController() {
             }
 
             infoPreference(R.string.secure_screen_summary)
+
+            preferenceCategory {
+                titleRes = R.string.pref_firebase
+
+                switchPreference {
+                    key = "acra.enable"
+                    titleRes = R.string.send_crash_report
+                    summaryRes = R.string.helps_fix_bugs
+                    defaultValue = true
+                    onChange {
+                        try {
+                            Firebase.crashlytics.setCrashlyticsCollectionEnabled(it as Boolean)
+                        } catch (_: Exception) {
+                        }
+                        true
+                    }
+                }
+
+                switchPreference {
+                    key = "enable_analytics"
+                    titleRes = R.string.enable_analytics
+                    summaryRes = R.string.enable_analytics_summary
+                    defaultValue = true
+                    onChange {
+                        try {
+                            Firebase.analytics.setAnalyticsCollectionEnabled(it as Boolean)
+                        } catch (_: Exception) {
+                        }
+                        true
+                    }
+                }
+
+                infoPreference(R.string.firebase_summary)
+            }
         }
 }

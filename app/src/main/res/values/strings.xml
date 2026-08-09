@@ -796,6 +796,11 @@
     <string name="hides_on_scroll">Hides when scrolling</string>
     <string name="hide_notification_content">Hide notification content</string>
     <string name="security">Security</string>
+    <string name="security">Security and privacy</string>
+    <string name="pref_firebase">Analytics and crash logs</string>
+    <string name="firebase_summary">Sending crash logs and analytics will allow us to identify and fix issues, improve performance, and make future updates more relevant to your needs</string>
+    <string name="enable_analytics">Allow analytics</string>
+    <string name="enable_analytics_summary">Send anonymized usage data to help improve app features</string>
     <string name="starting_screen">Starting screen</string>
     <string name="back_to_start">Back to start</string>
     <string name="pref_manage_notifications">Manage notifications</string>
