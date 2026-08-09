@@ -94,8 +94,13 @@ android {
             buildConfigField("Boolean", "INCLUDE_UPDATER", "true")
         }
         create("dev") {
-            androidResources.localeFilters.clear()
-            androidResources.localeFilters.add("en")
+            // androidResources.localeFilters is shared across all product flavors rather than
+            // being scoped to this one, so only mutate it when a Dev-flavor task is actually
+            // being run — otherwise this strips every locale from Standard builds too.
+            if (gradle.startParameter.taskRequests.toString().contains("Dev")) {
+                androidResources.localeFilters.clear()
+                androidResources.localeFilters.add("en")
+            }
         }
     }
 
