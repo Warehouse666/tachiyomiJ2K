@@ -971,6 +971,7 @@
 
     <!-- Login/Logout dialog -->
     <string name="log_in_to_">Log in to %1$s</string>
+    <string name="logging_in">Logging in…</string>
     <string name="username">Username</string>
     <string name="email">Email address</string>
     <string name="password">Password</string>

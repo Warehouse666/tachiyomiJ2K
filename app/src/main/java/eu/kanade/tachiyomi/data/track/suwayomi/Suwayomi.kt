@@ -97,9 +97,8 @@ class Suwayomi(
     override suspend fun login(
         username: String,
         password: String,
-    ): Boolean {
+    ) {
         saveCredentials("user", "pass")
-        return true
     }
 
     override fun loginNoop() {

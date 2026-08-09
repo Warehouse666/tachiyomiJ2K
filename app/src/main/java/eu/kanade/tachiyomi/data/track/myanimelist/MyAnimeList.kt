@@ -11,7 +11,6 @@ import eu.kanade.tachiyomi.data.track.updateNewTrackInfo
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import timber.log.Timber
 import uy.kohesive.injekt.injectLazy
 
 class MyAnimeList(
@@ -124,18 +123,17 @@ class MyAnimeList(
         password: String,
     ) = login(password)
 
-    suspend fun login(authCode: String): Boolean =
+    suspend fun login(authCode: String) {
         try {
             val oauth = api.getAccessToken(authCode)
             interceptor.setAuth(oauth)
             val username = api.getCurrentUser()
             saveCredentials(username, oauth.access_token)
-            true
         } catch (e: Exception) {
-            Timber.e(e)
             logout()
-            false
+            throw e
         }
+    }
 
     override fun logout() {
         super.logout()

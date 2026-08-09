@@ -1,17 +1,12 @@
 package eu.kanade.tachiyomi.ui.setting.track
 
 import android.net.Uri
-import androidx.lifecycle.lifecycleScope
-import eu.kanade.tachiyomi.util.system.launchIO
 
 class BangumiLoginActivity : BaseOAuthLoginActivity() {
     override fun handleResult(data: Uri?) {
         val code = data?.getQueryParameter("code")
         if (code != null) {
-            lifecycleScope.launchIO {
-                trackManager.bangumi.login(code)
-                returnToSettings()
-            }
+            login { trackManager.bangumi.login(code) }
         } else {
             trackManager.bangumi.logout()
             returnToSettings()

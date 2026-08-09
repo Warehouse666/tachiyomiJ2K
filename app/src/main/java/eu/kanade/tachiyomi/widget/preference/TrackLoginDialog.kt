@@ -1,15 +1,18 @@
 package eu.kanade.tachiyomi.widget.preference
 
 import android.os.Bundle
+import android.text.InputType
 import android.view.View
 import androidx.annotation.StringRes
+import androidx.core.view.isVisible
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.track.TrackManager
 import eu.kanade.tachiyomi.data.track.TrackService
+import eu.kanade.tachiyomi.data.track.kitsu.Kitsu
 import eu.kanade.tachiyomi.util.system.toast
 import eu.kanade.tachiyomi.util.system.withIOContext
-import io.writeopia.loadingbutton.animatedDrawables.ProgressType
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
@@ -31,16 +34,18 @@ class TrackLoginDialog(
         with(view) {
             val serviceName = context.getString(service.nameRes())
             binding.dialogTitle.text = context.getString(R.string.log_in_to_, serviceName)
+            if (service is Kitsu) {
+                binding.username.inputType =
+                    InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS
+            }
             binding.username.setText(service.getUsername())
             binding.password.setText(service.getPassword())
         }
 
     override fun checkLogin() {
         v?.apply {
-            binding.login.apply {
-                progressType = ProgressType.INDETERMINATE
-                startAnimation()
-            }
+            binding.login.isEnabled = false
+            binding.loginProgress.show()
             if (binding.username.text.isNullOrBlank() || binding.password.text.isNullOrBlank()) {
                 errorResult()
                 context.toast(R.string.username_must_not_be_blank)
@@ -53,14 +58,14 @@ class TrackLoginDialog(
             val pass = binding.password.text.toString()
             scope.launch {
                 try {
-                    val result = withIOContext { service.login(user, pass) }
-                    if (result) {
-                        dialog?.dismiss()
-                        context.toast(R.string.successfully_logged_in)
-                    } else {
-                        errorResult()
-                    }
+                    binding.login.text = activity!!.getText(R.string.logging_in)
+                    withIOContext { service.login(user, pass) }
+                    binding.loginProgress.isVisible = false
+                    binding.loginProgress.hide()
+                    dialog?.dismiss()
+                    context.toast(R.string.successfully_logged_in)
                 } catch (error: Exception) {
+                    Timber.e(error)
                     errorResult()
                     error.message?.let { context.toast(it) }
                 }
@@ -72,9 +77,10 @@ class TrackLoginDialog(
         v?.apply {
             dialog?.setCancelable(true)
             dialog?.setCanceledOnTouchOutside(true)
-            binding.login.revertAnimation {
-                binding.login.text = activity!!.getText(R.string.unknown_error)
-            }
+            binding.loginProgress.hide()
+            binding.loginProgress.isVisible = false
+            binding.login.isEnabled = true
+            binding.login.text = activity!!.getText(R.string.log_in)
         }
     }
 

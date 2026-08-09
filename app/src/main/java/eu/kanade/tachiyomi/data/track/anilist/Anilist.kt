@@ -216,19 +216,18 @@ class Anilist(
         password: String,
     ) = login(password)
 
-    suspend fun login(token: String): Boolean =
+    suspend fun login(token: String) {
         try {
             val oauth = api.createOAuth(token)
             interceptor.setAuth(oauth)
             val (username, scoreType) = api.getCurrentUser()
             scorePreference.set(scoreType)
             saveCredentials(username.toString(), oauth.access_token)
-            true
         } catch (e: Exception) {
-            Timber.e(e)
             logout()
-            false
+            throw e
         }
+    }
 
     suspend fun updatingScoring(): Pair<Boolean, Exception?> =
         try {

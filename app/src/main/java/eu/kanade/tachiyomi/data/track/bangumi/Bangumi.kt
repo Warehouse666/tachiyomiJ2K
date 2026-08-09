@@ -11,7 +11,6 @@ import eu.kanade.tachiyomi.data.track.updateNewTrackInfo
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import timber.log.Timber
 import uy.kohesive.injekt.injectLazy
 
 class Bangumi(
@@ -111,7 +110,7 @@ class Bangumi(
         password: String,
     ) = login(password)
 
-    suspend fun login(code: String): Boolean {
+    suspend fun login(code: String) {
         try {
             val oauth = api.accessToken(code)
             interceptor.newAuth(oauth)
@@ -120,12 +119,10 @@ class Bangumi(
             // If no username is set, the API returns the user ID as a string
             val currentUser = api.getCurrentUser()
             saveCredentials(currentUser.username, oauth.access_token)
-            return true
         } catch (e: Exception) {
-            Timber.e(e)
             logout()
+            throw e
         }
-        return false
     }
 
     fun saveToken(oauth: OAuth?) {

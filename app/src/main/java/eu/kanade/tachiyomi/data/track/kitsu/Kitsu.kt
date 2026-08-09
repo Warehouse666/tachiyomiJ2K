@@ -11,7 +11,6 @@ import eu.kanade.tachiyomi.data.track.updateNewTrackInfo
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import timber.log.Timber
 import uy.kohesive.injekt.injectLazy
 import java.text.DecimalFormat
 
@@ -137,17 +136,12 @@ class Kitsu(
     override suspend fun login(
         username: String,
         password: String,
-    ): Boolean =
-        try {
-            val oauth = api.login(username, password)
-            interceptor.newAuth(oauth)
-            val userId = api.getCurrentUser()
-            saveCredentials(username, userId)
-            true
-        } catch (e: Exception) {
-            Timber.e(e)
-            false
-        }
+    ) {
+        val oauth = api.login(username, password)
+        interceptor.newAuth(oauth)
+        val userId = api.getCurrentUser()
+        saveCredentials(username, userId)
+    }
 
     override fun logout() {
         super.logout()

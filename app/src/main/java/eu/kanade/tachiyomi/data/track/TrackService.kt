@@ -78,7 +78,7 @@ abstract class TrackService(
     abstract suspend fun login(
         username: String,
         password: String,
-    ): Boolean
+    )
 
     open suspend fun removeFromService(track: Track): Boolean = false
 

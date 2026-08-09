@@ -145,18 +145,17 @@ class Hikka(
         password: String,
     ) = login(password)
 
-    suspend fun login(reference: String): Boolean =
+    suspend fun login(reference: String) {
         try {
             val oauth = api.accessToken(reference)
             interceptor.setAuth(oauth)
             val user = api.getCurrentUser()
             saveCredentials(user.username, oauth.accessToken)
-            true
         } catch (e: Exception) {
-            Timber.e(e)
             logout()
-            false
+            throw e
         }
+    }
 
     override fun logout() {
         super.logout()

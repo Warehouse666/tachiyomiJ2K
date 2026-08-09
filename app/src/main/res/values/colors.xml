@@ -72,7 +72,7 @@
     <color name="colorOnBackground">@color/md_black_1000_87</color>
     <color name="downloadBadgeDayNight">@color/download_badge</color>
     <color name="downloadBadgeDayNightInverse">@color/download_badge_light</color>
-    <color name="colorOnDownloadBadgeDayNight">@color/black</color>
+    <color name="colorOnDownloadBadgeDayNight">@android:color/black</color>
     <color name="colorOnDownloadBadgeDayNightInverse">@color/md_white_1000</color>
 
     <!-- Text Colors -->

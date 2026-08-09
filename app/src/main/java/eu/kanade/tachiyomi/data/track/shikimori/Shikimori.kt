@@ -10,7 +10,6 @@ import eu.kanade.tachiyomi.data.track.updateNewTrackInfo
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import timber.log.Timber
 import uy.kohesive.injekt.injectLazy
 
 class Shikimori(
@@ -120,18 +119,17 @@ class Shikimori(
         password: String,
     ) = login(password)
 
-    suspend fun login(code: String): Boolean =
+    suspend fun login(code: String) {
         try {
             val oauth = api.accessToken(code)
             interceptor.newAuth(oauth)
             val user = api.getCurrentUser()
             saveCredentials(user.toString(), oauth.access_token)
-            true
         } catch (e: java.lang.Exception) {
-            Timber.e(e)
             logout()
-            false
+            throw e
         }
+    }
 
     fun saveToken(oauth: OAuth?) {
         trackPreferences.trackToken(this).set(json.encodeToString(oauth))

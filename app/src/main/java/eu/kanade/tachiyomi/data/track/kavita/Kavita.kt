@@ -108,9 +108,8 @@ class Kavita(
     override suspend fun login(
         username: String,
         password: String,
-    ): Boolean {
+    ) {
         saveCredentials("user", "pass")
-        return true
     }
 
     // TrackService.isLogged works by checking that credentials are saved.

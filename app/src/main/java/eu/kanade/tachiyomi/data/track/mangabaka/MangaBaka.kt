@@ -162,7 +162,7 @@ class MangaBaka(
         password: String,
     ) = login(password)
 
-    suspend fun login(code: String): Boolean =
+    suspend fun login(code: String) {
         try {
             val oauth = api.getAccessToken(code)
             interceptor.setAuth(oauth)
@@ -181,12 +181,11 @@ class MangaBaka(
                 currentUser.nickname ?: currentUser.preferredUsername ?: currentUser.id,
                 oauth.accessToken,
             )
-            true
         } catch (e: Exception) {
-            Timber.e(e)
             logout()
-            false
+            throw e
         }
+    }
 
     fun saveToken(oauth: MangaBakaOAuth?) {
         trackPreferences.trackToken(this).set(json.encodeToString(oauth))

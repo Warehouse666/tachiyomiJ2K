@@ -150,11 +150,10 @@ class MangaUpdates(
     override suspend fun login(
         username: String,
         password: String,
-    ): Boolean {
+    ) {
         val authenticated = api.authenticate(username, password) ?: throw Throwable("Unable to login")
         saveCredentials(authenticated.uid.toString(), authenticated.sessionToken)
         interceptor.newAuth(authenticated.sessionToken)
-        return true
     }
 
     fun restoreSession(): String? = getPassword().ifBlank { null }
