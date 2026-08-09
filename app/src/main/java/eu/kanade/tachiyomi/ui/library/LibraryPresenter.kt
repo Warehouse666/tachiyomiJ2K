@@ -45,6 +45,7 @@ import eu.kanade.tachiyomi.util.system.executeOnIO
 import eu.kanade.tachiyomi.util.system.launchIO
 import eu.kanade.tachiyomi.util.system.withUIContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -85,6 +86,9 @@ class LibraryPresenter(
         private set
 
     private var removeArticles: Boolean = preferences.removeArticles().get()
+
+    /** Job for the currently running [getLibrary] DB query, so a newer refresh can cancel a stale one. */
+    private var libraryJob: Job? = null
 
     /** All categories of the library, in case they are hidden because of hide categories is on */
     var allCategories: List<Category> = emptyList()
@@ -204,22 +208,24 @@ class LibraryPresenter(
             }
             categories = lastCategories ?: db.getCategories().executeAsBlocking().toMutableList()
         }
-        presenterScope.launch {
-            val (library, hiddenItems) = withContext(Dispatchers.IO) { getLibraryFromDB() }
-            setDownloadCount(library)
-            setUnreadBadge(library)
-            setSourceLanguage(library)
-            setDownloadCount(hiddenItems)
-            setUnreadBadge(hiddenItems)
-            setSourceLanguage(hiddenItems)
-            allLibraryItems = library
-            hiddenLibraryItems = hiddenItems
-            var mangaMap = library
-            mangaMap = applyFilters(mangaMap)
-            mangaMap = applySort(mangaMap)
-            val freshStart = libraryItems.isEmpty()
-            sectionLibrary(mangaMap, freshStart)
-        }
+        libraryJob?.cancel()
+        libraryJob =
+            presenterScope.launch {
+                val (library, hiddenItems) = withContext(Dispatchers.IO) { getLibraryFromDB() }
+                setDownloadCount(library)
+                setUnreadBadge(library)
+                setSourceLanguage(library)
+                setDownloadCount(hiddenItems)
+                setUnreadBadge(hiddenItems)
+                setSourceLanguage(hiddenItems)
+                allLibraryItems = library
+                hiddenLibraryItems = hiddenItems
+                var mangaMap = library
+                mangaMap = applyFilters(mangaMap)
+                mangaMap = applySort(mangaMap)
+                val freshStart = libraryItems.isEmpty()
+                sectionLibrary(mangaMap, freshStart)
+            }
     }
 
     private fun reorderCategories(categories: List<Category>) {

@@ -133,6 +133,7 @@ import eu.kanade.tachiyomi.widget.ComposeAnchoredDialog
 import eu.kanade.tachiyomi.widget.EmptyView
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -663,7 +664,12 @@ open class LibraryController(
         setupFilterSheet()
         setUpHopper()
         setPreferenceFlows()
-        LibraryUpdateJob.updateFlow.onEach(::onUpdateManga).launchIn(viewScope)
+        // Debounce so a burst of updates (e.g. restoring a backup emits one per manga)
+        // collapses into a single library refresh instead of one per manga.
+        LibraryUpdateJob.updateFlow
+            .debounce(200)
+            .onEach(::onUpdateManga)
+            .launchIn(viewScope)
 
         elevateAppBar =
             scrollViewWith(
