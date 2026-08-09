@@ -46,6 +46,7 @@ import uy.kohesive.injekt.api.get
 import uy.kohesive.injekt.injectLazy
 import kotlin.math.max
 import kotlin.math.roundToInt
+import kotlin.time.Duration.Companion.seconds
 
 class FilterBottomSheet
     @JvmOverloads
@@ -175,7 +176,7 @@ class FilterBottomSheet
                     binding.filterScroll.setOnScrollChangeListener { _, _, _, _, _ ->
                         hasScrolled = true
                     }
-                    delay(2000)
+                    delay(2.seconds)
                     if (sheetBehavior.isCollapsed() && !hasScrolled) {
                         sheetBehavior?.hide()
                     }

@@ -47,6 +47,8 @@ import timber.log.Timber
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import java.io.File
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * The installer which installs, updates and uninstalls the extensions.
@@ -84,7 +86,7 @@ internal class ExtensionInstaller(
                         ShizukuInstaller(context) {
                             it.onDestroy()
                             ioScope.launch {
-                                delay(500)
+                                delay(500.milliseconds)
                                 _downloadsSharedFlow.emit("Finished" to (InstallStep.Installed to null))
                             }
                             installer = null
@@ -211,7 +213,7 @@ internal class ExtensionInstaller(
                 if (newDownloadState != null) {
                     emit(newDownloadState)
                 }
-                delay(1000)
+                delay(1.seconds)
             }
         }.distinctUntilChanged()
             .transformWhile {

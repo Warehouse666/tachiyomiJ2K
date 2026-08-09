@@ -54,6 +54,7 @@ import uy.kohesive.injekt.api.get
 import uy.kohesive.injekt.injectLazy
 import java.io.File
 import java.lang.ref.WeakReference
+import kotlin.time.Duration.Companion.seconds
 
 @OptIn(DelicateCoroutinesApi::class)
 class AppDownloadInstallJob(
@@ -230,7 +231,7 @@ class AppDownloadInstallJob(
             withContext(Dispatchers.IO) {
                 data.close()
                 GlobalScope.launchUI {
-                    delay(5000)
+                    delay(5.seconds)
                     val hasNotification =
                         context.notificationManager
                             .activeNotifications
