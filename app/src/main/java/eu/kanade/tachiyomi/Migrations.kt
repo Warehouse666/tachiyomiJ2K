@@ -261,6 +261,30 @@ object Migrations {
                     remove("trusted_signatures")
                 }
             }
+            if (oldVersion < 113) {
+                // Some preference keys are stored as Int in J2K but as Long or String in
+                // Mihon. Restoring a Mihon backup made before this was fixed could have
+                // left the wrong type in these slots, crashing every subsequent read via
+                // getInt(). Drop any of them that aren't actually an Int so they fall
+                // back to their default value instead of crashing.
+                val expectedIntKeys =
+                    listOf(
+                        PreferenceKeys.defaultChapterFilterByRead,
+                        PreferenceKeys.defaultChapterFilterByDownloaded,
+                        PreferenceKeys.defaultChapterFilterByBookmarked,
+                        PreferenceKeys.defaultChapterSortBySourceOrNumber,
+                        PreferenceKeys.defaultChapterSortByAscendingOrDescending,
+                        "extension_installer",
+                    )
+                val allPrefs = prefs.all
+                prefs.edit {
+                    expectedIntKeys.forEach { key ->
+                        if (allPrefs[key] != null && allPrefs[key] !is Int) {
+                            remove(key)
+                        }
+                    }
+                }
+            }
 
             return true
         }
