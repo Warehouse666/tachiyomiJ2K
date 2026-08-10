@@ -901,6 +901,10 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
      * Dispatches a key event. If the viewer doesn't handle it, call the default implementation.
      */
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        // Consume confirm buttons so they don't activate menu buttons while theyre hidden
+        if (!menuVisible && isConfirmKeyCode(event.keyCode)) {
+            return true
+        }
         val handled = viewer?.handleKeyEvent(event) ?: false
         return handled || super.dispatchKeyEvent(event)
     }
@@ -1201,8 +1205,13 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
         // Init listeners on bottom menu
         binding.readerNav.pageSeekbar.addOnChangeListener { _, value, fromUser ->
             if (viewer != null && fromUser) {
+                // setting isScrollingThroughPagesOrChapters here as well for d-pad navigation
+                // as it is also from the user
+                val wasScrollingThroughPagesOrChapters = isScrollingThroughPagesOrChapters
+                isScrollingThroughPagesOrChapters = true
                 val prevValue = (viewer as? PagerViewer)?.pager?.currentItem ?: -1
                 moveToPageIndex(value.roundToInt())
+                isScrollingThroughPagesOrChapters = wasScrollingThroughPagesOrChapters
                 val newValue = (viewer as? PagerViewer)?.pager?.currentItem ?: -1
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1 &&
                     ((prevValue > -1 && newValue != prevValue) || viewer !is PagerViewer)
@@ -2514,3 +2523,10 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
         }
     }
 }
+
+private fun isConfirmKeyCode(keyCode: Int): Boolean =
+    keyCode == KeyEvent.KEYCODE_BUTTON_A ||
+        keyCode == KeyEvent.KEYCODE_DPAD_CENTER ||
+        keyCode == KeyEvent.KEYCODE_ENTER ||
+        keyCode == KeyEvent.KEYCODE_NUMPAD_ENTER ||
+        keyCode == KeyEvent.KEYCODE_SPACE

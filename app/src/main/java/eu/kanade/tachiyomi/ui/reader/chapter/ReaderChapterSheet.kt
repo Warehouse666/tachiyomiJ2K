@@ -5,6 +5,7 @@ import android.content.res.ColorStateList
 import android.graphics.Color
 import android.util.AttributeSet
 import android.view.View
+import android.view.ViewParent
 import android.widget.LinearLayout
 import androidx.core.graphics.ColorUtils
 import androidx.core.view.isInvisible
@@ -73,10 +74,18 @@ class ReaderChapterSheet
                 }
             }
 
+            // Listener to show/hide the chapter sheet just be going down on a d-pad/arrow keys
+            viewTreeObserver.addOnGlobalFocusChangeListener { _, newFocus ->
+                if (!activity.menuVisible || newFocus == null) return@addOnGlobalFocusChangeListener
+                when {
+                    newFocus.isOrDescendantOf(binding.chapterRecycler) -> sheetBehavior?.expand()
+                    newFocus.isOrDescendantOf(binding.topbarLayout) -> sheetBehavior?.collapse()
+                }
+            }
+
             post {
                 binding.chapterRecycler.alpha = if (sheetBehavior.isExpanded()) 1f else 0f
                 binding.chapterRecycler.isClickable = sheetBehavior.isExpanded()
-                binding.chapterRecycler.isFocusable = sheetBehavior.isExpanded()
                 val canShowNav = (viewModel.getCurrentChapter()?.pages?.size ?: 1) > 1
                 if (canShowNav) {
                     activity.binding.readerNav.root.isVisible = sheetBehavior.isCollapsed()
@@ -154,8 +163,6 @@ class ReaderChapterSheet
                             binding.root.isVisible = true
                         }
                         binding.chapterRecycler.isClickable =
-                            state == BottomSheetBehavior.STATE_EXPANDED
-                        binding.chapterRecycler.isFocusable =
                             state == BottomSheetBehavior.STATE_EXPANDED
                         activity.reEnableBackPressedCallBack()
 
@@ -308,3 +315,16 @@ class ReaderChapterSheet
                 ) * percent
             ) / 100
     }
+
+/**
+ * Whether this view is [ancestor] itself, or nested somewhere underneath it.
+ */
+private fun View.isOrDescendantOf(ancestor: View): Boolean {
+    if (this === ancestor) return true
+    var current: ViewParent? = parent
+    while (current != null) {
+        if (current === ancestor) return true
+        current = current.parent
+    }
+    return false
+}

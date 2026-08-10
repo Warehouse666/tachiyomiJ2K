@@ -8,14 +8,15 @@
     android:background="@drawable/bottom_sheet_rounded_background"
     android:orientation="vertical"
     app:behavior_peekHeight="60dp"
-    app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
+    app:layout_behavior="eu.kanade.tachiyomi.ui.reader.chapter.ReaderChapterSheetBehavior">
 
     <FrameLayout
         android:id="@+id/topbar_layout"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:clickable="true"
-        android:focusable="true">
+        android:focusable="false"
+        android:descendantFocusability="afterDescendants">
 
         <ImageView
             android:id="@+id/pill"
@@ -100,6 +101,7 @@
         android:id="@+id/chapter_recycler"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:focusable="true"
         android:alpha="0"
         android:background="@android:color/transparent"
         android:clipToPadding="false"

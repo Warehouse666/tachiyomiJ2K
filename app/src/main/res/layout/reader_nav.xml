@@ -12,7 +12,8 @@
     android:paddingBottom="6dp"
     android:paddingTop="6dp"
     android:clickable="true"
-    android:focusable="true"
+    android:focusable="false"
+    android:descendantFocusability="afterDescendants"
     android:gravity="center"
     android:layoutDirection="ltr"
     android:orientation="horizontal">
