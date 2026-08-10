@@ -126,13 +126,14 @@ open class BrowseSourcePresenter(
         for (i in sourceFilters.indices) {
             val filter = oldFilters.getOrNull(i)
             if (filter is List<*>) {
+                val group = sourceFilters.getOrNull(i) as? Filter.Group<*> ?: return false
                 for (j in filter.indices) {
-                    val state = ((sourceFilters[i] as Filter.Group<*>).state[j] as Filter<*>).state
+                    val state = (group.state.getOrNull(j) as? Filter<*>)?.state
                     if (filter[j] != state) {
                         return false
                     }
                 }
-            } else if (filter != sourceFilters[i].state) {
+            } else if (filter != sourceFilters.getOrNull(i)?.state) {
                 return false
             }
         }
