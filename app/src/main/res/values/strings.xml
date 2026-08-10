@@ -260,6 +260,9 @@
     <string name="certain_buttons_can_be_found">Certain buttons can be found in other places if disabled here</string>
     <string name="search_suggestions">Search suggestions</string>
     <string name="search_tips_show_periodically">Search tips will show up periodically. Long press the suggestion to search it.</string>
+    <string name="pref_mark_duplicate_read_chapter_read">Mark duplicate read chapter as read</string>
+    <string name="pref_mark_duplicate_read_chapter_read_existing">After reading a chapter</string>
+    <string name="pref_mark_duplicate_read_chapter_read_new">After fetching new chapter</string>
 
     <!-- Recents -->
     <string name="recents">Recents</string>

@@ -12,6 +12,8 @@ import eu.kanade.tachiyomi.data.preference.DelayedLibrarySuggestionsJob
 import eu.kanade.tachiyomi.data.preference.MANGA_HAS_UNREAD
 import eu.kanade.tachiyomi.data.preference.MANGA_NON_COMPLETED
 import eu.kanade.tachiyomi.data.preference.MANGA_NON_READ
+import eu.kanade.tachiyomi.data.preference.MARK_DUPLICATE_CHAPTER_READ_EXISTING
+import eu.kanade.tachiyomi.data.preference.MARK_DUPLICATE_CHAPTER_READ_NEW
 import eu.kanade.tachiyomi.data.preference.asImmediateFlowIn
 import eu.kanade.tachiyomi.ui.category.CategoryController
 import eu.kanade.tachiyomi.ui.library.LibraryPresenter
@@ -67,6 +69,18 @@ class SettingsLibraryController : SettingsController() {
                     onClick {
                         TabbedLibraryDisplaySheet(this@SettingsLibraryController).show()
                     }
+                }
+
+                multiSelectListPreferenceMat(activity) {
+                    bindTo(preferences.markDuplicateReadChapterAsRead())
+                    titleRes = R.string.pref_mark_duplicate_read_chapter_read
+                    entriesRes =
+                        arrayOf(
+                            R.string.pref_mark_duplicate_read_chapter_read_existing,
+                            R.string.pref_mark_duplicate_read_chapter_read_new,
+                        )
+                    entryValues = listOf(MARK_DUPLICATE_CHAPTER_READ_EXISTING, MARK_DUPLICATE_CHAPTER_READ_NEW)
+                    noSelectionRes = R.string.never
                 }
             }
 

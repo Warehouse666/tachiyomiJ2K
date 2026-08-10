@@ -19,6 +19,7 @@ import eu.kanade.tachiyomi.data.download.DownloadProvider
 import eu.kanade.tachiyomi.data.download.model.Download
 import eu.kanade.tachiyomi.data.notification.NotificationReceiver
 import eu.kanade.tachiyomi.data.notification.Notifications
+import eu.kanade.tachiyomi.data.preference.MARK_DUPLICATE_CHAPTER_READ_EXISTING
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.data.track.TrackService
 import eu.kanade.tachiyomi.source.LocalSource
@@ -509,6 +510,7 @@ class ReaderViewModel(
             selectedChapter.chapter.read = true
             updateTrackChapterAfterReading(selectedChapter)
             deleteChapterIfNeeded(selectedChapter)
+            markDuplicateChaptersAsRead(selectedChapter)
         }
 
         if (selectedChapter != currentChapters.currChapter) {
@@ -607,6 +609,31 @@ class ReaderViewModel(
 
             enqueueDeleteReadChapters(chapterToDelete)
         }
+    }
+
+    /**
+     * Marks other unread chapters sharing the same chapter number as [readerChapter] as read,
+     * if the user has enabled that behavior in the library settings.
+     */
+    private fun markDuplicateChaptersAsRead(readerChapter: ReaderChapter) {
+        val manga = manga ?: return
+        if (preferences.incognitoMode().get()) return
+        val markDuplicateAsRead =
+            preferences.markDuplicateReadChapterAsRead().get().contains(MARK_DUPLICATE_CHAPTER_READ_EXISTING)
+        if (!markDuplicateAsRead || !readerChapter.chapter.isRecognizedNumber) return
+
+        val chapterNumber = readerChapter.chapter.chapter_number
+        val duplicateUnreadChapters =
+            db
+                .getChapters(manga)
+                .executeAsBlocking()
+                .filter { chapter ->
+                    !chapter.read && chapter.isRecognizedNumber && chapter.chapter_number == chapterNumber
+                }
+        if (duplicateUnreadChapters.isEmpty()) return
+
+        duplicateUnreadChapters.forEach { it.read = true }
+        db.updateChaptersProgress(duplicateUnreadChapters).executeAsBlocking()
     }
 
     /**

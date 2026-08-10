@@ -4,6 +4,8 @@ import eu.kanade.tachiyomi.data.database.DatabaseHelper
 import eu.kanade.tachiyomi.data.database.models.Chapter
 import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.data.download.DownloadManager
+import eu.kanade.tachiyomi.data.preference.MARK_DUPLICATE_CHAPTER_READ_NEW
+import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.source.Source
 import eu.kanade.tachiyomi.source.model.SChapter
 import eu.kanade.tachiyomi.source.online.HttpSource
@@ -34,8 +36,18 @@ fun syncChaptersWithSource(
     }
 
     val downloadManager: DownloadManager = Injekt.get()
+    val preferences: PreferencesHelper = Injekt.get()
     // Chapters from db.
     val dbChapters = db.getChapters(manga).executeAsBlocking()
+
+    val markDuplicateAsRead =
+        preferences.markDuplicateReadChapterAsRead().get().contains(MARK_DUPLICATE_CHAPTER_READ_NEW)
+    val readChapterNumbers =
+        dbChapters
+            .asSequence()
+            .filter { it.read && it.isRecognizedNumber }
+            .map { it.chapter_number }
+            .toSet()
 
     val sourceChapters =
         rawSourceChapters
@@ -87,11 +99,17 @@ fun syncChaptersWithSource(
     }
 
     // Recognize number for new chapters.
+    val duplicateReadChapterUrls = mutableSetOf<String>()
     toAdd.forEach {
         if (source is HttpSource) {
             source.prepareNewChapter(it, manga)
         }
         ChapterRecognition.parseChapterNumber(it, manga)
+
+        if (markDuplicateAsRead && it.isRecognizedNumber && it.chapter_number in readChapterNumbers) {
+            it.read = true
+            duplicateReadChapterUrls.add(it.url)
+        }
     }
 
     // Chapters from the db not in the source.
@@ -181,7 +199,11 @@ fun syncChaptersWithSource(
     }
     val reAddedSet = readded.toSet()
     return Pair(
-        toAdd.subtract(reAddedSet).toList().filterChaptersByScanlators(manga),
+        toAdd
+            .subtract(reAddedSet)
+            .filterNot { it.url in duplicateReadChapterUrls }
+            .toList()
+            .filterChaptersByScanlators(manga),
         toDelete - reAddedSet,
     )
 }

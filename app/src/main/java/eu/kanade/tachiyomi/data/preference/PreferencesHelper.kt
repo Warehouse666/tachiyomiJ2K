@@ -298,6 +298,8 @@ class PreferencesHelper(
     fun libraryUpdateMangaRestriction() =
         flowPrefs.getStringSet("library_update_manga_restriction", setOf(MANGA_HAS_UNREAD, MANGA_NON_COMPLETED, MANGA_NON_READ))
 
+    fun markDuplicateReadChapterAsRead() = flowPrefs.getStringSet("mark_duplicate_read_chapter_read", emptySet())
+
     fun libraryUpdateCategories() = flowPrefs.getStringSet("library_update_categories", emptySet())
 
     fun libraryUpdateCategoriesExclude() = flowPrefs.getStringSet("library_update_categories_exclude", emptySet())
