@@ -5,6 +5,7 @@ import android.content.Context
 import android.os.Build
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.setWidgetPreviews
+import timber.log.Timber
 
 class TachiyomiWidgetManager {
     @SuppressLint("CheckResult")
@@ -15,7 +16,12 @@ class TachiyomiWidgetManager {
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
-            manager.setWidgetPreviews<UpdatesGridGlanceReceiver>()
+            try {
+                manager.setWidgetPreviews<UpdatesGridGlanceReceiver>()
+            } catch (e: IllegalArgumentException) {
+                // Try/catch block as sometime this fails and crashes on certain devices
+                Timber.e(e, "Failed to set widget previews")
+            }
         }
     }
 }
