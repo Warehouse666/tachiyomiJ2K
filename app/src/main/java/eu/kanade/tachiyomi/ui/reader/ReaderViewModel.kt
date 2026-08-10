@@ -706,7 +706,12 @@ class ReaderViewModel(
             } catch (_: Exception) {
                 null
             }
-        return chapterUrl.takeIf { !it.isNullOrBlank() } ?: source.getChapterUrl(manga, chapter)
+        return chapterUrl.takeIf { !it.isNullOrBlank() }
+            ?: try {
+                source.getChapterUrl(manga, chapter)
+            } catch (_: Exception) {
+                null
+            }
     }
 
     fun getSource() = manga?.source?.let { sourceManager.getOrStub(it) } as? HttpSource
