@@ -1,7 +1,7 @@
 package eu.kanade.tachiyomi.network
 
 import android.content.Context
-import app.cash.zipline.QuickJs
+import app.cash.quickjs.QuickJs
 import eu.kanade.tachiyomi.util.system.withIOContext
 
 /**
