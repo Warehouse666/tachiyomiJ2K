@@ -79,7 +79,7 @@ operator fun <T> Preference<Set<T>>.minusAssign(item: Collection<T>) {
 class PreferencesHelper(
     val context: Context,
 ) {
-    private val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+    private val prefs = TypeSafeSharedPreferences(PreferenceManager.getDefaultSharedPreferences(context))
     private val flowPrefs = FlowSharedPreferences(prefs)
 
     private val defaultDownloadsDir =
