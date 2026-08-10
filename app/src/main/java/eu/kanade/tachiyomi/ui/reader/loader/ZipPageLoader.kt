@@ -5,6 +5,7 @@ import eu.kanade.tachiyomi.ui.reader.model.ReaderPage
 import eu.kanade.tachiyomi.util.lang.compareToCaseInsensitiveNaturalOrder
 import eu.kanade.tachiyomi.util.system.ImageUtil
 import java.io.File
+import java.io.IOException
 import java.nio.charset.StandardCharsets
 import java.util.zip.ZipFile
 
@@ -24,7 +25,11 @@ class ZipPageLoader(
      */
     override fun recycle() {
         super.recycle()
-        zip.close()
+        try {
+            zip.close()
+        } catch (e: IOException) {
+            // Closing can fail with EIO if the underlying storage/file is gone
+        }
     }
 
     /**
