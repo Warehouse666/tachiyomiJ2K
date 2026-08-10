@@ -90,7 +90,7 @@ class CrossFadeChangeHandler : AnimatorChangeHandler {
                 from
                     ?.let {
                         val startX = from.width.toFloat() * 0.2f
-                        ((startX - it.x) / startX) * 150f
+                        (((startX - it.x) / startX) * 150f).takeIf(Float::isFinite)
                     }?.roundToLong() ?: 150
             }
         animatorSet.doOnCancel { to?.x = 0f }
