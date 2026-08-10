@@ -193,7 +193,7 @@ class ShizukuInstaller(
         }
         val nextEntry = queue.first()
         if (waitingInstall.compareAndSet(null, nextEntry)) {
-            queue.removeFirst()
+            queue.removeAt(0)
             processEntry(nextEntry)
         }
     }
@@ -201,8 +201,6 @@ class ShizukuInstaller(
     /**
      * Tells the queue to continue processing the next entry and updates the install step
      * of the completed entry ([waitingInstall]) to [ExtensionManager].
-     *
-     * @param resultStep new install step for the processed entry.
      * @see waitingInstall
      */
     fun continueQueue(succeeded: Boolean) {
