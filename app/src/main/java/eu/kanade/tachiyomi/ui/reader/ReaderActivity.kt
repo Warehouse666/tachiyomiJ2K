@@ -239,6 +239,13 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
     private var backPressedCallback: OnBackPressedCallback? = null
 
     var isScrollingThroughPagesOrChapters = false
+
+    /**
+     * Whether the page seekbar's value is currently being changed by an active touch/mouse drag,
+     * as opposed to a gamepad/keyboard adjustment. Used to limit haptic feedback to a pointer
+     * drag, since that's the only one of these with a physical surface to actually feel it.
+     */
+    private var isPointerAdjustingSeekbar = false
     private var hingeGapSize = 0
         set(value) {
             field = value
@@ -968,6 +975,7 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
                     binding.chaptersSheet.root.lastScale = binding.chaptersSheet.root.scaleX
                     binding.chaptersSheet.root.sheetBehavior
                         ?.collapse()
+                    binding.chaptersSheet.chaptersBottomSheet.focusFirstReaderBottomButton()
                 } else if (menuVisible) {
                     hideMenu()
                 } else {
@@ -988,6 +996,7 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
         with(binding.chaptersSheet.chaptersBottomSheet) {
             if (menuVisible) {
                 sheetBehavior?.expand()
+                focusCurrentChapter()
             }
         }
     }
@@ -1169,10 +1178,12 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
                         readerNavGestureDetector.lockVertical = false
                         readerNavGestureDetector.hasScrollHorizontal = true
                         isScrollingThroughPagesOrChapters = true
+                        isPointerAdjustingSeekbar = true
                     }
 
                     override fun onStopTrackingTouch(slider: Slider) {
                         isScrollingThroughPagesOrChapters = false
+                        isPointerAdjustingSeekbar = false
                     }
                 },
             )
@@ -1214,6 +1225,7 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
                 isScrollingThroughPagesOrChapters = wasScrollingThroughPagesOrChapters
                 val newValue = (viewer as? PagerViewer)?.pager?.currentItem ?: -1
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1 &&
+                    isPointerAdjustingSeekbar &&
                     ((prevValue > -1 && newValue != prevValue) || viewer !is PagerViewer)
                 ) {
                     binding.readerNav.pageSeekbar.performHapticFeedback(HapticFeedbackConstants.TEXT_HANDLE_MOVE)

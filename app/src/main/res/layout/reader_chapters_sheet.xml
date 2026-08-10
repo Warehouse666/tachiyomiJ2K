@@ -97,7 +97,7 @@
         </LinearLayout>
     </FrameLayout>
 
-    <androidx.recyclerview.widget.RecyclerView
+    <eu.kanade.tachiyomi.ui.reader.chapter.ChapterRecyclerView
         android:id="@+id/chapter_recycler"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

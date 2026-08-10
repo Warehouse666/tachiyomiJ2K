@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewParent
 import android.widget.LinearLayout
 import androidx.core.graphics.ColorUtils
+import androidx.core.view.children
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
@@ -272,6 +273,22 @@ class ReaderChapterSheet
             val itemView = (binding.chapterRecycler.findViewHolderForAdapterPosition(loadingPos) as? ReaderChapterItem.ViewHolder)?.binding
             itemView?.bookmarkImage?.isVisible = true
             itemView?.progress?.isVisible = false
+        }
+
+        fun focusCurrentChapter() {
+            val position = adapter?.getPosition(viewModel.getCurrentChapter()?.chapter?.id ?: 0L) ?: 0
+            binding.chapterRecycler.post {
+                binding.chapterRecycler
+                    .findViewHolderForAdapterPosition(position)
+                    ?.itemView
+                    ?.requestFocus()
+            }
+        }
+
+        fun focusFirstReaderBottomButton() {
+            binding.buttonGroup.children
+                .firstOrNull { it.isVisible }
+                ?.requestFocus()
         }
 
         fun refreshList() {
