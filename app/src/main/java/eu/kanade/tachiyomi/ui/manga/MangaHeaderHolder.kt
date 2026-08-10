@@ -79,6 +79,7 @@ class MangaHeaderHolder(
     private var showMoreButton = true
     var hadSelection = false
     private var canCollapse = true
+    private var forceFavoriteButtonResize = false
 
     init {
 
@@ -444,6 +445,12 @@ class MangaHeaderHolder(
                 )
             isChecked = !item.isLocked && manga.favorite
             adapter.delegate.setFavButtonPopup(this)
+            // MaterialButtonGroup locks the button's width on first pass, so resetting the width
+            // forces a readjustment
+            if (forceFavoriteButtonResize) {
+                forceFavoriteButtonResize = false
+                updateLayoutParams<ViewGroup.LayoutParams> { width = ViewGroup.LayoutParams.WRAP_CONTENT }
+            }
         }
         binding.trueBackdrop.setBackgroundColor(
             adapter.delegate.coverColor()
@@ -636,6 +643,11 @@ class MangaHeaderHolder(
                 }
             }
         }
+    }
+
+    /** Marks that the next bind() should force the favorite button to re-measure its width */
+    fun requestFavoriteButtonResize() {
+        forceFavoriteButtonResize = true
     }
 
     fun clearDescFocus() {

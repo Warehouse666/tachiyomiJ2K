@@ -1769,6 +1769,7 @@ class MangaDetailsController :
     private fun showCategoriesSheet() {
         val adding = !presenter.manga.favorite
         presenter.manga.moveCategories(presenter.db, activity!!, adding) {
+            getHeader()?.requestFavoriteButtonResize()
             updateHeader()
             if (adding) {
                 showAddedSnack()
@@ -1789,7 +1790,10 @@ class MangaDetailsController :
                 presenter.sourceManager,
                 this,
                 onMangaAdded = { migrationInfo ->
-                    migrationInfo?.let {
+                    if (migrationInfo == null) {
+                        // null here means this came from the SetCategoriesSheet
+                        getHeader()?.requestFavoriteButtonResize()
+                    } else {
                         presenter.fetchChapters(andTracking = true)
                     }
                     updateHeader()

@@ -39,6 +39,7 @@
         app:layout_constraintBottom_toBottomOf="@+id/true_backdrop" />
 
     <View
+        android:id="@+id/backdrop_fill"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:background="?attr/background"
@@ -163,12 +164,12 @@
         app:layout_constraintTop_toTopOf="@id/button_layout"
         app:constraint_referenced_ids="manga_source,cover_card" />
 
-    <LinearLayout
+    <com.google.android.material.button.MaterialButtonGroup
         android:id="@+id/button_layout"
         style="@style/Widget.Tachiyomi.MaterialButtonGroup"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        app:overflowMode="none"
+        app:overflowMode="menu"
         android:spacing="4dp"
         android:layout_marginTop="4dp"
         android:orientation="horizontal"
@@ -217,7 +218,7 @@
             android:contentDescription="@string/share"
             app:icon="@drawable/ic_share_24dp"
             android:tooltipText="@string/share" />
-    </LinearLayout>
+    </com.google.android.material.button.MaterialButtonGroup>
 
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/manga_summary_label"
