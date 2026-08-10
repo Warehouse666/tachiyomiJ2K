@@ -232,8 +232,14 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
     private var actionMode: ActionMode? = null
     private var backPressedCallback: OnBackPressedCallback? = null
     private val backCallback = {
-        pressingBack()
-        reEnableBackPressedCallBack()
+        // Predictive back can deliver a queued back-completed event after the
+        // activity has already started finishing/destroying, at which point
+        // Conductor's router no longer has a live host and pressingBack() ->
+        // router.handleBack() crashes with an NPE deep in Conductor internals.
+        if (!isFinishing && !isDestroyed) {
+            pressingBack()
+            reEnableBackPressedCallBack()
+        }
     }
 
     fun bigToolbarHeight(
