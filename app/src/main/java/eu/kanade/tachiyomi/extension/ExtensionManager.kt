@@ -146,7 +146,9 @@ class ExtensionManager(
             }
         enableAdditionalSubLanguages(extensions)
 
-        _availableExtensionsFlow.value = extensions
+        // Dedupe by pkgName so extensions served by multiple repos can't produce
+        // duplicate entries downstream (e.g. duplicate RecyclerView stable IDs).
+        _availableExtensionsFlow.value = extensions.associateBy { it.pkgName }.values.toList()
         updatedInstalledExtensionsStatuses(extensions)
         setupAvailableSourcesMap()
         emitToInstaller("Finished/Available/${extensions.size}", (InstallStep.Done to null))
