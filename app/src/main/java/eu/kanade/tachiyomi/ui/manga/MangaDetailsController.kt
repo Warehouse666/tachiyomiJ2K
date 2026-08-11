@@ -1826,6 +1826,7 @@ class MangaDetailsController :
                     showAddedSnack()
                 },
                 onMangaMoved = {
+                    getHeader()?.requestFavoriteButtonResize()
                     updateHeader()
                     presenter.fetchChapters(andTracking = true)
                 },
