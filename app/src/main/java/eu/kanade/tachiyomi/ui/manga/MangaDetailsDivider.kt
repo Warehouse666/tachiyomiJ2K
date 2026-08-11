@@ -3,13 +3,15 @@ package eu.kanade.tachiyomi.ui.manga
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.Rect
 import android.graphics.drawable.Drawable
 import android.view.View
+import androidx.core.content.ContextCompat
+import androidx.core.graphics.ColorUtils
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.ui.manga.chapter.ChapterHolder
 import eu.kanade.tachiyomi.util.system.dpToPx
-import eu.kanade.tachiyomi.util.system.getResourceColor
 
 @SuppressLint("UseKtx")
 class MangaDetailsDivider(
@@ -17,10 +19,27 @@ class MangaDetailsDivider(
     val padding: Int = 12.dpToPx,
 ) : androidx.recyclerview.widget.RecyclerView.ItemDecoration() {
     private val divider: Drawable
+    private val baseDividerColor = ContextCompat.getColor(context, R.color.divider)
+
+    /** Shifts the divider's hue to match the cover's accent color, keeping its original alpha/lightness */
+    var accentColor: Int? = null
+        set(value) {
+            field = value
+            divider.setTint(
+                value?.let {
+                    val hsl = FloatArray(3)
+                    ColorUtils.colorToHSL(baseDividerColor, hsl)
+                    val accentHsl = FloatArray(3)
+                    ColorUtils.colorToHSL(it, accentHsl)
+                    hsl[0] = accentHsl[0]
+                    ColorUtils.setAlphaComponent(ColorUtils.HSLToColor(hsl), Color.alpha(baseDividerColor))
+                } ?: baseDividerColor,
+            )
+        }
 
     init {
         val a = context.obtainStyledAttributes(intArrayOf(android.R.attr.listDivider))
-        divider = a.getDrawable(0)!!
+        divider = a.getDrawable(0)!!.mutate()
         a.recycle()
     }
 
@@ -45,7 +64,6 @@ class MangaDetailsDivider(
 
                 divider.setBounds(left, top, right, bottom)
                 divider.draw(c)
-                c.drawColor(parent.context.getResourceColor(R.attr.background))
             }
         }
     }

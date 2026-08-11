@@ -197,9 +197,9 @@ class MangaDetailsController :
     private var source: Source? = null
     private var colorAnimator: ValueAnimator? = null
     override val presenter: MangaDetailsPresenter
-    private var coverColor: Int? = null
-    private var accentColor: Int? = null
+    private var themeColors = MangaDetailsColors()
     private var headerColor: Int? = null
+    private var chapterDivider: MangaDetailsDivider? = null
     private var toolbarIsColored = false
     private var snack: Snackbar? = null
     val shouldLockIfNeeded: Boolean
@@ -237,10 +237,11 @@ class MangaDetailsController :
     //region UI Methods
     override fun onViewCreated(view: View) {
         super.onViewCreated(view)
-        coverColor = null
+        themeColors = themeColors.copy(cover = null)
         fullCoverActive = false
         setAccentColorValue()
         setHeaderColorValue()
+        setBackgroundColorValue()
 
         setTabletMode(view)
         setRecycler(view)
@@ -263,7 +264,7 @@ class MangaDetailsController :
     private fun setAccentColorValue(colorToUse: Int? = null) {
         val context = view?.context ?: return
         setCoverColorValue(colorToUse)
-        accentColor =
+        val newAccentColor =
             if (presenter.preferences.themeMangaDetails()) {
                 (colorToUse ?: manga?.vibrantCoverColor)?.let {
                     val luminance = ColorUtils.calculateLuminance(it).toFloat()
@@ -280,12 +281,14 @@ class MangaDetailsController :
             } else {
                 null
             }
+        themeColors = themeColors.copy(accent = newAccentColor)
+        chapterDivider?.accentColor = newAccentColor
     }
 
     private fun setCoverColorValue(colorToUse: Int? = null) {
         val context = view?.context ?: return
         val colorBack = context.getResourceColor(R.attr.background)
-        coverColor =
+        val newCoverColor =
             (
                 if (presenter.preferences.themeMangaDetails()) {
                     (colorToUse ?: manga?.vibrantCoverColor)
@@ -308,14 +311,15 @@ class MangaDetailsController :
                     if (lumWrongForTheme) 0.9f else 0.7f,
                 )
             }
+        themeColors = themeColors.copy(cover = newCoverColor)
     }
 
     private fun setRefreshStyle() {
         with(binding.swipeRefresh) {
-            if (presenter.preferences.themeMangaDetails() && accentColor != null && headerColor != null) {
+            if (presenter.preferences.themeMangaDetails() && themeColors.accent != null && headerColor != null) {
                 val newColor =
                     makeColorFrom(
-                        hueOf = accentColor!!,
+                        hueOf = themeColors.accent!!,
                         satAndLumOf = context.getResourceColor(R.attr.actionBarTintColor),
                     )
                 setColorSchemeColors(newColor)
@@ -344,6 +348,27 @@ class MangaDetailsController :
                 null
             }
         setRefreshStyle()
+    }
+
+    /** Shifts the page background's hue to match the cover's accent color, keeping its saturation/lightness */
+    private fun setBackgroundColorValue(colorToUse: Int? = null) {
+        val context = view?.context ?: return
+        val baseBackground = context.getResourceColor(R.attr.background)
+        val newBackgroundColor =
+            if (presenter.preferences.themeMangaDetails()) {
+                (colorToUse ?: manga?.vibrantCoverColor)?.let {
+                    makeColorFrom(hueOf = it, satAndLumOf = baseBackground)
+                }
+            } else {
+                null
+            }
+        themeColors = themeColors.copy(background = newBackgroundColor)
+        val newColor = newBackgroundColor ?: baseBackground
+        binding.root.setBackgroundColor(newColor)
+        binding.swipeRefresh.setBackgroundColor(newColor)
+        binding.recycler.setBackgroundColor(newColor)
+        binding.tabletRecycler.setBackgroundColor(newColor)
+        binding.tabletOverlay.setBackgroundColor(newColor)
     }
 
     @ColorInt
@@ -440,9 +465,10 @@ class MangaDetailsController :
         binding.recycler.adapter = adapter
         adapter?.isSwipeEnabled = true
         binding.recycler.layoutManager = LinearLayoutManagerAccurateOffset(view.context)
-        binding.recycler.addItemDecoration(
-            MangaDetailsDivider(view.context),
-        )
+        val divider = MangaDetailsDivider(view.context)
+        divider.accentColor = themeColors.accent
+        chapterDivider = divider
+        binding.recycler.addItemDecoration(divider)
         binding.recycler.setHasFixedSize(true)
         val appbarHeight = activityBinding?.appBar?.attrToolbarHeight ?: 0
         val offset = 10.dpToPx
@@ -617,11 +643,13 @@ class MangaDetailsController :
                                         manga?.vibrantCoverColor = vibrantColor
                                         setAccentColorValue(vibrantColor)
                                         setHeaderColorValue(vibrantColor)
+                                        setBackgroundColorValue(vibrantColor)
                                         setItemColors()
                                     }
                                 } else {
                                     setCoverColorValue()
-                                    coverColor?.let { color -> getHeader()?.setBackDrop(color) }
+                                    setBackgroundColorValue()
+                                    themeColors.cover?.let { color -> getHeader()?.setBackDrop(color) }
                                 }
                             }
                         }
@@ -1465,9 +1493,7 @@ class MangaDetailsController :
     }
 
     //region Interface methods
-    override fun coverColor(): Int? = coverColor
-
-    override fun accentColor(): Int? = accentColor
+    override fun themeColors(): MangaDetailsColors = themeColors
 
     override fun topCoverHeight(): Int = headerHeight
 
