@@ -28,6 +28,7 @@ class AutofitRecyclerView
         var manager: LayoutManager = GridLayoutManagerAccurateOffset(context, 1)
 
         var lastMeasuredWidth = 0
+        private var pendingSpanUpdate = false
         var columnWidth = -1f
             set(value) {
                 field = value
@@ -93,6 +94,15 @@ class AutofitRecyclerView
             b: Int,
         ) {
             super.onLayout(changed, l, t, r, b)
+            if (pendingSpanUpdate && width > 0) {
+                if (width == lastMeasuredWidth) {
+                    pendingSpanUpdate = false
+                    setSpan(force = true)
+                } else {
+                    // Still animating, come back for another look once it has moved again
+                    post { requestLayout() }
+                }
+            }
             setSpan()
             lastMeasuredWidth = width
         }
@@ -180,18 +190,30 @@ class AutofitRecyclerView
             columnWidth = trueSize
         }
 
+        /**
+         * Recounts the columns once the width settles, for callers that resize the grid without
+         * tripping the width check in [setSpan].
+         */
+        fun requestSpanUpdate() {
+            pendingSpanUpdate = true
+            requestLayout()
+        }
+
         private fun setSpan(force: Boolean = false) {
             if ((
                     spanCount == 0 ||
                         force ||
-                        // Add 100dp check to make sure we dont update span for sidenav changes
+                        // Ignore small width changes, callers should use requestSpanUpdate()
                         (width != lastMeasuredWidth && abs(width - lastMeasuredWidth) > 100.dpToPx)
                 ) &&
                 columnWidth > 0
             ) {
                 val dpWidth = (width.pxToDp / 100f).roundToInt()
                 val count = max(1, (dpWidth / columnWidth).roundToInt())
-                spanCount = count
+                // The staggered manager throws when set mid-layout or scroll, even to the same count
+                if (count != spanCount) {
+                    spanCount = count
+                }
             }
         }
 

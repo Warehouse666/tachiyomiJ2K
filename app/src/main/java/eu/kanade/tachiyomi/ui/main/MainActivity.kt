@@ -27,6 +27,7 @@ import android.view.ViewGroup
 import android.view.Window
 import android.view.WindowManager
 import android.view.animation.DecelerateInterpolator
+import android.widget.FrameLayout
 import androidx.activity.BackEventCompat
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
@@ -66,6 +67,7 @@ import com.bluelinelabs.conductor.ControllerChangeHandler
 import com.bluelinelabs.conductor.Router
 import com.getkeepsafe.taptargetview.TapTarget
 import com.getkeepsafe.taptargetview.TapTargetView
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.navigation.NavigationBarView
 import com.google.android.material.navigationrail.NavigationRailView
 import com.google.android.material.snackbar.Snackbar
@@ -81,6 +83,7 @@ import eu.kanade.tachiyomi.data.library.LibraryUpdateJob
 import eu.kanade.tachiyomi.data.notification.NotificationReceiver
 import eu.kanade.tachiyomi.data.notification.Notifications
 import eu.kanade.tachiyomi.data.preference.asImmediateFlowIn
+import eu.kanade.tachiyomi.data.preference.toggle
 import eu.kanade.tachiyomi.data.updater.AppUpdateChecker
 import eu.kanade.tachiyomi.data.updater.AppUpdateNotifier
 import eu.kanade.tachiyomi.data.updater.AppUpdateResult
@@ -123,6 +126,7 @@ import eu.kanade.tachiyomi.util.system.launchUI
 import eu.kanade.tachiyomi.util.system.materialAlertDialog
 import eu.kanade.tachiyomi.util.system.prepareSideNavContext
 import eu.kanade.tachiyomi.util.system.rootWindowInsetsCompat
+import eu.kanade.tachiyomi.util.system.toInt
 import eu.kanade.tachiyomi.util.system.toast
 import eu.kanade.tachiyomi.util.view.BackHandlerControllerInterface
 import eu.kanade.tachiyomi.util.view.backgroundColor
@@ -132,6 +136,7 @@ import eu.kanade.tachiyomi.util.view.doOnApplyWindowInsetsCompat
 import eu.kanade.tachiyomi.util.view.findChild
 import eu.kanade.tachiyomi.util.view.getItemView
 import eu.kanade.tachiyomi.util.view.gradientBackgroundColor
+import eu.kanade.tachiyomi.util.view.isControllerVisible
 import eu.kanade.tachiyomi.util.view.mainRecyclerView
 import eu.kanade.tachiyomi.util.view.snack
 import eu.kanade.tachiyomi.util.view.withFadeInTransaction
@@ -157,6 +162,12 @@ import kotlin.time.Duration.Companion.seconds
 open class MainActivity : BaseActivity<MainActivityBinding>() {
     protected lateinit var router: Router
     private var recreatingForSettingsChange = false
+
+    /** Set while [syncRecentsNavSelection] moves the checked item, so it isn't taken as a tap. */
+    private var isSyncingNavSelection = false
+
+    private val sideNavToggleButton: MaterialButton?
+        get() = binding.sideNav?.headerView?.findViewById(R.id.side_nav_toggle_btn)
 
     protected val searchDrawable by lazy { contextCompatDrawable(R.drawable.ic_search_24dp) }
     protected val backDrawable by lazy { contextCompatDrawable(R.drawable.ic_arrow_back_24dp) }
@@ -395,12 +406,21 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
         setContentView(binding.root)
 
         binding.toolbar.overflowIcon?.setTint(getResourceColor(R.attr.actionBarTintColor))
-        if (isTablet() && binding.sideNav != null) {
-            binding.sideNav
-                ?.menu
-                ?.findItem(R.id.nav_recents)
-                ?.isVisible = false
-            binding.sideNav?.expand()
+        if (isTablet()) {
+            binding.sideNav?.let { sideNav ->
+                if (preferences.sideNavExpanded().get()) {
+                    sideNav.expand()
+                }
+                sideNav.headerView?.isVisible = true
+                // The rail centers its header, line it up with the icons of the items instead
+                sideNav.headerView?.updateLayoutParams<FrameLayout.LayoutParams> {
+                    gravity = Gravity.START or Gravity.TOP
+                    marginStart = 24.dpToPx
+                }
+                sideNavToggleButton?.setOnClickListener {
+                    preferences.sideNavExpanded().toggle()
+                }
+            }
         }
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
@@ -521,6 +541,8 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
 
         nav.setOnItemSelectedListener { item ->
             val id = item.itemId
+            // Only moving the checkmark to follow the recents view, the tab is already showing
+            if (isSyncingNavSelection) return@setOnItemSelectedListener true
             val currentController = router.backstack.lastOrNull()?.controller
             if (!continueSwitchingTabs && currentController is BottomNavBarInterface) {
                 if (!currentController.canChangeTabs {
@@ -780,6 +802,22 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
                         else -> Gravity.TOP
                     }
             }
+        preferences
+            .sideNavExpanded()
+            .asImmediateFlowIn(lifecycleScope) { expanded ->
+                if (!isTablet()) return@asImmediateFlowIn
+                val sideNav = binding.sideNav ?: return@asImmediateFlowIn
+                // Whichever recents entry is about to go away may be the checked one, so hand the
+                // selection over before the rail animates rather than during
+                syncRecentsNavSelection(expanded)
+                if (sideNav.isExpanded != expanded) {
+                    if (expanded) sideNav.expand() else sideNav.collapse()
+                }
+                sideNavToggleButton?.setIconResource(
+                    if (expanded) R.drawable.ic_menu_open_24dp else R.drawable.ic_menu_24dp,
+                )
+                updateControllersWithSideNavChanges()
+            }
         setFloatingToolbar(canShowFloatingToolbar(router.backstack.lastOrNull()?.controller), changeBG = false)
 
         lifecycleScope.launchUI {
@@ -828,14 +866,41 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
             startingTab() == currentTabId()
         }
 
-    // nav.selectedItemId can report -1 after the side nav's recents submenu toggles visibility and leaves nothing checked
+    // The nav view no longer keeps its selected id up to date, so go by what is on screen
     @IdRes
     private fun currentTabId(): Int =
-        nav.selectedItemId.takeIf { it != -1 } ?: when (router.backstack.firstOrNull()?.controller) {
+        when (router.backstack.firstOrNull()?.controller) {
             is RecentsController -> R.id.nav_recents
             is BrowseController -> R.id.nav_browse
             else -> R.id.nav_library
         }
+
+    /**
+     * Points the side nav at whichever recents entry is showing: the recents item while collapsed,
+     * the matching submenu item while expanded. Pass [expanded] while toggling, the rail hasn't
+     * taken the new state yet at that point.
+     */
+    fun syncRecentsNavSelection(expanded: Boolean? = null) {
+        if (!isBindingInitialized || !this::router.isInitialized) return
+        val sideNav = binding.sideNav ?: return
+        val recents = router.backstack.firstOrNull()?.controller as? RecentsController ?: return
+        val itemId =
+            if (expanded ?: sideNav.isExpanded) {
+                when (recents.getViewType()) {
+                    RecentsViewType.GroupedAll -> R.id.nav_summary
+                    RecentsViewType.UngroupedAll -> R.id.nav_ungrouped
+                    RecentsViewType.History -> R.id.nav_history
+                    RecentsViewType.Updates -> R.id.nav_updates
+                }
+            } else {
+                R.id.nav_recents
+            }
+        // Asking the nav view which item is selected no longer works, but the item itself knows
+        if (sideNav.menu.findItem(itemId)?.isChecked == true) return
+        isSyncingNavSelection = true
+        sideNav.setCheckedItemImmediately(itemId)
+        isSyncingNavSelection = false
+    }
 
     override fun onTitleChanged(
         title: CharSequence?,
@@ -1144,7 +1209,7 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
         when (intent.action) {
             SHORTCUT_LIBRARY -> nav.selectedItemId = R.id.nav_library
             SHORTCUT_RECENTLY_UPDATED, SHORTCUT_RECENTLY_READ, SHORTCUT_RECENTS -> {
-                if (nav.selectedItemId != R.id.nav_recents) {
+                if (currentTabId() != R.id.nav_recents) {
                     nav.selectedItemId = R.id.nav_recents
                 } else {
                     router.popToRoot()
@@ -1163,7 +1228,7 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
             }
             SHORTCUT_BROWSE -> nav.selectedItemId = R.id.nav_browse
             SHORTCUT_EXTENSIONS -> {
-                if (nav.selectedItemId != R.id.nav_browse) {
+                if (currentTabId() != R.id.nav_browse) {
                     nav.selectedItemId = R.id.nav_browse
                 } else {
                     router.popToRoot()
@@ -1639,6 +1704,13 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
                             if (isRootController) navWidth else 0
                         }
                 }
+                when (controller) {
+                    // The library grid fits its columns to the width it has been given
+                    is LibraryController -> controller.onSideNavWidthChanged()
+                    // The recents submenu stands in for the tabs, but only while it is showing
+                    is RecentsController -> if (controller.isControllerVisible) controller.setupTabs(false)
+                    else -> Unit
+                }
             }
         }
     }
@@ -1672,6 +1744,7 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
             tabAnimation = tA
             tA.start()
         } else {
+            binding.tabsFrameLayout.alpha = show.toInt().toFloat()
             binding.tabsFrameLayout.isVisible = show
         }
     }

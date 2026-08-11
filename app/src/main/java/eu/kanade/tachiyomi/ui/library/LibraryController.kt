@@ -1045,6 +1045,12 @@ open class LibraryController(
             }
     }
 
+    /** The grid sizes its columns to the available width, so it has to recount when that changes. */
+    fun onSideNavWidthChanged() {
+        if (!isBindingInitialized) return
+        binding.libraryGridRecycler.recycler.requestSpanUpdate()
+    }
+
     private fun setRecyclerLayout() {
         with(binding.libraryGridRecycler.recycler) {
             val bottomNav = if (isSubClass) null else activityBinding?.bottomNav

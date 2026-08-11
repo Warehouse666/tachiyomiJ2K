@@ -197,6 +197,8 @@ object PreferenceKeys {
 
     const val sideNavIconAlignment = "pref_side_nav_icon_alignment"
 
+    const val sideNavExpanded = "side_nav_expanded"
+
     const val showSeriesInShortcuts = "show_series_shortcuts"
     const val showSourcesInShortcuts = "show_sources_shortcuts"
     const val openChapterInShortcuts = "open_chapter_shortcuts"

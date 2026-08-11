@@ -238,7 +238,7 @@
     </eu.kanade.tachiyomi.ui.base.ExpandedAppBarLayout>
 
 
-    <com.google.android.material.navigationrail.NavigationRailView
+    <eu.kanade.tachiyomi.ui.base.SideNavView
         android:id="@+id/side_nav"
         app:elevation="0dp"
         android:layout_width="wrap_content"
@@ -247,6 +247,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:menuGravity="center"
         app:layout_constraintTop_toTopOf="parent"
+        app:headerLayout="@layout/side_nav_header"
         app:menu="@menu/side_navigation" />
 
     <View

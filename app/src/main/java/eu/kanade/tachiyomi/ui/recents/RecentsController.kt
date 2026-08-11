@@ -13,6 +13,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.BackEventCompat
 import androidx.core.view.WindowInsetsCompat.Type.systemBars
+import androidx.core.view.doOnNextLayout
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
@@ -122,6 +123,9 @@ class RecentsController(
     private var snack: Snackbar? = null
     private var lastChapterId: Long? = null
     private var showingDownloads = false
+
+    /** Repaints the app bar for whether the list is scrolled, handed back by [scrollViewWith]. */
+    private var colorToolbar: ((Boolean) -> Unit)? = null
     private var headerHeight = 0
     private var ogRadius = 0f
     private var deviceRadius = 0f to 0f
@@ -151,7 +155,54 @@ class RecentsController(
                 )?.lowercase(Locale.ROOT),
         )
 
-    override fun showTabs(): Boolean = activity?.isTablet() != true || activityBinding?.sideNav == null
+    // The side nav only stands in for the tabs while it is expanded and showing the recents submenu
+    override fun showTabs(): Boolean = activity?.isTablet() != true || activityBinding?.sideNav?.isExpanded != true
+
+    fun setupTabs(animate: Boolean) {
+        val tabs = activityBinding?.mainTabs ?: return
+        tabs.removeAllTabs()
+        tabs.clearOnTabSelectedListeners()
+        val selectedTab = presenter.viewType
+        RecentsViewType.entries.forEach { viewType ->
+            tabs.addTab(
+                tabs.newTab().setText(viewType.stringRes).also { tab ->
+                    tab.view.tooltipText = null
+                },
+                viewType == selectedTab,
+            )
+        }
+        tabs.addOnTabSelectedListener(
+            object : TabLayout.OnTabSelectedListener {
+                override fun onTabSelected(tab: TabLayout.Tab?) {
+                    setViewType(RecentsViewType.valueOf(tab?.position))
+                }
+
+                override fun onTabUnselected(tab: TabLayout.Tab?) {}
+
+                override fun onTabReselected(tab: TabLayout.Tab?) {
+                    binding.recycler.smoothScrollToTop()
+                }
+            },
+        )
+        (activity as? MainActivity)?.showTabBar(showTabs(), animate)
+        // The tabs count towards the app bar height, which both it and the recycler's padding are
+        // sized from. scrollViewWith only works this out as the controller is entered
+        if (isBindingInitialized) {
+            val recycler = binding.recycler
+            val appBar = activityBinding?.appBar
+            val paddingBefore = recycler.paddingTop
+            appBar?.useTabsInPreLayout = showTabs()
+            recycler.requestApplyInsets()
+            // The rail's animation suppresses layout here, which silently drops any scroll, so the
+            // list is only kept in place once layout resumes
+            recycler.doOnNextLayout {
+                val delta = recycler.paddingTop - paddingBefore
+                if (delta != 0) recycler.scrollBy(0, -delta)
+                appBar?.updateAppBarAfterY(recycler)
+                colorToolbar?.invoke(recycler.canScrollVertically(-1))
+            }
+        }
+    }
 
     override fun createBinding(inflater: LayoutInflater) = RecentsControllerBinding.inflate(inflater)
 
@@ -180,46 +231,47 @@ class RecentsController(
             if (view.resources.isLTR) ItemTouchHelper.LEFT else ItemTouchHelper.RIGHT,
         )
         binding.swipeRefresh.setStyle()
-        scrollViewWith(
-            binding.recycler,
-            swipeRefreshLayout = binding.swipeRefresh,
-            ignoreInsetVisibility = true,
-            afterInsets = {
-                val appBarHeight = activityBinding?.appBar?.attrToolbarHeight ?: 0
-                val systemInsets = it.ignoredSystemInsets
-                headerHeight = systemInsets.top + appBarHeight + 48.dpToPx
-                binding.recycler.updatePaddingRelative(
-                    bottom = activityBinding?.bottomNav?.height ?: systemInsets.bottom,
-                )
-                binding.downloadBottomSheet.sheetLayout.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                    height = appBarHeight + systemInsets.top
-                }
-                val bigToolbarHeight = fullAppBarHeight ?: 0
-
-                binding.recentsEmptyView.updatePadding(
-                    top = bigToolbarHeight + systemInsets.top,
-                    bottom = activityBinding?.bottomNav?.height ?: systemInsets.bottom,
-                )
-                binding.progress.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                    topMargin = (bigToolbarHeight + systemInsets.top) / 2
-                }
-                if (activityBinding?.bottomNav == null) {
-                    setBottomPadding()
-                }
-                deviceRadius =
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                        val wInsets = it.toWindowInsets()
-                        val lCorner = wInsets?.getRoundedCorner(RoundedCorner.POSITION_TOP_LEFT)
-                        val rCorner = wInsets?.getRoundedCorner(RoundedCorner.POSITION_TOP_RIGHT)
-                        (lCorner?.radius?.toFloat() ?: 0f) to (rCorner?.radius?.toFloat() ?: 0f)
-                    } else {
-                        ogRadius to ogRadius
+        colorToolbar =
+            scrollViewWith(
+                binding.recycler,
+                swipeRefreshLayout = binding.swipeRefresh,
+                ignoreInsetVisibility = true,
+                afterInsets = {
+                    val appBarHeight = activityBinding?.appBar?.attrToolbarHeight ?: 0
+                    val systemInsets = it.ignoredSystemInsets
+                    headerHeight = systemInsets.top + appBarHeight + 48.dpToPx
+                    binding.recycler.updatePaddingRelative(
+                        bottom = activityBinding?.bottomNav?.height ?: systemInsets.bottom,
+                    )
+                    binding.downloadBottomSheet.sheetLayout.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                        height = appBarHeight + systemInsets.top
                     }
-            },
-            onBottomNavUpdate = {
-                setBottomPadding()
-            },
-        )
+                    val bigToolbarHeight = fullAppBarHeight ?: 0
+
+                    binding.recentsEmptyView.updatePadding(
+                        top = bigToolbarHeight + systemInsets.top,
+                        bottom = activityBinding?.bottomNav?.height ?: systemInsets.bottom,
+                    )
+                    binding.progress.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                        topMargin = (bigToolbarHeight + systemInsets.top) / 2
+                    }
+                    if (activityBinding?.bottomNav == null) {
+                        setBottomPadding()
+                    }
+                    deviceRadius =
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                            val wInsets = it.toWindowInsets()
+                            val lCorner = wInsets?.getRoundedCorner(RoundedCorner.POSITION_TOP_LEFT)
+                            val rCorner = wInsets?.getRoundedCorner(RoundedCorner.POSITION_TOP_RIGHT)
+                            (lCorner?.radius?.toFloat() ?: 0f) to (rCorner?.radius?.toFloat() ?: 0f)
+                        } else {
+                            ogRadius to ogRadius
+                        }
+                },
+                onBottomNavUpdate = {
+                    setBottomPadding()
+                },
+            )
 
         if (!isReturning && adapter.itemCount == 0) {
             activityBinding?.appBar?.y = 0f
@@ -493,19 +545,7 @@ class RecentsController(
             activityBinding?.appBar?.isInvisible = showingDownloads
             activity.setStatusBarColorTransparent(showingDownloads)
             setTitle()
-            if (activityBinding?.sideNav?.isExpanded == true) {
-                activityBinding
-                    ?.sideNav
-                    ?.menu
-                    ?.findItem(
-                        when (presenter.viewType) {
-                            RecentsViewType.GroupedAll -> R.id.nav_summary
-                            RecentsViewType.UngroupedAll -> R.id.nav_ungrouped
-                            RecentsViewType.History -> R.id.nav_history
-                            else -> R.id.nav_updates
-                        },
-                    )?.isChecked = true
-            }
+            activity.syncRecentsNavSelection()
         }
     }
 
@@ -1051,33 +1091,7 @@ class RecentsController(
             if (type == ControllerChangeType.POP_ENTER) presenter.onCreate()
             binding.downloadBottomSheet.dlBottomSheet.dismiss()
             if (isControllerVisible) {
-                activityBinding?.mainTabs?.let { tabs ->
-                    tabs.removeAllTabs()
-                    tabs.clearOnTabSelectedListeners()
-                    val selectedTab = presenter.viewType
-                    RecentsViewType.entries.forEach { viewType ->
-                        tabs.addTab(
-                            tabs.newTab().setText(viewType.stringRes).also { tab ->
-                                tab.view.tooltipText = null
-                            },
-                            viewType == selectedTab,
-                        )
-                    }
-                    tabs.addOnTabSelectedListener(
-                        object : TabLayout.OnTabSelectedListener {
-                            override fun onTabSelected(tab: TabLayout.Tab?) {
-                                setViewType(RecentsViewType.valueOf(tab?.position))
-                            }
-
-                            override fun onTabUnselected(tab: TabLayout.Tab?) {}
-
-                            override fun onTabReselected(tab: TabLayout.Tab?) {
-                                binding.recycler.smoothScrollToTop()
-                            }
-                        },
-                    )
-                    (activity as? MainActivity)?.showTabBar(showTabs())
-                }
+                setupTabs(true)
             }
         } else {
             val lastController = router.backstack.lastOrNull()?.controller

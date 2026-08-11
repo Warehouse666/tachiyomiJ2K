@@ -317,8 +317,10 @@ fun Controller.scrollViewWith(
     val tabBarHeight = 48.dpToPx
     activityBinding?.appBar?.lockYPos = false
     activityBinding?.appBar?.y = 0f
-    val includeTabView = (this as? TabbedInterface)?.showTabs() == true
-    activityBinding?.appBar?.useTabsInPreLayout = includeTabView
+
+    // Read live, the side nav can take over for the tabs while the controller is up
+    fun includeTabView() = (this as? TabbedInterface)?.showTabs() == true
+    activityBinding?.appBar?.useTabsInPreLayout = includeTabView()
     activityBinding?.appBar?.setToolbarModeBy(this@scrollViewWith)
     var appBarHeight = (
         if ((fullAppBarHeight ?: 0) > 0) {
@@ -362,7 +364,7 @@ fun Controller.scrollViewWith(
         val activityBinding = activityBinding ?: return@f true
         return@f recycler.computeVerticalScrollOffset() - recycler.paddingTop <=
             0 - activityBinding.appBar.paddingTop -
-            activityBinding.toolbar.height - if (includeTabView) tabBarHeight else 0
+            activityBinding.toolbar.height - if (includeTabView()) tabBarHeight else 0
     }
     recycler.doOnApplyWindowInsetsCompat { view, insets, _ ->
         appBarHeight = fullAppBarHeight ?: 0
@@ -393,7 +395,7 @@ fun Controller.scrollViewWith(
         } else {
             toolbarColorAnim?.cancel()
             val floatingBar =
-                (this as? FloatingSearchInterface)?.showFloatingBar() == true && !includeTabView
+                (this as? FloatingSearchInterface)?.showFloatingBar() == true && !includeTabView()
             if (floatingBar) {
                 setAppBarBG(isColored.toInt().toFloat(), false)
                 return@f
@@ -406,12 +408,12 @@ fun Controller.scrollViewWith(
                 )
             toolbarColorAnim = ValueAnimator.ofFloat(percent, isColored.toInt().toFloat())
             toolbarColorAnim?.addUpdateListener { valueAnimator ->
-                setAppBarBG(valueAnimator.animatedValue as Float, includeTabView)
+                setAppBarBG(valueAnimator.animatedValue as Float, includeTabView())
             }
             toolbarColorAnim?.start()
         }
     }
-    if ((this as? FloatingSearchInterface)?.showFloatingBar() == true && !includeTabView) {
+    if ((this as? FloatingSearchInterface)?.showFloatingBar() == true && !includeTabView()) {
         setAppBarBG(0f, false)
     }
     addLifecycleListener(
@@ -449,7 +451,7 @@ fun Controller.scrollViewWith(
                         setTitleAlpha = this@scrollViewWith !is MangaDetailsController,
                     )
                     activityBinding?.appBar?.setToolbarModeBy(this@scrollViewWith)
-                    activityBinding?.appBar?.useTabsInPreLayout = includeTabView
+                    activityBinding?.appBar?.useTabsInPreLayout = includeTabView()
                     colorToolbar(isToolbarColor)
                     lastY = 0f
                     activityBinding?.appBar?.updateAppBarAfterY(recycler)
@@ -476,7 +478,7 @@ fun Controller.scrollViewWith(
                                         .lastOrNull()
                                         ?.controller is MangaDetailsController
                             ) ||
-                                includeTabView
+                                includeTabView()
                         )
                     ) {
                         val parent = recycler.parent as? ViewGroup ?: return
