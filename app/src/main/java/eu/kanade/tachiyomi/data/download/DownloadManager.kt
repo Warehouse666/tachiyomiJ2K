@@ -51,6 +51,12 @@ class DownloadManager(
 
     val isRunning: Boolean get() = downloader.isRunning
 
+    /** True once the download cache's first directory scan has completed. */
+    val isCacheInitialized: Boolean get() = cache.isInitialized.value
+
+    /** Suspends until the download cache's first directory scan has completed. */
+    suspend fun awaitDownloadCacheReady() = cache.awaitInitialScan()
+
     /**
      * Queue to delay the deletion of a list of chapters until triggered.
      */

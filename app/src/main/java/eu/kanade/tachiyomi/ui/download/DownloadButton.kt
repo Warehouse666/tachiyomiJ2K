@@ -52,6 +52,12 @@ class DownloadButton
         private val checkDrawable by lazy {
             ContextCompat.getDrawable(context, R.drawable.ic_check_24dp)?.mutate()
         }
+        private val pendingDrawable by lazy {
+            ContextCompat.getDrawable(context, R.drawable.ic_pending_24dp)?.mutate()
+        }
+        private val pendingRing by lazy {
+            ContextCompat.getDrawable(context, R.drawable.ic_pending_ring_24dp)?.mutate()
+        }
         private val filledAnim by lazy {
             AnimatedVectorDrawableCompat.create(context, R.drawable.anim_outline_to_filled)
         }
@@ -94,11 +100,12 @@ class DownloadButton
                 binding.downloadIcon.alpha = 1f
                 isAnimating = false
             }
+//            alpha = if (state == Download.State.PENDING) 0.75f else 1f
             binding.downloadIcon.setImageDrawable(
-                if (state == Download.State.CHECKED) {
-                    checkDrawable
-                } else {
-                    downloadDrawable
+                when (state) {
+                    Download.State.CHECKED -> checkDrawable
+                    Download.State.PENDING -> pendingDrawable
+                    else -> downloadDrawable
                 },
             )
             when (state) {
@@ -113,6 +120,13 @@ class DownloadButton
                     binding.downloadBorder.isVisible = true
                     binding.downloadProgress.isVisible = false
                     binding.downloadBorder.setImageDrawable(borderCircle)
+                    binding.downloadBorder.drawable.setTint(activeColor)
+                    binding.downloadIcon.drawable.setTint(activeColor)
+                }
+                Download.State.PENDING -> {
+                    binding.downloadBorder.isVisible = true
+                    binding.downloadProgress.isVisible = false
+                    binding.downloadBorder.setImageDrawable(pendingRing)
                     binding.downloadBorder.drawable.setTint(activeColor)
                     binding.downloadIcon.drawable.setTint(activeColor)
                 }

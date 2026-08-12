@@ -142,6 +142,13 @@ class MangaDetailsPresenter(
             setTrackItems()
         }
         refreshTracking(false)
+        if (!downloadManager.isCacheInitialized) {
+            presenterScope.launch {
+                downloadManager.awaitDownloadCacheReady()
+                setDownloadedChapters(chapters)
+                withContext(Dispatchers.Main) { view?.updateChapters(chapters) }
+            }
+        }
     }
 
     override fun onDestroy() {
@@ -187,13 +194,18 @@ class MangaDetailsPresenter(
      */
     private fun setDownloadedChapters(chapters: List<ChapterItem>) {
         for (chapter in chapters) {
-            if (downloadManager.isChapterDownloaded(chapter, manga)) {
-                chapter.status = Download.State.DOWNLOADED
-            } else if (downloadManager.hasQueue()) {
-                chapter.status = downloadManager.queue
-                    .find { it.chapter.id == chapter.id }
-                    ?.status ?: Download.State.default
-            }
+            chapter.status =
+                if (downloadManager.isChapterDownloaded(chapter, manga)) {
+                    Download.State.DOWNLOADED
+                } else if (downloadManager.hasQueue()) {
+                    downloadManager.queue
+                        .find { it.chapter.id == chapter.id }
+                        ?.status ?: Download.State.default
+                } else if (!downloadManager.isCacheInitialized) {
+                    Download.State.PENDING
+                } else {
+                    Download.State.NOT_DOWNLOADED
+                }
         }
     }
 

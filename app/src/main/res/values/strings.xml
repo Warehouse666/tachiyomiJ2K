@@ -1017,6 +1017,7 @@
     <string name="downloaded">Downloaded</string>
     <string name="not_downloaded">Not downloaded</string>
     <string name="downloading">Downloading</string>
+    <string name="finding_downloads">Finding downloads…</string>
     <string name="download">Download</string>
     <string name="start_downloading_now">Start downloading now</string>
     <string name="remove_download">Remove download</string>

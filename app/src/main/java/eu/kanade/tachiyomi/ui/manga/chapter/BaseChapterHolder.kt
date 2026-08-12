@@ -23,6 +23,14 @@ open class BaseChapterHolder(
         val chapter = adapter.getItem(flexibleAdapterPosition) as? BaseChapterItem<*, *> ?: return
 
         val chapterStatus = extraStatus ?: chapter.status
+        if (chapterStatus == Download.State.PENDING) {
+            downloadButton.post {
+                val popup = PopupMenu(downloadButton.context, downloadButton)
+                popup.menu.add(downloadButton.context.getString(R.string.finding_downloads)).isEnabled = false
+                popup.show()
+            }
+            return
+        }
         if (chapterStatus == Download.State.NOT_DOWNLOADED || chapterStatus == Download.State.ERROR) {
             if (extraChapter != null) {
                 (adapter.baseDelegate as? BaseChapterAdapter.GroupedDownloadInterface)

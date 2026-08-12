@@ -177,6 +177,19 @@ class LibraryPresenter(
             lastAllLibraryItems = null
         }
         getLibrary()
+        if (!downloadManager.isCacheInitialized) {
+            view?.setDownloadCacheScanning(true)
+            presenterScope.launch {
+                downloadManager.awaitDownloadCacheReady()
+                setDownloadCount(allLibraryItems)
+                setDownloadCount(hiddenLibraryItems)
+                var mangaMap = allLibraryItems
+                mangaMap = applyFilters(mangaMap)
+                mangaMap = applySort(mangaMap)
+                sectionLibrary(mangaMap)
+                withContext(Dispatchers.Main) { view?.setDownloadCacheScanning(false) }
+            }
+        }
         if (preferences.showLibrarySearchSuggestions().isNotSet()) {
             DelayedLibrarySuggestionsJob.setupTask(context, true)
         } else if (preferences.showLibrarySearchSuggestions().get() &&

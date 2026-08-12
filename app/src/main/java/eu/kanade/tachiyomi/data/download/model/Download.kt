@@ -59,6 +59,9 @@ class Download(
         DOWNLOADING,
         DOWNLOADED,
         ERROR,
+
+        /** Downloaded status not yet known - the download cache hasn't finished its initial scan. */
+        PENDING,
         ;
 
         companion object {

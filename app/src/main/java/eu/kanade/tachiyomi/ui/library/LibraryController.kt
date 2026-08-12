@@ -268,6 +268,7 @@ open class LibraryController(
     private var staggeredObserver: ViewTreeObserver.OnGlobalLayoutListener? = null
     var isPoppingIn = false
     var tempItems: List<LibraryItem>? = null
+    private var isFindingDownloads = false
 
     // Dynamically injected into the search bar, controls category visibility during search
     private var showAllCategoriesView: ImageView? = null
@@ -495,6 +496,12 @@ open class LibraryController(
         setSubtitle()
     }
 
+    /** Called by the presenter once the download cache's initial scan starts/finishes. */
+    fun setDownloadCacheScanning(scanning: Boolean) {
+        isFindingDownloads = scanning
+        setSubtitle()
+    }
+
     private fun setSubtitle() {
         if (isBindingInitialized &&
             !singleCategory &&
@@ -503,7 +510,15 @@ open class LibraryController(
             !binding.recyclerCover.isClickable &&
             isControllerVisible
         ) {
-            activityBinding?.searchToolbar?.subtitle = binding.headerTitle.text.toString()
+            val categoryName = binding.headerTitle.text.toString()
+            activityBinding?.searchToolbar?.subtitle =
+                if (isFindingDownloads) {
+                    "$categoryName - ${view?.context?.getString(R.string.finding_downloads)}"
+                } else {
+                    categoryName
+                }
+        } else if (isBindingInitialized && isFindingDownloads) {
+            activityBinding?.searchToolbar?.subtitle = view?.context?.getString(R.string.finding_downloads)
         } else {
             activityBinding?.searchToolbar?.subtitle = null
         }

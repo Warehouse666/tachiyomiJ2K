@@ -12,12 +12,25 @@ import eu.kanade.tachiyomi.util.storage.DiskUtil
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.decodeFromByteArray
+import kotlinx.serialization.encodeToByteArray
+import kotlinx.serialization.protobuf.ProtoBuf
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import uy.kohesive.injekt.injectLazy
+import java.io.File
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 
 /**
@@ -36,6 +49,7 @@ class DownloadCache(
     private val provider: DownloadProvider,
     private val sourceManager: SourceManager,
     private val preferences: PreferencesHelper = Injekt.get(),
+    private val protoBuf: ProtoBuf = Injekt.get(),
 ) {
     /**
      * The interval after which this cache should be invalidated. 1 hour shouldn't cause major
@@ -46,19 +60,88 @@ class DownloadCache(
     /**
      * The last time the cache was refreshed.
      */
+    @Volatile
     private var lastRenew = 0L
 
-    private var mangaFiles: MutableMap<Long, MutableSet<String>> = mutableMapOf()
+    /**
+     * The in-flight renewal job, if any. Guards against overlapping tree walks when
+     * [checkRenew] and [forceRenewCache] are triggered close together from different threads.
+     */
+    private var renewJob: Job? = null
+
+    /**
+     * File names are stored lowercased so lookups can use direct hash membership instead of
+     * case-insensitive linear scans. Both the outer map and the per-manga sets are backed by
+     * [ConcurrentHashMap] since reads happen on whichever thread is binding UI while writes
+     * happen from the downloader and the renewal job.
+     */
+    private var mangaFiles: MutableMap<Long, MutableSet<String>> = ConcurrentHashMap()
+
+    private val _isInitialized = MutableStateFlow(false)
+
+    /**
+     * True once the first scan of the downloads directory has completed. Reads made before this
+     * flips true (e.g. right after a cold app start) reflect an empty cache, not "nothing is
+     * downloaded" - callers that need to distinguish those two cases should check this first.
+     */
+    val isInitialized: StateFlow<Boolean> = _isInitialized.asStateFlow()
 
     val scope = CoroutineScope(Job() + Dispatchers.IO)
 
+    /**
+     * Rebuilt from a full filesystem scan every time it goes stale, but that scan is expensive -
+     * this snapshot lets a cold app start skip it entirely and reuse whatever was last known,
+     * same as a normal renewal would until the next [renewInterval] elapses.
+     */
+    private val diskCacheFile: File
+        get() = File(context.cacheDir, "dl_index_cache")
+
     init {
+        scope.launch { loadDiskCache() }
         preferences
             .downloadsDirectory()
             .asFlow()
             .drop(1)
-            .onEach { lastRenew = 0L } // invalidate cache
-            .launchIn(scope)
+            .onEach {
+                lastRenew = 0L // invalidate cache
+                diskCacheFile.delete()
+            }.launchIn(scope)
+    }
+
+    private fun loadDiskCache() {
+        if (!diskCacheFile.exists()) return
+        try {
+            val snapshot =
+                diskCacheFile.inputStream().use {
+                    protoBuf.decodeFromByteArray<DiskCacheSnapshot>(it.readBytes())
+                }
+            snapshot.mangaFiles.forEach { (id, files) ->
+                mangaFiles[id] = files.toCollection(ConcurrentHashMap.newKeySet())
+            }
+            lastRenew = System.currentTimeMillis()
+            _isInitialized.value = true
+        } catch (e: Exception) {
+            diskCacheFile.delete()
+        }
+    }
+
+    private var persistJob: Job? = null
+
+    private fun persistToDiskDebounced() {
+        persistJob?.cancel()
+        persistJob =
+            scope.launch {
+                delay(1000)
+                ensureActive()
+                try {
+                    val snapshot = DiskCacheSnapshot(mangaFiles.mapValues { it.value.toList() })
+                    val bytes = protoBuf.encodeToByteArray(snapshot)
+                    ensureActive()
+                    diskCacheFile.writeBytes(bytes)
+                } catch (e: Exception) {
+                    // Best-effort: a stale or missing disk cache just means the next launch rescans.
+                }
+            }
     }
 
     /**
@@ -88,9 +171,10 @@ class DownloadCache(
 
         checkRenew()
 
-        val files = mangaFiles[manga.id]?.toHashSet() ?: return false
+        val files = mangaFiles[manga.id] ?: return false
         return provider.getValidChapterDirNames(chapter).any { chapName ->
-            files.any { chapName.equals(it, true) || "$chapName.cbz".equals(it, true) }
+            val lowerName = chapName.lowercase()
+            files.contains(lowerName) || files.contains("$lowerName.cbz")
         }
     }
 
@@ -119,24 +203,39 @@ class DownloadCache(
             return 0
         } else {
             val files = mangaFiles[manga.id] ?: return 0
-            return files.filter { !it.endsWith(Downloader.TMP_DIR_SUFFIX) }.size
+            return files.count { !it.endsWith(Downloader.TMP_DIR_SUFFIX) }
         }
     }
 
     /**
-     * Checks if the cache needs a renewal and performs it if needed.
+     * Checks if the cache needs a renewal and triggers it in the background if so. Never blocks
+     * the calling thread — this cache is only used for UI feedback, so a brief staleness window
+     * while renewal runs is preferable to stalling whatever screen is reading it.
      */
-    @Synchronized
-    private fun checkRenew() {
-        if (lastRenew + renewInterval < System.currentTimeMillis()) {
-            renew()
-            lastRenew = System.currentTimeMillis()
-        }
+    private fun checkRenew() = launchRenewIfNeeded(force = false)
+
+    fun forceRenewCache() = launchRenewIfNeeded(force = true)
+
+    /**
+     * Suspends until the first scan of the downloads directory has completed, triggering one if
+     * none is running or scheduled yet. Returns immediately if already initialized.
+     */
+    suspend fun awaitInitialScan() {
+        launchRenewIfNeeded(force = false)
+        isInitialized.first { it }
     }
 
-    fun forceRenewCache() {
-        renew()
+    @Synchronized
+    private fun launchRenewIfNeeded(force: Boolean) {
+        if (renewJob?.isActive == true) return
+        if (!force && lastRenew + renewInterval >= System.currentTimeMillis()) return
         lastRenew = System.currentTimeMillis()
+        renewJob =
+            scope.launch {
+                renew()
+                _isInitialized.value = true
+                persistToDiskDebounced()
+            }
     }
 
     /**
@@ -159,7 +258,15 @@ class DownloadCache(
 
         sourceDirs.forEach { sourceValue ->
             val sourceMangaRaw = mangas[sourceValue.key]?.toMutableSet() ?: return@forEach
-            val sourceMangaPair = sourceMangaRaw.partition { it.favorite }
+
+            // Favorites first so they win the lookup on a duplicate-title collision.
+            val mangaByDirName = LinkedHashMap<String, Manga>()
+            sourceMangaRaw
+                .sortedByDescending { it.favorite }
+                .forEach { manga ->
+                    val key = DiskUtil.buildValidFilename(manga.originalTitle).lowercase()
+                    mangaByDirName.putIfAbsent(key, manga)
+                }
 
             val sourceDir = sourceValue.value
 
@@ -174,36 +281,28 @@ class DownloadCache(
                                 .listFiles()
                                 .orEmpty()
                                 .mapNotNull { chapterFile ->
-                                    chapterFile.name?.substringBeforeLast(".cbz")
-                                }.toHashSet()
+                                    chapterFile.name?.substringBeforeLast(".cbz")?.lowercase()
+                                }.toCollection(ConcurrentHashMap.newKeySet())
                         name to MangaDirectory(mangaDir, chapterDirs)
                     }.toMap()
 
             val trueMangaDirs =
                 mangaDirs
                     .mapNotNull { mangaDir ->
-                        val manga =
-                            findManga(sourceMangaPair.first, mangaDir.key, sourceValue.key)
-                                ?: findManga(sourceMangaPair.second, mangaDir.key, sourceValue.key)
-                        val id = manga?.id ?: return@mapNotNull null
+                        val manga = mangaByDirName[mangaDir.key.lowercase()] ?: return@mapNotNull null
+                        val id = manga.id ?: return@mapNotNull null
                         id to mangaDir.value.files
                     }.toMap()
+
+            // Evict manga we know belong to this source but no longer have an on-disk folder,
+            // so deletions made outside the app (or by a previous cleanup) don't linger forever.
+            val knownMangaIds = sourceMangaRaw.mapNotNull { it.id }
+            val staleMangaIds = knownMangaIds.filter { it !in trueMangaDirs }
+            staleMangaIds.forEach { mangaFiles.remove(it) }
 
             mangaFiles.putAll(trueMangaDirs)
         }
     }
-
-    /**
-     * Searches a manga list and matches the given mangakey and source key
-     */
-    private fun findManga(
-        mangaList: List<Manga>,
-        mangaKey: String,
-        sourceKey: Long,
-    ): Manga? =
-        mangaList.find {
-            DiskUtil.buildValidFilename(it.originalTitle).equals(mangaKey, ignoreCase = true) && it.source == sourceKey
-        }
 
     /**
      * Adds a chapter that has just been download to this cache.
@@ -212,18 +311,15 @@ class DownloadCache(
      * @param mangaUniFile the directory of the manga.
      * @param manga the manga of the chapter.
      */
-    @Synchronized
     fun addChapter(
         chapterDirName: String,
         manga: Manga,
     ) {
         val id = manga.id ?: return
-        val files = mangaFiles[id]
-        if (files == null) {
-            mangaFiles[id] = mutableSetOf(chapterDirName)
-        } else {
-            mangaFiles[id]?.add(chapterDirName)
-        }
+        mangaFiles
+            .computeIfAbsent(id) { ConcurrentHashMap.newKeySet() }
+            .add(chapterDirName.lowercase())
+        persistToDiskDebounced()
     }
 
     /**
@@ -232,20 +328,18 @@ class DownloadCache(
      * @param chapters the list of chapter to remove.
      * @param manga the manga of the chapter.
      */
-    @Synchronized
     fun removeChapters(
         chapters: List<Chapter>,
         manga: Manga,
     ) {
         val id = manga.id ?: return
+        val files = mangaFiles[id] ?: return
         for (chapter in chapters) {
-            val list = provider.getValidChapterDirNames(chapter)
-            list.forEach { fileName ->
-                mangaFiles[id]?.firstOrNull { fileName.equals(it, true) }?.let { chapterFile ->
-                    mangaFiles[id]?.remove(chapterFile)
-                }
+            provider.getValidChapterDirNames(chapter).forEach { fileName ->
+                files.remove(fileName.lowercase())
             }
         }
+        persistToDiskDebounced()
     }
 
     fun removeFolders(
@@ -253,11 +347,11 @@ class DownloadCache(
         manga: Manga,
     ) {
         val id = manga.id ?: return
-        for (chapter in folders) {
-            if (mangaFiles[id] != null && chapter in mangaFiles[id]!!) {
-                mangaFiles[id]?.remove(chapter)
-            }
+        val files = mangaFiles[id] ?: return
+        for (folder in folders) {
+            files.remove(folder.lowercase())
         }
+        persistToDiskDebounced()
     }
 
 /*fun renameFolder(from: String, to: String, source: Long) {
@@ -278,10 +372,19 @@ class DownloadCache(
      *
      * @param manga the manga to remove.
      */
-    @Synchronized
     fun removeManga(manga: Manga) {
         mangaFiles.remove(manga.id)
+        persistToDiskDebounced()
     }
+
+    /**
+     * On-disk snapshot of [mangaFiles], written debounced on every change and read back on init
+     * so a cold app start can skip the filesystem scan entirely if a recent one exists.
+     */
+    @Serializable
+    private data class DiskCacheSnapshot(
+        val mangaFiles: Map<Long, List<String>> = emptyMap(),
+    )
 
     /**
      * Class to store the files under the root downloads directory.

@@ -97,6 +97,13 @@ class RecentsPresenter(
             lastRecentsType = null
         }
         getRecents()
+        if (!downloadManager.isCacheInitialized) {
+            presenterScope.launch {
+                downloadManager.awaitDownloadCacheReady()
+                setDownloadedChapters(recentItems)
+                withContext(Dispatchers.Main) { view?.showLists(recentItems, false) }
+            }
+        }
         listOf(
             preferences.groupChaptersHistory(),
             preferences.showReadInAllRecents(),
@@ -540,6 +547,10 @@ class RecentsPresenter(
             } else if (downloadManager.hasQueue()) {
                 item.download = downloadManager.queue.find { it.chapter.id == item.chapter.id }
                 item.status = item.download?.status ?: Download.State.default
+            } else if (!downloadManager.isCacheInitialized) {
+                item.status = Download.State.PENDING
+            } else {
+                item.status = Download.State.NOT_DOWNLOADED
             }
 
             item.downloadInfo =
@@ -551,6 +562,10 @@ class RecentsPresenter(
                     } else if (downloadManager.hasQueue()) {
                         downloadInfo.download = downloadManager.queue.find { it.chapter.id == chapter.id }
                         downloadInfo.status = downloadInfo.download?.status ?: Download.State.default
+                    } else if (!downloadManager.isCacheInitialized) {
+                        downloadInfo.status = Download.State.PENDING
+                    } else {
+                        downloadInfo.status = Download.State.NOT_DOWNLOADED
                     }
                     downloadInfo
                 }
