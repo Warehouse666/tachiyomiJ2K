@@ -28,6 +28,12 @@ class LibraryBadge
         val ogRadius = radius
         val roundedRadius = 8.7f.spToPx
 
+        companion object {
+            // resources.getIdentifier() is a slow string-based lookup; the lang->drawable mapping
+            // never changes at runtime, so cache it once instead of resolving it on every bind.
+            private val flagResCache = HashMap<String, Int>()
+        }
+
         override fun onFinishInflate() {
             super.onFinishInflate()
             binding = UnreadDownloadBadgeBinding.bind(this)
@@ -87,24 +93,7 @@ class LibraryBadge
             with(binding.langImage) {
                 isVisible = !lang.isNullOrBlank()
                 if (!lang.isNullOrBlank()) {
-                    val flagId =
-                        resources
-                            .getIdentifier(
-                                "ic_flag_${lang.replace("-", "_")}",
-                                "drawable",
-                                context.packageName,
-                            ).takeIf { it != 0 } ?: (
-                            if (lang.contains("-")) {
-                                resources
-                                    .getIdentifier(
-                                        "ic_flag_${lang.split("-").first()}",
-                                        "drawable",
-                                        context.packageName,
-                                    ).takeIf { it != 0 }
-                            } else {
-                                null
-                            }
-                        )
+                    val flagId = resolveFlagRes(lang).takeIf { it != 0 }
                     if (flagId != null) {
                         setImageResource(flagId)
                     } else {
@@ -206,6 +195,26 @@ class LibraryBadge
         fun setChapters(chapters: Int?) {
             setUnreadDownload(chapters ?: 0, 0, chapters != null, null, true)
         }
+
+        /** Returns the flag drawable res id for [lang], or 0 if none exists. */
+        private fun resolveFlagRes(lang: String): Int =
+            flagResCache.getOrPut(lang) {
+                resources
+                    .getIdentifier(
+                        "ic_flag_${lang.replace("-", "_")}",
+                        "drawable",
+                        context.packageName,
+                    ).takeIf { it != 0 }
+                    ?: if (lang.contains("-")) {
+                        resources.getIdentifier(
+                            "ic_flag_${lang.split("-").first()}",
+                            "drawable",
+                            context.packageName,
+                        )
+                    } else {
+                        0
+                    }
+            }
 
         fun setInLibrary(inLibrary: Boolean) {
             this.isVisible = inLibrary
