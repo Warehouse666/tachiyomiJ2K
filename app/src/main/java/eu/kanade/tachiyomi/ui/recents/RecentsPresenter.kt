@@ -316,8 +316,14 @@ class RecentsPresenter(
                         true
                     }
                 }
+        val chaptersByManga =
+            db
+                .getChapters(mangaList.mapNotNull { it.manga.id }.distinct())
+                .executeOnIO()
+                .groupBy { it.manga_id }
         val pairs: List<Pair<MangaChapterHistory, Chapter>> =
             mangaList.mapNotNull {
+                val mangaChapters = chaptersByManga[it.manga.id].orEmpty()
                 val chapter: Chapter? =
                     when {
                         // If the chapter is read in history/all or this mch is for a newly added manga
@@ -333,7 +339,7 @@ class RecentsPresenter(
                                 it.chapter
                             } else {
                                 val nextChapter =
-                                    getNextChapter(it.manga)
+                                    getNextChapter(it.manga, mangaChapters)
                                         ?: if (showRead && it.chapter.id != null) it.chapter else null
                                 if (viewType.isHistory &&
                                     nextChapter?.id != null &&
@@ -347,7 +353,7 @@ class RecentsPresenter(
                         }
                         // if in all view type and mch is a newly updated item
                         it.history.id == null && !viewType.isUpdates -> {
-                            getFirstUpdatedChapter(it.manga, it.chapter)
+                            getFirstUpdatedChapter(it.manga, it.chapter, mangaChapters)
                                 ?: if ((showRead && it.chapter.id != null)) it.chapter else null
                         }
                         else -> it.chapter
@@ -443,7 +449,9 @@ class RecentsPresenter(
             return
         }
         if (limit == -1) {
-            setDownloadedChapters(recentItems)
+            // Only the newly appended slice needs a download-status check; earlier pages were
+            // already resolved by a prior call and reusing the same item instances kept it.
+            setDownloadedChapters(newItems)
             withContext(Dispatchers.Main) {
                 view?.showLists(recentItems, hasNewItems, shouldMoveToTop)
                 isLoading = false
@@ -495,23 +503,22 @@ class RecentsPresenter(
         return Triple(sortedChapters, firstChapter, extraCount)
     }
 
-    private fun getNextChapter(manga: Manga): Chapter? {
-        val chapters = db.getChapters(manga).executeAsBlocking()
-        return ChapterSort(manga, chapterFilter, preferences).getNextUnreadChapter(chapters, false)
-    }
+    private fun getNextChapter(
+        manga: Manga,
+        chapters: List<Chapter>,
+    ): Chapter? = ChapterSort(manga, chapterFilter, preferences).getNextUnreadChapter(chapters, false)
 
     private fun getFirstUpdatedChapter(
         manga: Manga,
         chapter: Chapter,
-    ): Chapter? {
-        val chapters = db.getChapters(manga).executeAsBlocking()
-        return chapters
+        chapters: List<Chapter>,
+    ): Chapter? =
+        chapters
             .filterChaptersByScanlators(manga)
             .sortedWith(ChapterSort(manga, chapterFilter, preferences).sortComparator(true))
             .find {
                 !it.read && abs(it.date_fetch - chapter.date_fetch) <= TimeUnit.HOURS.toMillis(12)
             }
-    }
 
     override fun onDestroy() {
         super.onDestroy()

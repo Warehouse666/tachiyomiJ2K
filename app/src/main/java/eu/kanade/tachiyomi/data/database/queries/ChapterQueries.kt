@@ -1,5 +1,6 @@
 package eu.kanade.tachiyomi.data.database.queries
 
+import com.pushtorefresh.storio.Queries
 import com.pushtorefresh.storio.sqlite.queries.Query
 import com.pushtorefresh.storio.sqlite.queries.RawQuery
 import eu.kanade.tachiyomi.data.database.DbProvider
@@ -27,6 +28,20 @@ interface ChapterQueries : DbProvider {
                     .table(ChapterTable.TABLE)
                     .where("${ChapterTable.COL_MANGA_ID} = ?")
                     .whereArgs(mangaId)
+                    .build(),
+            ).prepare()
+
+    /** Batched variant of [getChapters] for callers that would otherwise query per-manga in a loop. */
+    fun getChapters(mangaIds: List<Long>) =
+        db
+            .get()
+            .listOfObjects(Chapter::class.java)
+            .withQuery(
+                Query
+                    .builder()
+                    .table(ChapterTable.TABLE)
+                    .where("${ChapterTable.COL_MANGA_ID} IN (${Queries.placeholders(mangaIds.size)})")
+                    .whereArgs(*mangaIds.toTypedArray())
                     .build(),
             ).prepare()
 
