@@ -15,20 +15,39 @@ val libraryQuery =
     """
     SELECT M.*, COALESCE(MC.${MangaCategory.COL_CATEGORY_ID}, 0) AS ${Manga.COL_CATEGORY}
     FROM (
-        SELECT ${Manga.TABLE}.*, COALESCE(C.unread, '') AS ${Manga.COL_UNREAD}, COALESCE(R.hasread, '') AS ${Manga.COL_HAS_READ}, COALESCE(B.bookmarkCount, 0) AS ${Manga.COL_BOOKMARK_COUNT}
+        SELECT ${Manga.TABLE}.*,
+            COALESCE(CC.count, 0) AS ${Manga.COL_UNREAD_COUNT}, COALESCE(C.unread, '') AS ${Manga.COL_UNREAD},
+            COALESCE(RC.count, 0) AS ${Manga.COL_READ_COUNT}, COALESCE(R.hasread, '') AS ${Manga.COL_HAS_READ},
+            COALESCE(B.bookmarkCount, 0) AS ${Manga.COL_BOOKMARK_COUNT}
         FROM ${Manga.TABLE}
         LEFT JOIN (
-            SELECT ${Chapter.COL_MANGA_ID}, GROUP_CONCAT(IFNULL(${Chapter.TABLE}.${Chapter.COL_SCANLATOR}, "N/A"), " [.] ") AS unread
+            SELECT ${Chapter.COL_MANGA_ID}, COUNT(*) AS count
             FROM ${Chapter.TABLE}
             WHERE ${Chapter.COL_READ} = 0
             GROUP BY ${Chapter.COL_MANGA_ID}
+        ) AS CC
+        ON ${Manga.COL_ID} = CC.${Chapter.COL_MANGA_ID}
+        LEFT JOIN (
+            SELECT ${Chapter.TABLE}.${Chapter.COL_MANGA_ID}, GROUP_CONCAT(IFNULL(${Chapter.TABLE}.${Chapter.COL_SCANLATOR}, "N/A"), " [.] ") AS unread
+            FROM ${Chapter.TABLE}
+            JOIN ${Manga.TABLE} FS ON FS.${Manga.COL_ID} = ${Chapter.TABLE}.${Chapter.COL_MANGA_ID}
+            WHERE ${Chapter.COL_READ} = 0 AND FS.${Manga.COL_FILTERED_SCANLATORS} IS NOT NULL
+            GROUP BY ${Chapter.TABLE}.${Chapter.COL_MANGA_ID}
         ) AS C
         ON ${Manga.COL_ID} = C.${Chapter.COL_MANGA_ID}
         LEFT JOIN (
-            SELECT ${Chapter.COL_MANGA_ID}, GROUP_CONCAT(IFNULL(${Chapter.TABLE}.${Chapter.COL_SCANLATOR}, "N/A"), " [.] ") AS hasread
+            SELECT ${Chapter.COL_MANGA_ID}, COUNT(*) AS count
             FROM ${Chapter.TABLE}
             WHERE ${Chapter.COL_READ} = 1
             GROUP BY ${Chapter.COL_MANGA_ID}
+        ) AS RC
+        ON ${Manga.COL_ID} = RC.${Chapter.COL_MANGA_ID}
+        LEFT JOIN (
+            SELECT ${Chapter.TABLE}.${Chapter.COL_MANGA_ID}, GROUP_CONCAT(IFNULL(${Chapter.TABLE}.${Chapter.COL_SCANLATOR}, "N/A"), " [.] ") AS hasread
+            FROM ${Chapter.TABLE}
+            JOIN ${Manga.TABLE} FS ON FS.${Manga.COL_ID} = ${Chapter.TABLE}.${Chapter.COL_MANGA_ID}
+            WHERE ${Chapter.COL_READ} = 1 AND FS.${Manga.COL_FILTERED_SCANLATORS} IS NOT NULL
+            GROUP BY ${Chapter.TABLE}.${Chapter.COL_MANGA_ID}
         ) AS R
         ON ${Manga.COL_ID} = R.${Chapter.COL_MANGA_ID}
         LEFT JOIN (

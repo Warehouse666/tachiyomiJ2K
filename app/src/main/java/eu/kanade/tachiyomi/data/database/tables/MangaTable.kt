@@ -35,7 +35,11 @@ object MangaTable {
 
     const val COL_UNREAD = "unread"
 
+    const val COL_UNREAD_COUNT = "unread_count"
+
     const val COL_HAS_READ = "has_read"
+
+    const val COL_READ_COUNT = "read_count"
 
     const val COL_BOOKMARK_COUNT = "bookmark_count"
 

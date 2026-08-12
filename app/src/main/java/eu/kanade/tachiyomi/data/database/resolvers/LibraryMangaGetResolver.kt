@@ -19,25 +19,35 @@ class LibraryMangaGetResolver :
 
         mapBaseFromCursor(manga, cursor)
         manga.unread =
-            cursor
-                .getString(cursor.getColumnIndex(MangaTable.COL_UNREAD))
-                .filterChaptersByScanlators(manga)
+            cursor.resolveChapterCount(manga, MangaTable.COL_UNREAD_COUNT, MangaTable.COL_UNREAD)
         manga.category = cursor.getInt(cursor.getColumnIndex(MangaTable.COL_CATEGORY))
         manga.read =
-            cursor
-                .getString(cursor.getColumnIndex(MangaTable.COL_HAS_READ))
-                .filterChaptersByScanlators(manga)
+            cursor.resolveChapterCount(manga, MangaTable.COL_READ_COUNT, MangaTable.COL_HAS_READ)
         manga.bookmarkCount = cursor.getInt(cursor.getColumnIndex(MangaTable.COL_BOOKMARK_COUNT))
 
         return manga
     }
 
+    /**
+     * The query already computes a plain COUNT(*) for the common case. Scanlator names are only
+     * concatenated (and thus only need parsing here) for manga that actually have a per-manga
+     * scanlator filter set - see [eu.kanade.tachiyomi.data.database.queries.libraryQuery].
+     */
+    private fun Cursor.resolveChapterCount(
+        manga: LibraryManga,
+        countColumn: String,
+        scanlatorListColumn: String,
+    ): Int {
+        if (manga.filtered_scanlators.isNullOrBlank()) {
+            return getInt(getColumnIndex(countColumn))
+        }
+        return getString(getColumnIndex(scanlatorListColumn)).filterChaptersByScanlators(manga)
+    }
+
     private fun String.filterChaptersByScanlators(manga: LibraryManga): Int {
         if (isEmpty()) return 0
         val list = split(" [.] ")
-        return manga.filtered_scanlators?.let { filteredScanlatorString ->
-            val filteredScanlators = ChapterUtil.getScanlators(filteredScanlatorString)
-            list.count { ChapterUtil.getScanlators(it).none { group -> filteredScanlators.contains(group) } }
-        } ?: list.size
+        val filteredScanlators = ChapterUtil.getScanlators(manga.filtered_scanlators)
+        return list.count { ChapterUtil.getScanlators(it).none { group -> filteredScanlators.contains(group) } }
     }
 }
