@@ -267,23 +267,34 @@ class RecentMangaHolder(
             }
             addMoreUpdatesText(!moreVisible, item)
         } else {
-            binding.moreChaptersLayout.removeAllViews()
+            extraChapterMaxSize = if (adapter.viewType.isHistory) 20 else 10
+            val newChapters = item.mch.extraChapters.shorterList()
+            val existingViews = binding.moreChaptersLayout.children.toList()
             var hasSameChapter = false
-            if (item.mch.extraChapters.isNotEmpty()) {
-                extraChapterMaxSize = if (adapter.viewType.isHistory) 20 else 10
-                item.mch.extraChapters.shorterList().forEach { chapter ->
-                    val binding =
+            // Reuse as many existing rows as possible instead of destroying and re-inflating
+            // everything - a recycled ViewHolder almost never matches its new item's chapter
+            // set exactly, so the fast path above rarely applies during normal scrolling.
+            newChapters.forEachIndexed { index, chapter ->
+                val subBinding =
+                    if (index < existingViews.size) {
+                        RecentSubChapterItemBinding.bind(existingViews[index])
+                    } else {
                         RecentSubChapterItemBinding.inflate(
                             LayoutInflater.from(context),
                             binding.moreChaptersLayout,
                             true,
                         )
-                    binding.configureView(chapter, item)
-                    if (isUpdates && !binding.subtitle.text.isNullOrBlank() && !hasSameChapter) {
-                        showScanlatorInBody(moreVisible, item)
-                        hasSameChapter = true
                     }
+                subBinding.configureView(chapter, item)
+                if (isUpdates && !subBinding.subtitle.text.isNullOrBlank() && !hasSameChapter) {
+                    showScanlatorInBody(moreVisible, item)
+                    hasSameChapter = true
                 }
+            }
+            for (index in existingViews.size - 1 downTo newChapters.size) {
+                binding.moreChaptersLayout.removeViewAt(index)
+            }
+            if (newChapters.isNotEmpty()) {
                 addMoreUpdatesText(!moreVisible, item)
             } else {
                 chapterId = null
