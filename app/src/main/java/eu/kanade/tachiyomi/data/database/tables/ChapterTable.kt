@@ -55,10 +55,26 @@ object ChapterTable {
     val createMangaIdIndexQuery: String
         get() = "CREATE INDEX ${TABLE}_${COL_MANGA_ID}_index ON $TABLE($COL_MANGA_ID)"
 
+    val createUrlIndexQuery: String
+        get() = "CREATE INDEX ${TABLE}_${COL_URL}_index ON $TABLE($COL_URL)"
+
     val createUnreadChaptersIndexQuery: String
         get() =
             "CREATE INDEX ${TABLE}_unread_by_manga_index ON $TABLE($COL_MANGA_ID, $COL_READ) " +
                 "WHERE $COL_READ = 0"
+
+    val createDateFetchIndexQuery: String
+        get() = "CREATE INDEX ${TABLE}_${COL_DATE_FETCH}_index ON $TABLE($COL_DATE_FETCH)"
+
+    val createReadByScanlatorIndexQuery: String
+        get() =
+            "CREATE INDEX ${TABLE}_read_by_scanlator_index ON $TABLE($COL_MANGA_ID, $COL_SCANLATOR) " +
+                "WHERE $COL_READ = 1"
+
+    val createBookmarkedIndexQuery: String
+        get() =
+            "CREATE INDEX ${TABLE}_bookmarked_by_manga_index ON $TABLE($COL_MANGA_ID) " +
+                "WHERE $COL_BOOKMARK = 1"
 
     val sourceOrderUpdateQuery: String
         get() = "ALTER TABLE $TABLE ADD COLUMN $COL_SOURCE_ORDER INTEGER DEFAULT 0"

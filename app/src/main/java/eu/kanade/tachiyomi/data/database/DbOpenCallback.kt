@@ -19,7 +19,7 @@ class DbOpenCallback : SupportSQLiteOpenHelper.Callback(DATABASE_VERSION) {
         /**
          * Version of the database.
          */
-        const val DATABASE_VERSION = 19
+        const val DATABASE_VERSION = 20
     }
 
     override fun onOpen(db: SupportSQLiteDatabase) {
@@ -50,9 +50,16 @@ class DbOpenCallback : SupportSQLiteOpenHelper.Callback(DATABASE_VERSION) {
             // DB indexes
             execSQL(MangaTable.createUrlIndexQuery)
             execSQL(MangaTable.createLibraryIndexQuery)
+            execSQL(MangaTable.createSourceIndexQuery)
             execSQL(ChapterTable.createMangaIdIndexQuery)
             execSQL(ChapterTable.createUnreadChaptersIndexQuery)
-            execSQL(HistoryTable.createChapterIdIndexQuery)
+            execSQL(ChapterTable.createUrlIndexQuery)
+            execSQL(ChapterTable.createDateFetchIndexQuery)
+            execSQL(ChapterTable.createReadByScanlatorIndexQuery)
+            execSQL(ChapterTable.createBookmarkedIndexQuery)
+            execSQL(MangaCategoryTable.createMangaIdIndexQuery)
+            execSQL(MangaCategoryTable.createCategoryIdIndexQuery)
+            execSQL(HistoryTable.createLastReadIndexQuery)
         }
 
     override fun onUpgrade(
@@ -128,6 +135,19 @@ class DbOpenCallback : SupportSQLiteOpenHelper.Callback(DATABASE_VERSION) {
         }
         if (oldVersion < 19) {
             db.execSQL(TrackTable.addPrivate)
+        }
+        if (oldVersion < 20) {
+            db.execSQL(MangaCategoryTable.createMangaIdIndexQuery)
+            db.execSQL(MangaCategoryTable.createCategoryIdIndexQuery)
+            db.execSQL(HistoryTable.createLastReadIndexQuery)
+            db.execSQL(ChapterTable.createDateFetchIndexQuery)
+            db.execSQL(ChapterTable.createReadByScanlatorIndexQuery)
+            db.execSQL(ChapterTable.createBookmarkedIndexQuery)
+            db.execSQL(ChapterTable.createUrlIndexQuery)
+            db.execSQL(MangaTable.createSourceIndexQuery)
+            // Redundant with the UNIQUE constraint on history_chapter_id
+            db.execSQL(HistoryTable.dropChapterIdIndexQuery)
+            db.execSQL("ANALYZE")
         }
     }
 

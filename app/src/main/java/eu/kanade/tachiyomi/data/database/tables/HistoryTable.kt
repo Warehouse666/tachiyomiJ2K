@@ -42,7 +42,16 @@ object HistoryTable {
 
     /**
      * query to index history chapter id
+     *
+     * Redundant since [COL_CHAPTER_ID] is UNIQUE (SQLite backs unique columns with an implicit
+     * index), kept only so old installs can drop it via [dropChapterIdIndexQuery].
      */
     val createChapterIdIndexQuery: String
         get() = "CREATE INDEX ${TABLE}_${COL_CHAPTER_ID}_index ON $TABLE($COL_CHAPTER_ID)"
+
+    val dropChapterIdIndexQuery: String
+        get() = "DROP INDEX IF EXISTS ${TABLE}_${COL_CHAPTER_ID}_index"
+
+    val createLastReadIndexQuery: String
+        get() = "CREATE INDEX ${TABLE}_${COL_LAST_READ}_index ON $TABLE($COL_LAST_READ)"
 }

@@ -20,4 +20,10 @@ object MangaCategoryTable {
             FOREIGN KEY($COL_MANGA_ID) REFERENCES ${MangaTable.TABLE} (${MangaTable.COL_ID})
             ON DELETE CASCADE
             )"""
+
+    val createMangaIdIndexQuery: String
+        get() = "CREATE INDEX ${TABLE}_${COL_MANGA_ID}_index ON $TABLE($COL_MANGA_ID)"
+
+    val createCategoryIdIndexQuery: String
+        get() = "CREATE INDEX ${TABLE}_${COL_CATEGORY_ID}_index ON $TABLE($COL_CATEGORY_ID)"
 }
