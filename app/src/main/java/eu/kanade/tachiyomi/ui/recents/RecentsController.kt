@@ -197,7 +197,9 @@ class RecentsController(
             // list is only kept in place once layout resumes
             recycler.doOnNextLayout {
                 val delta = recycler.paddingTop - paddingBefore
-                if (delta != 0) recycler.scrollBy(0, -delta)
+                if (if (recycler.canScrollVertically(-1)) delta != 0 else delta > 0) {
+                    recycler.scrollBy(0, -delta)
+                }
                 appBar?.updateAppBarAfterY(recycler)
                 colorToolbar?.invoke(recycler.canScrollVertically(-1))
             }
