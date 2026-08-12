@@ -31,8 +31,7 @@ class LibraryHeaderItem(
         layoutParams?.isFullSpan = true
     }
 
-    val category: Category
-        get() = categoryF(catId)
+    val category: Category by lazy { categoryF(catId) }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

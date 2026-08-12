@@ -636,9 +636,15 @@ class LibraryPresenter(
             db.getLastFetchedManga().executeAsBlocking().associate { it.id!! to counter++ }
         }
 
-        val sortFn: (LibraryItem, LibraryItem) -> Int = { i1, i2 ->
-            if (i1.header.category.id == i2.header.category.id) {
-                val category = i1.header.category
+        // Assign a default sort mode once per category up front instead of lazily inside the
+        // comparator. Only categories with 2+ items here ever reach the same-category comparator
+        // branch below, so this only touches the same categories the old inline check did.
+        itemList
+            .groupBy { it.header.category.id }
+            .values
+            .filter { it.size > 1 }
+            .forEach { group ->
+                val category = group.first().header.category
                 if (category.mangaOrder.isEmpty() && category.mangaSort == null) {
                     category.changeSortTo(preferences.librarySortingMode().get())
                     if (category.id == 0) {
@@ -649,6 +655,31 @@ class LibraryPresenter(
                         db.insertCategory(category).executeAsBlocking()
                     }
                 }
+            }
+
+        val mangaOrderIndexCache = mutableMapOf<Int, Map<Long, Int>>()
+
+        fun mangaOrderIndex(category: Category): Map<Long, Int> =
+            mangaOrderIndexCache.getOrPut(category.id ?: 0) {
+                category.mangaOrder.withIndex().associate { (index, id) -> id to index }
+            }
+
+        val sortTitleCache = mutableMapOf<Long, String>()
+
+        fun sortAlphabetical(
+            i1: LibraryItem,
+            i2: LibraryItem,
+        ): Int {
+            fun sortTitle(item: LibraryItem) =
+                sortTitleCache.getOrPut(item.manga.id!!) {
+                    if (removeArticles) item.manga.title.removeArticles() else item.manga.title
+                }
+            return sortTitle(i1).compareTo(sortTitle(i2), true)
+        }
+
+        val sortFn: (LibraryItem, LibraryItem) -> Int = { i1, i2 ->
+            if (i1.header.category.id == i2.header.category.id) {
+                val category = i1.header.category
                 val compare =
                     when {
                         category.mangaSort != null -> {
@@ -699,9 +730,9 @@ class LibraryPresenter(
                             sort
                         }
                         category.mangaOrder.isNotEmpty() -> {
-                            val order = category.mangaOrder
-                            val index1 = order.indexOf(i1.manga.id!!)
-                            val index2 = order.indexOf(i2.manga.id!!)
+                            val order = mangaOrderIndex(category)
+                            val index1 = order[i1.manga.id!!] ?: -1
+                            val index2 = order[i2.manga.id!!] ?: -1
                             when {
                                 index1 == index2 -> 0
                                 index1 == -1 -> -1
@@ -735,24 +766,6 @@ class LibraryPresenter(
         category.isAlone = categories.size <= 1
         return category
     }
-
-    /**
-     * Sort 2 manga by the their title (and remove articles if need be)
-     *
-     * @param i1 the first manga
-     * @param i2 the second manga to compare
-     */
-    private fun sortAlphabetical(
-        i1: LibraryItem,
-        i2: LibraryItem,
-    ): Int =
-        if (removeArticles) {
-            i1.manga.title
-                .removeArticles()
-                .compareTo(i2.manga.title.removeArticles(), true)
-        } else {
-            i1.manga.title.compareTo(i2.manga.title, true)
-        }
 
     /**
      * Get the categories and all its manga from the database.
