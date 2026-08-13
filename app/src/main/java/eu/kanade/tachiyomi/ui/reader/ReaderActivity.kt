@@ -916,58 +916,67 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
         return handled || super.dispatchKeyEvent(event)
     }
 
-    override fun onKeyUp(
+    override fun onKeyDown(
         keyCode: Int,
         event: KeyEvent?,
     ): Boolean {
+        // Each of these should only fire once per physical press, not on every auto-repeated
+        // ACTION_DOWN a held key/button generates - matching the old ACTION_UP-based firing,
+        // which has no repeat concept, only a single release.
+        val isInitialPress = event?.repeatCount == 0
         when (keyCode) {
             KeyEvent.KEYCODE_N -> {
-                if (viewer is R2LPagerViewer && !binding.readerNav.pageSeekbar.isVertical) {
-                    binding.readerNav.leftChapter.performClick()
-                } else {
-                    binding.readerNav.rightChapter.performClick()
+                if (isInitialPress) {
+                    if (viewer is R2LPagerViewer && !binding.readerNav.pageSeekbar.isVertical) {
+                        binding.readerNav.leftChapter.performClick()
+                    } else {
+                        binding.readerNav.rightChapter.performClick()
+                    }
                 }
                 return true
             }
             KeyEvent.KEYCODE_P -> {
-                if (viewer !is R2LPagerViewer && !binding.readerNav.pageSeekbar.isVertical) {
-                    binding.readerNav.leftChapter.performClick()
-                } else {
-                    binding.readerNav.rightChapter.performClick()
+                if (isInitialPress) {
+                    if (viewer !is R2LPagerViewer && !binding.readerNav.pageSeekbar.isVertical) {
+                        binding.readerNav.leftChapter.performClick()
+                    } else {
+                        binding.readerNav.rightChapter.performClick()
+                    }
                 }
                 return true
             }
             KeyEvent.KEYCODE_L -> {
-                binding.readerNav.leftChapter.performClick()
+                if (isInitialPress) binding.readerNav.leftChapter.performClick()
                 return true
             }
             KeyEvent.KEYCODE_R -> {
-                binding.readerNav.rightChapter.performClick()
+                if (isInitialPress) binding.readerNav.rightChapter.performClick()
                 return true
             }
             KeyEvent.KEYCODE_E -> {
-                viewer?.moveToNext()
+                if (isInitialPress) viewer?.moveToNext()
                 return true
             }
             KeyEvent.KEYCODE_Q -> {
-                viewer?.moveToPrevious()
+                if (isInitialPress) viewer?.moveToPrevious()
                 return true
             }
             KeyEvent.KEYCODE_BUTTON_START -> {
-                toggleMenu()
+                if (isInitialPress) toggleMenu()
                 return true
             }
             KeyEvent.KEYCODE_MENU -> {
-                if (event?.isFromSource(InputDevice.SOURCE_GAMEPAD) != true) {
+                if (isInitialPress && event?.isFromSource(InputDevice.SOURCE_GAMEPAD) != true) {
                     toggleMenu()
                 }
                 return true
             }
             KeyEvent.KEYCODE_BUTTON_SELECT, KeyEvent.KEYCODE_C -> {
-                toggleChapterList()
+                if (isInitialPress) toggleChapterList()
                 return true
             }
             KeyEvent.KEYCODE_BUTTON_B -> {
+                if (!isInitialPress) return true
                 if (binding.chaptersSheet.root.sheetBehavior
                         .isExpanded() &&
                     menuVisible
@@ -983,7 +992,7 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
                 }
                 return true
             }
-            else -> return super.onKeyUp(keyCode, event)
+            else -> return super.onKeyDown(keyCode, event)
         }
     }
 

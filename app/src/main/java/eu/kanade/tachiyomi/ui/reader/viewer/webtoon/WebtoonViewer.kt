@@ -365,20 +365,26 @@ class WebtoonViewer(
      * if the event was handled, false otherwise.
      */
     override fun handleKeyEvent(event: KeyEvent): Boolean {
-        val isUp = event.action == KeyEvent.ACTION_UP
+        // Scrolling should only fire once per physical press - repeatCount == 0 excludes the
+        // auto-repeated ACTION_DOWN events a held key/button generates, matching the old
+        // ACTION_UP-based firing (which has no repeat concept, only a single release). Zoom/pan
+        // is allowed to repeat while held instead, since continuously zooming/panning is the
+        // point, so those branches key off [isDown] alone.
+        val isDown = event.action == KeyEvent.ACTION_DOWN
+        val isInitialDown = isDown && event.repeatCount == 0
 
         when (event.keyCode) {
             KeyEvent.KEYCODE_VOLUME_DOWN -> {
                 if (!config.volumeKeysEnabled || activity.menuVisible) {
                     return false
-                } else if (isUp) {
+                } else if (isInitialDown) {
                     if (!config.volumeKeysInverted) moveToNext() else moveToPrevious()
                 }
             }
             KeyEvent.KEYCODE_VOLUME_UP -> {
                 if (!config.volumeKeysEnabled || activity.menuVisible) {
                     return false
-                } else if (isUp) {
+                } else if (isInitialDown) {
                     if (!config.volumeKeysInverted) moveToPrevious() else moveToNext()
                 }
             }
@@ -389,34 +395,38 @@ class WebtoonViewer(
             // below), otherwise scroll like up/down do.
             KeyEvent.KEYCODE_DPAD_RIGHT -> {
                 if (activity.menuVisible) return false
-                if (isUp) {
-                    if (isZoomedIn()) pan(-PAN_STEP, 0f) else moveToNext()
+                if (isZoomedIn()) {
+                    if (isDown) pan(-PAN_STEP, 0f)
+                } else if (isInitialDown) {
+                    moveToNext()
                 }
             }
             KeyEvent.KEYCODE_DPAD_LEFT -> {
                 if (activity.menuVisible) return false
-                if (isUp) {
-                    if (isZoomedIn()) pan(PAN_STEP, 0f) else moveToPrevious()
+                if (isZoomedIn()) {
+                    if (isDown) pan(PAN_STEP, 0f)
+                } else if (isInitialDown) {
+                    moveToPrevious()
                 }
             }
             KeyEvent.KEYCODE_DPAD_UP -> {
                 if (activity.menuVisible) return false
-                if (isUp) moveToPrevious()
+                if (isDown) moveToPrevious()
             }
             KeyEvent.KEYCODE_DPAD_DOWN -> {
                 if (activity.menuVisible) return false
-                if (isUp) moveToNext()
+                if (isDown) moveToNext()
             }
-            KeyEvent.KEYCODE_PAGE_UP -> if (isUp) moveToPrevious()
-            KeyEvent.KEYCODE_PAGE_DOWN -> if (isUp) moveToNext()
+            KeyEvent.KEYCODE_PAGE_UP -> if (isDown) moveToPrevious()
+            KeyEvent.KEYCODE_PAGE_DOWN -> if (isDown) moveToNext()
 
             // Gamepad shoulder buttons scroll up/down.
-            KeyEvent.KEYCODE_BUTTON_L1 -> if (isUp) moveToPrevious()
-            KeyEvent.KEYCODE_BUTTON_R1 -> if (isUp) moveToNext()
+            KeyEvent.KEYCODE_BUTTON_L1 -> if (isInitialDown) moveToPrevious()
+            KeyEvent.KEYCODE_BUTTON_R1 -> if (isInitialDown) moveToNext()
 
-            // Gamepad X/Y zoom the recycler in/out.
-            KeyEvent.KEYCODE_BUTTON_Y -> if (isUp) zoomIn()
-            KeyEvent.KEYCODE_BUTTON_X -> if (isUp) zoomOut()
+            // Gamepad X/Y zoom the recycler in/out, repeating while held.
+            KeyEvent.KEYCODE_BUTTON_Y -> if (isDown) zoomIn()
+            KeyEvent.KEYCODE_BUTTON_X -> if (isDown) zoomOut()
             else -> return false
         }
         return true

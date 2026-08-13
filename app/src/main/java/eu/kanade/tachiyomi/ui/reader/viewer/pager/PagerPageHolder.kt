@@ -274,15 +274,17 @@ class PagerPageHolder(
         }
     }
 
-    /**
-     * Check if the image can be panned to the left
-     */
+    /** Check if the image can be panned to the left */
     fun canPanLeft(): Boolean = canPan { it.left }
 
-    /**
-     * Check if the image can be panned to the right
-     */
+    /** Check if the image can be panned to the right */
     fun canPanRight(): Boolean = canPan { it.right }
+
+    /** Check if the image can be panned upward */
+    fun canPanUp(): Boolean = canPan { it.top }
+
+    /** Check if the image can be panned downward */
+    fun canPanDown(): Boolean = canPan { it.bottom }
 
     /**
      * Check whether the image can be panned.

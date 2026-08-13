@@ -30,6 +30,7 @@ import eu.kanade.tachiyomi.ui.reader.viewer.gamepadZoomRate
 import eu.kanade.tachiyomi.ui.reader.viewer.isDpadHatMotion
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.android.awaitFrame
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -127,6 +128,17 @@ abstract class PagerViewer(
      * Keeps zooming for as long as [zoomRate] is non-zero, e.g. while a trigger is held.
      */
     private val zoomLoop = GamepadHoldLoop(scope, activity, ZOOM_HOLD_INTERVAL_MS, { zoomRate }, ::zoomBy)
+
+    /**
+     * Which dpad directions are currently held, used by [startDpadPanLoop] to combine
+     * simultaneously-held directions into a single diagonal pan.
+     */
+    private var isDpadUpHeld = false
+    private var isDpadDownHeld = false
+    private var isDpadLeftHeld = false
+    private var isDpadRightHeld = false
+
+    private var dpadPanDebounceJob: Job? = null
 
     private var pagerListener =
         object : ViewPager.SimpleOnPageChangeListener() {
@@ -534,75 +546,104 @@ abstract class PagerViewer(
      * if the event was handled, false otherwise.
      */
     override fun handleKeyEvent(event: KeyEvent): Boolean {
-        val isUp = event.action == KeyEvent.ACTION_UP
+        // Page-turning/scrolling should only fire once per physical press - repeatCount == 0
+        // excludes the auto-repeated ACTION_DOWN events a held key/button generates, matching
+        // the old ACTION_UP-based firing (which has no repeat concept, only a single release).
+        // Zoom/pan is allowed to repeat while held instead, since continuously zooming/panning
+        // is the point, so those branches key off [isDown] alone.
+        val isDown = event.action == KeyEvent.ACTION_DOWN
+        val isInitialDown = isDown && event.repeatCount == 0
 
         when (event.keyCode) {
             KeyEvent.KEYCODE_VOLUME_DOWN -> {
                 if (!config.volumeKeysEnabled || activity.menuVisible) {
                     return false
-                } else if (isUp) {
+                } else if (isInitialDown) {
                     if (!config.volumeKeysInverted) moveDown() else moveUp()
                 }
             }
             KeyEvent.KEYCODE_VOLUME_UP -> {
                 if (!config.volumeKeysEnabled || activity.menuVisible) {
                     return false
-                } else if (isUp) {
+                } else if (isInitialDown) {
                     if (!config.volumeKeysInverted) moveUp() else moveDown()
                 }
             }
             // While the menu is open, let the dpad/arrow keys drive normal Android focus
-            // navigation between the menu's buttons instead of turning/panning pages.
+            // navigation between the menu's buttons instead of turning/panning pages. While
+            // zoomed in, holding a direction pans via startDpadPanLoop rather than firing pan()
+            // directly here, so simultaneously held directions combine into a diagonal pan
+            // instead of relying on (unreliable, single-key) OS key-repeat for each axis.
             KeyEvent.KEYCODE_DPAD_RIGHT -> {
                 if (activity.menuVisible) return false
-                if (isUp) {
-                    if (isZoomedIn()) {
-                        pan(PAN_STEP, 0f)
-                    } else {
+                if (!isDown) {
+                    isDpadRightHeld = false
+                } else if (isZoomedIn()) {
+                    isDpadRightHeld = true
+                    if (isInitialDown && this !is VerticalPagerViewer && currentPageHolder()?.canPanRight() == false) {
                         moveRight()
+                    } else {
+                        startDpadPanLoop(event.keyCode, event.repeatCount > 0)
                     }
+                } else if (isInitialDown) {
+                    moveRight()
                 }
             }
             KeyEvent.KEYCODE_DPAD_LEFT -> {
                 if (activity.menuVisible) return false
-                if (isUp) {
-                    if (isZoomedIn()) {
-                        pan(-PAN_STEP, 0f)
-                    } else {
+                if (!isDown) {
+                    isDpadLeftHeld = false
+                } else if (isZoomedIn()) {
+                    isDpadLeftHeld = true
+                    if (isInitialDown && this !is VerticalPagerViewer && currentPageHolder()?.canPanLeft() == false) {
                         moveLeft()
+                    } else {
+                        startDpadPanLoop(event.keyCode, event.repeatCount > 0)
                     }
+                } else if (isInitialDown) {
+                    moveLeft()
                 }
             }
             KeyEvent.KEYCODE_DPAD_DOWN -> {
                 if (activity.menuVisible) return false
-                if (isUp) {
-                    if (isZoomedIn()) {
-                        pan(0f, PAN_STEP)
-                    } else {
+                if (!isDown) {
+                    isDpadDownHeld = false
+                } else if (isZoomedIn()) {
+                    isDpadDownHeld = true
+                    if (isInitialDown && this is VerticalPagerViewer && currentPageHolder()?.canPanDown() == false) {
                         moveDown()
+                    } else {
+                        startDpadPanLoop(event.keyCode, event.repeatCount > 0)
                     }
+                } else if (isInitialDown) {
+                    moveDown()
                 }
             }
             KeyEvent.KEYCODE_DPAD_UP -> {
                 if (activity.menuVisible) return false
-                if (isUp) {
-                    if (isZoomedIn()) {
-                        pan(0f, -PAN_STEP)
-                    } else {
+                if (!isDown) {
+                    isDpadUpHeld = false
+                } else if (isZoomedIn()) {
+                    isDpadUpHeld = true
+                    if (isInitialDown && this is VerticalPagerViewer && currentPageHolder()?.canPanUp() == false) {
                         moveUp()
+                    } else {
+                        startDpadPanLoop(event.keyCode, event.repeatCount > 0)
                     }
+                } else if (isInitialDown) {
+                    moveUp()
                 }
             }
-            KeyEvent.KEYCODE_PAGE_DOWN -> if (isUp) moveDown()
-            KeyEvent.KEYCODE_PAGE_UP -> if (isUp) moveUp()
+            KeyEvent.KEYCODE_PAGE_DOWN -> if (isInitialDown) moveDown()
+            KeyEvent.KEYCODE_PAGE_UP -> if (isInitialDown) moveUp()
 
             // Gamepad shoulder buttons seek pages left/right, matching the dpad's spatial mapping.
-            KeyEvent.KEYCODE_BUTTON_L1 -> if (isUp) pager.setCurrentItem(pager.currentItem - 1, config.usePageTransitions)
-            KeyEvent.KEYCODE_BUTTON_R1 -> if (isUp) pager.setCurrentItem(pager.currentItem + 1, config.usePageTransitions)
+            KeyEvent.KEYCODE_BUTTON_L1 -> if (isInitialDown) pager.setCurrentItem(pager.currentItem - 1, config.usePageTransitions)
+            KeyEvent.KEYCODE_BUTTON_R1 -> if (isInitialDown) pager.setCurrentItem(pager.currentItem + 1, config.usePageTransitions)
 
-            // Gamepad X/Y zoom the current page in/out.
-            KeyEvent.KEYCODE_BUTTON_Y -> if (isUp) zoomIn()
-            KeyEvent.KEYCODE_BUTTON_X -> if (isUp) zoomOut()
+            // Gamepad X/Y zoom the current page in/out, repeating while held.
+            KeyEvent.KEYCODE_BUTTON_Y -> if (isDown) zoomIn()
+            KeyEvent.KEYCODE_BUTTON_X -> if (isDown) zoomOut()
             else -> return false
         }
         return true
@@ -672,6 +713,58 @@ abstract class PagerViewer(
                     delay(JOYSTICK_PAN_INTERVAL_MS.milliseconds)
                 }
             }
+    }
+
+    /**
+     * Starts/continues panning for a held dpad key, combining every currently-held direction
+     * into a single diagonal [pan] call rather than one call per axis - two separate calls for
+     * the same tick would each read the page's center before the other's animation had visually
+     * applied, fighting each other instead of composing.
+     *
+     * A repeat (native OS key-repeat, once it kicks in) always pans immediately from the current
+     * held state. A key's very *first* press only does that immediately if some other direction
+     * is already held - i.e. it's joining an existing hold, so it should contribute to the
+     * diagonal right away. Otherwise, it's presumed to be a clean, isolated press, and waits for
+     * the next UI frame instead of panning immediately: two real key presses meant as one
+     * diagonal input are rarely perfectly simultaneous, so this gives the second one a chance to
+     * also register and be included, rather than firing a single-axis pan for the first key
+     * alone before the second key's event has even arrived. A frame (rather than a guessed
+     * delay) is used since that's however long the *next* dispatch actually takes to reach us,
+     * with no risk of firing before it or waiting longer than necessary.
+     */
+    private fun startDpadPanLoop(
+        keyCode: Int,
+        isRepeating: Boolean,
+    ) {
+        if (activity.menuVisible || !isZoomedIn()) return
+        val otherDirectionHeld =
+            when (keyCode) {
+                KeyEvent.KEYCODE_DPAD_RIGHT -> isDpadLeftHeld || isDpadUpHeld || isDpadDownHeld
+                KeyEvent.KEYCODE_DPAD_LEFT -> isDpadRightHeld || isDpadUpHeld || isDpadDownHeld
+                KeyEvent.KEYCODE_DPAD_UP -> isDpadDownHeld || isDpadLeftHeld || isDpadRightHeld
+                KeyEvent.KEYCODE_DPAD_DOWN -> isDpadUpHeld || isDpadLeftHeld || isDpadRightHeld
+                else -> false
+            }
+        if (isRepeating || otherDirectionHeld) {
+            dpadPanDebounceJob?.cancel()
+            panFromHeldDpadDirections()
+        } else {
+            // Cancels itself instead of a stray leftover firing later, e.g. a repeat coming in
+            // and panning immediately (above) before this frame arrives.
+            dpadPanDebounceJob =
+                scope.launch {
+                    awaitFrame()
+                    panFromHeldDpadDirections()
+                }
+        }
+    }
+
+    private fun panFromHeldDpadDirections() {
+        if (activity.menuVisible || !isZoomedIn()) return
+        val dx = (if (isDpadRightHeld) PAN_STEP else 0f) - (if (isDpadLeftHeld) PAN_STEP else 0f)
+        val dy = (if (isDpadDownHeld) PAN_STEP else 0f) - (if (isDpadUpHeld) PAN_STEP else 0f)
+        if (dx == 0f && dy == 0f) return
+        pan(dx, dy)
     }
 
     fun hideMenuIfVisible(item: Any) {
