@@ -977,6 +977,9 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
             }
             KeyEvent.KEYCODE_BUTTON_B -> {
                 if (!isInitialPress) return true
+                if (viewer?.isAtEndOfReader() == true) {
+                    return false
+                }
                 if (binding.chaptersSheet.root.sheetBehavior
                         .isExpanded() &&
                     menuVisible
@@ -1784,8 +1787,8 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
         }
 
         if (viewerChapters.nextChapter == null && viewerChapters.prevChapter == null) {
-            binding.readerNav.leftChapter.isVisible = false
-            binding.readerNav.rightChapter.isVisible = false
+            binding.readerNav.startCell.isVisible = false
+            binding.readerNav.endCell.isVisible = false
         } else if (viewer is R2LPagerViewer && !binding.readerNav.pageSeekbar.isVertical) {
             binding.readerNav.leftChapter.alpha = if (viewerChapters.nextChapter != null) 1f else 0.5f
             binding.readerNav.rightChapter.alpha = if (viewerChapters.prevChapter != null) 1f else 0.5f

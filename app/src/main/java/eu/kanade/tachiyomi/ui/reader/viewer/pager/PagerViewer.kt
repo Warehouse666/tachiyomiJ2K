@@ -237,6 +237,8 @@ abstract class PagerViewer(
 
     override fun isZoomedIn(): Boolean = currentPageHolder()?.isZoomedIn() ?: false
 
+    override fun isAtEndOfReader(): Boolean = (currentPage as? ChapterTransition.Next)?.let { it.to == null } ?: false
+
     override fun zoomIn() {
         currentPageHolder()?.zoomIn()
     }

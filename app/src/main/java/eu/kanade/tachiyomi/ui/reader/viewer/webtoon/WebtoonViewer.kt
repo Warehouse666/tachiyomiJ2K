@@ -324,6 +324,8 @@ class WebtoonViewer(
 
     override fun isZoomedIn(): Boolean = recycler.isZoomedIn()
 
+    override fun isAtEndOfReader(): Boolean = (currentPage as? ChapterTransition.Next)?.let { it.to == null } ?: false
+
     /**
      * Zooms the recycler in by one step, e.g. from a gamepad or keyboard press.
      */

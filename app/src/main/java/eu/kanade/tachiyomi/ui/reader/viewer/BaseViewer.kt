@@ -76,6 +76,13 @@ interface BaseViewer {
     fun zoomBy(rate: Float) {}
 
     /**
+     * Returns whether the current page is the "next chapter" transition with no chapter beyond
+     * it, i.e. the end of the manga. This page opens the menu automatically, so a controller's
+     * back/B button should perform a regular back press instead of just closing the menu.
+     */
+    fun isAtEndOfReader(): Boolean = false
+
+    /**
      * Called from the containing activity when a key [event] is received. It should return true
      * if the event was handled, false otherwise.
      */
