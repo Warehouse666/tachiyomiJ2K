@@ -2,12 +2,14 @@ package eu.kanade.tachiyomi.ui.source.browse
 
 import android.os.Build
 import android.os.Bundle
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.widget.PopupMenu
 import androidx.core.view.WindowInsetsCompat.Type.systemBars
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
@@ -833,12 +835,30 @@ open class BrowseSourceController(
      *
      * Adds the manga to the default category if none is set it shows a list of categories for the user to put the manga
      * in, the list consists of the default category plus the user's categories. The default category is preselected on
-     * new manga, and on already favorited manga the manga's categories are preselected.
+     * new manga. Already favorited manga instead show a menu to confirm removing it from the library.
      *
      * @param position the position of the element clicked.
      */
     override fun onItemLongClick(position: Int) {
         val manga = (adapter?.getItem(position) as? BrowseSourceItem?)?.manga ?: return
+        if (manga.favorite) {
+            val itemView = recycler?.findViewHolderForAdapterPosition(position)?.itemView ?: return
+            val popup = PopupMenu(itemView.context, itemView, Gravity.NO_GRAVITY)
+            popup.menu.add(0, R.id.action_remove_from_library, 0, R.string.remove_from_library)
+            popup.setOnMenuItemClickListener {
+                addOrRemoveFromFavorites(manga, position)
+                true
+            }
+            popup.show()
+        } else {
+            addOrRemoveFromFavorites(manga, position)
+        }
+    }
+
+    private fun addOrRemoveFromFavorites(
+        manga: Manga,
+        position: Int,
+    ) {
         val view = view ?: return
         val activity = activity ?: return
         snack?.dismiss()
