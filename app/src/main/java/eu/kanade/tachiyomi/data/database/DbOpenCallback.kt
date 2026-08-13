@@ -147,7 +147,6 @@ class DbOpenCallback : SupportSQLiteOpenHelper.Callback(DATABASE_VERSION) {
             db.execSQL(MangaTable.createSourceIndexQuery)
             // Redundant with the UNIQUE constraint on history_chapter_id
             db.execSQL(HistoryTable.dropChapterIdIndexQuery)
-            db.execSQL("ANALYZE")
         }
     }
 
