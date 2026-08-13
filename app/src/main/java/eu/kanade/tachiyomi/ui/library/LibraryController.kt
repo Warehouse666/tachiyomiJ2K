@@ -517,7 +517,7 @@ open class LibraryController(
                 } else {
                     categoryName
                 }
-        } else if (isBindingInitialized && isFindingDownloads) {
+        } else if (isBindingInitialized && isFindingDownloads && isControllerVisible) {
             activityBinding?.searchToolbar?.subtitle = view?.context?.getString(R.string.finding_downloads)
         } else {
             activityBinding?.searchToolbar?.subtitle = null

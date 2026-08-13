@@ -100,7 +100,6 @@ class DownloadButton
                 binding.downloadIcon.alpha = 1f
                 isAnimating = false
             }
-//            alpha = if (state == Download.State.PENDING) 0.75f else 1f
             binding.downloadIcon.setImageDrawable(
                 when (state) {
                     Download.State.CHECKED -> checkDrawable
