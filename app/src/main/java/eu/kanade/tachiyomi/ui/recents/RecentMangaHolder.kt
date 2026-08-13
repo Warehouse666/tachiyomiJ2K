@@ -425,6 +425,13 @@ class RecentMangaHolder(
         chapter: ChapterHistory?,
         item: RecentMangaItem,
     ) {
+        // Rows are recycled between real chapters and the "and N more" placeholder now, so reset
+        // the state only one of those two branches assigns back to its inflated default. Without
+        // this a placeholder reusing a chapter's row keeps its subtitle and click target.
+        subtitle.text = ""
+        subtitle.isVisible = false
+        root.transitionName = null
+        root.setOnClickListener(null)
         if (chapter?.id == null) {
             configureBlankView(item.mch.extraChapters.size - extraChapterMaxSize)
             return
@@ -488,8 +495,13 @@ class RecentMangaHolder(
         root.transitionName = "recents sub chapter ${chapter.id ?: 0L} transition"
         root.tag = "sub ${chapter.id}"
         downloadButton.root.tag = chapter.id
-        val downloadInfo =
-            item.downloadInfo.find { it.chapterId == chapter.id } ?: return
+        val downloadInfo = item.downloadInfo.find { it.chapterId == chapter.id }
+        if (downloadInfo == null) {
+            // No status resolved for this chapter yet - hide the button rather than leaving
+            // whichever state the recycled row happened to come in with.
+            downloadButton.downloadButton.isVisible = false
+            return
+        }
         downloadButton.downloadButton.setOnClickListener {
             downloadOrRemoveMenu(it, chapter, downloadInfo.status)
         }

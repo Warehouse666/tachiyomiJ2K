@@ -438,6 +438,13 @@ class RecentsPresenter(
             } else {
                 recentItems + newItems
             }
+        // Only the newly appended slice needs a download-status check; earlier pages were
+        // already resolved by a prior call and reusing the same item instances kept it. This has
+        // to happen before the retry below, which returns early - otherwise the items each
+        // intermediate recursion level appended would never get resolved at all.
+        if (limit == -1) {
+            setDownloadedChapters(newItems)
+        }
         val newCount = itemCount + newItems.size + newItems.sumOf { it.mch.extraChapters.size } + extraCount
         val hasNewItems = newItems.isNotEmpty()
         if (updatePageCount &&
@@ -449,9 +456,6 @@ class RecentsPresenter(
             return
         }
         if (limit == -1) {
-            // Only the newly appended slice needs a download-status check; earlier pages were
-            // already resolved by a prior call and reusing the same item instances kept it.
-            setDownloadedChapters(newItems)
             withContext(Dispatchers.Main) {
                 view?.showLists(recentItems, hasNewItems, shouldMoveToTop)
                 isLoading = false

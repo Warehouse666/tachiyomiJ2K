@@ -9,9 +9,11 @@ import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.source.SourceManager
 import eu.kanade.tachiyomi.util.storage.DiskUtil
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,6 +28,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
 import kotlinx.serialization.protobuf.ProtoBuf
+import timber.log.Timber
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import uy.kohesive.injekt.injectLazy
@@ -86,7 +89,10 @@ class DownloadCache(
      */
     val isInitialized: StateFlow<Boolean> = _isInitialized.asStateFlow()
 
-    val scope = CoroutineScope(Job() + Dispatchers.IO)
+    // SupervisorJob so a failure in one child (a renewal that hits a revoked SAF grant, a
+    // missing directory, a DB error) doesn't cancel this scope and silently kill every future
+    // renewal, disk write and preference collector for the rest of the process' life.
+    val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     /**
      * Rebuilt from a full filesystem scan every time it goes stale, but that scan is expensive -
@@ -138,6 +144,8 @@ class DownloadCache(
                     val bytes = protoBuf.encodeToByteArray(snapshot)
                     ensureActive()
                     diskCacheFile.writeBytes(bytes)
+                } catch (e: CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     // Best-effort: a stale or missing disk cache just means the next launch rescans.
                 }
@@ -232,7 +240,16 @@ class DownloadCache(
         lastRenew = System.currentTimeMillis()
         renewJob =
             scope.launch {
-                renew()
+                try {
+                    renew()
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    // Flipping the flag below anyway: callers block on it, so swallowing the
+                    // failure silently would leave them waiting forever with the UI stuck
+                    // mid-scan. A failed scan just means an empty cache until the next renewal.
+                    Timber.e(e, "Failed to renew the download cache")
+                }
                 _isInitialized.value = true
                 persistToDiskDebounced()
             }
