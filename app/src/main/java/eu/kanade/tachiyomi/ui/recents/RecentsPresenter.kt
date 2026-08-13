@@ -438,13 +438,6 @@ class RecentsPresenter(
             } else {
                 recentItems + newItems
             }
-        // Only the newly appended slice needs a download-status check; earlier pages were
-        // already resolved by a prior call and reusing the same item instances kept it. This has
-        // to happen before the retry below, which returns early - otherwise the items each
-        // intermediate recursion level appended would never get resolved at all.
-        if (limit == -1) {
-            setDownloadedChapters(newItems)
-        }
         val newCount = itemCount + newItems.size + newItems.sumOf { it.mch.extraChapters.size } + extraCount
         val hasNewItems = newItems.isNotEmpty()
         if (updatePageCount &&
@@ -456,6 +449,11 @@ class RecentsPresenter(
             return
         }
         if (limit == -1) {
+            // Must be the whole accumulated list, not just newItems: setupExtraChapters() merges a
+            // new page's chapters by mutating extraChapters in place on the item from the earlier
+            // page (and dropping the new one), so those items' downloadInfo goes stale on every
+            // page load. Passing only newItems leaves them with no status for the merged chapters.
+            setDownloadedChapters(recentItems)
             withContext(Dispatchers.Main) {
                 view?.showLists(recentItems, hasNewItems, shouldMoveToTop)
                 isLoading = false
