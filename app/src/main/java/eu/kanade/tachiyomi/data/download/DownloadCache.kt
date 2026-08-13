@@ -73,6 +73,15 @@ class DownloadCache(
     private var renewJob: Job? = null
 
     /**
+     * Serialises [renew] against the incremental mutators. [renew] replaces whole per-manga sets
+     * from a directory listing, so an [addChapter] landing mid-scan would be dropped by a listing
+     * that predates the file - which is why [checkRenew] and the mutators shared a monitor before
+     * renewal moved off the caller's thread. Reads are deliberately left unguarded; they only
+     * touch [ConcurrentHashMap] and must never block the thread binding the UI.
+     */
+    private val renewLock = Any()
+
+    /**
      * File names are stored lowercased so lookups can use direct hash membership instead of
      * case-insensitive linear scans. Both the outer map and the per-manga sets are backed by
      * [ConcurrentHashMap] since reads happen on whichever thread is binding UI while writes
@@ -133,6 +142,10 @@ class DownloadCache(
 
     private var persistJob: Job? = null
 
+    // Reached from the downloader, UI-triggered deletes and the renewal job, so the
+    // cancel-then-relaunch has to be atomic - otherwise two writers can both survive the cancel
+    // and interleave their writeBytes() into the same file.
+    @Synchronized
     private fun persistToDiskDebounced() {
         persistJob?.cancel()
         persistJob =
@@ -241,7 +254,7 @@ class DownloadCache(
         renewJob =
             scope.launch {
                 try {
-                    renew()
+                    synchronized(renewLock) { renew() }
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {
@@ -256,7 +269,7 @@ class DownloadCache(
     }
 
     /**
-     * Renews the downloads cache.
+     * Renews the downloads cache. Must be called holding [renewLock].
      */
     private fun renew() {
         val onlineSources = sourceManager.getOnlineSources()
@@ -333,9 +346,11 @@ class DownloadCache(
         manga: Manga,
     ) {
         val id = manga.id ?: return
-        mangaFiles
-            .computeIfAbsent(id) { ConcurrentHashMap.newKeySet() }
-            .add(chapterDirName.lowercase())
+        synchronized(renewLock) {
+            mangaFiles
+                .computeIfAbsent(id) { ConcurrentHashMap.newKeySet() }
+                .add(chapterDirName.lowercase())
+        }
         persistToDiskDebounced()
     }
 
@@ -350,10 +365,12 @@ class DownloadCache(
         manga: Manga,
     ) {
         val id = manga.id ?: return
-        val files = mangaFiles[id] ?: return
-        for (chapter in chapters) {
-            provider.getValidChapterDirNames(chapter).forEach { fileName ->
-                files.remove(fileName.lowercase())
+        synchronized(renewLock) {
+            val files = mangaFiles[id] ?: return
+            for (chapter in chapters) {
+                provider.getValidChapterDirNames(chapter).forEach { fileName ->
+                    files.remove(fileName.lowercase())
+                }
             }
         }
         persistToDiskDebounced()
@@ -364,9 +381,11 @@ class DownloadCache(
         manga: Manga,
     ) {
         val id = manga.id ?: return
-        val files = mangaFiles[id] ?: return
-        for (folder in folders) {
-            files.remove(folder.lowercase())
+        synchronized(renewLock) {
+            val files = mangaFiles[id] ?: return
+            for (folder in folders) {
+                files.remove(folder.lowercase())
+            }
         }
         persistToDiskDebounced()
     }
@@ -390,7 +409,7 @@ class DownloadCache(
      * @param manga the manga to remove.
      */
     fun removeManga(manga: Manga) {
-        mangaFiles.remove(manga.id)
+        synchronized(renewLock) { mangaFiles.remove(manga.id) }
         persistToDiskDebounced()
     }
 

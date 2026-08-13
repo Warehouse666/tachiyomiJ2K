@@ -46,6 +46,7 @@ import eu.kanade.tachiyomi.util.system.launchIO
 import eu.kanade.tachiyomi.util.system.withUIContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -89,6 +90,9 @@ class LibraryPresenter(
 
     /** Job for the currently running [getLibrary] DB query, so a newer refresh can cancel a stale one. */
     private var libraryJob: Job? = null
+
+    /** Job waiting on the download cache's first scan to redo the badge/filter pass. */
+    private var downloadBadgeJob: Job? = null
 
     /** All categories of the library, in case they are hidden because of hide categories is on */
     var allCategories: List<Category> = emptyList()
@@ -179,16 +183,31 @@ class LibraryPresenter(
         getLibrary()
         if (!downloadManager.isCacheInitialized) {
             view?.setDownloadCacheScanning(true)
-            presenterScope.launch {
-                downloadManager.awaitDownloadCacheReady()
-                setDownloadCount(allLibraryItems)
-                setDownloadCount(hiddenLibraryItems)
-                var mangaMap = allLibraryItems
-                mangaMap = applyFilters(mangaMap)
-                mangaMap = applySort(mangaMap)
-                sectionLibrary(mangaMap)
-                withContext(Dispatchers.Main) { view?.setDownloadCacheScanning(false) }
-            }
+            downloadBadgeJob =
+                presenterScope.launch {
+                    try {
+                        downloadManager.awaitDownloadCacheReady()
+                        // The scan can finish before the initial load does - a warm disk snapshot
+                        // makes awaitDownloadCacheReady() return almost immediately - and reading
+                        // allLibraryItems early would recompute from a stale or empty list.
+                        // Looped because a refresh landing while we wait swaps the job out.
+                        while (libraryJob?.isActive == true) {
+                            libraryJob?.join()
+                        }
+                        setDownloadCount(allLibraryItems)
+                        setDownloadCount(hiddenLibraryItems)
+                        var mangaMap = allLibraryItems
+                        mangaMap = applyFilters(mangaMap)
+                        mangaMap = applySort(mangaMap)
+                        sectionLibrary(mangaMap)
+                    } finally {
+                        // NonCancellable so the subtitle can't stay stuck mid-scan if this job is
+                        // superseded or the presenter goes away while it's still waiting.
+                        withContext(NonCancellable + Dispatchers.Main) {
+                            view?.setDownloadCacheScanning(false)
+                        }
+                    }
+                }
         }
         if (preferences.showLibrarySearchSuggestions().isNotSet()) {
             DelayedLibrarySuggestionsJob.setupTask(context, true)
@@ -222,6 +241,12 @@ class LibraryPresenter(
             categories = lastCategories ?: db.getCategories().executeAsBlocking().toMutableList()
         }
         libraryJob?.cancel()
+        // Only supersede the pending badge refresh once the cache is actually ready - this load
+        // then already computes correct counts. While it's still cold that job is the only thing
+        // that will fix the badges, so it has to outlive the refresh.
+        if (downloadManager.isCacheInitialized) {
+            downloadBadgeJob?.cancel()
+        }
         libraryJob =
             presenterScope.launch {
                 val (library, hiddenItems) = withContext(Dispatchers.IO) { getLibraryFromDB() }
