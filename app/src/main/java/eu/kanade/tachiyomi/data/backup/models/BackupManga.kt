@@ -43,6 +43,7 @@ data class BackupManga(
     @ProtoNumber(104) var history: List<BackupHistory> = emptyList(),
     @ProtoNumber(105) var updateStrategy: UpdateStrategy = UpdateStrategy.ALWAYS_UPDATE,
     @ProtoNumber(108) var excludedScanlators: List<String> = emptyList(),
+    @ProtoNumber(112) var memo: String = "{}",
     // SY specific values
     @ProtoNumber(602) var customStatus: Int = 0,
     // J2K specific values
@@ -52,7 +53,6 @@ data class BackupManga(
     // skipping 803 due to using duplicate value in previous builds
     @ProtoNumber(804) var customDescription: String? = null,
     @ProtoNumber(805) var customGenre: List<String>? = null,
-    @ProtoNumber(806) var memo: String = "{}",
 ) {
     fun getMangaImpl(): MangaImpl =
         MangaImpl().apply {

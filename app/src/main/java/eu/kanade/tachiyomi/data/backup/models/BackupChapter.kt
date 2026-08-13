@@ -22,9 +22,9 @@ data class BackupChapter(
     // chapterNumber is called number is 1.x
     @ProtoNumber(9) var chapterNumber: Float = 0F,
     @ProtoNumber(10) var sourceOrder: Int = 0,
+    @ProtoNumber(13) var memo: String = "{}",
     // J2K specific values
     @ProtoNumber(800) var pagesLeft: Int = 0,
-    @ProtoNumber(801) var memo: String = "{}",
 ) {
     fun toChapterImpl(): ChapterImpl =
         ChapterImpl().apply {
