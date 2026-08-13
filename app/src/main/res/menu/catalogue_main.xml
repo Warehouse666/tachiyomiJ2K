@@ -12,7 +12,7 @@
 
     <item android:id="@+id/action_filter"
         android:title="@string/filter"
-        android:icon="@drawable/ic_filter_list_24dp"
+        android:icon="@drawable/ic_rule_24dp"
         app:showAsAction="ifRoom"/>
 
     <item
