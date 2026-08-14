@@ -60,7 +60,9 @@ class CrashLogUtil(
         file.appendText(getDebugInfo() + "\n\n")
         file.appendText(getExtensionsInfo() + "\n\n")
         stackTrace?.let { file.appendText("$it\n\n") }
-        Runtime.getRuntime().exec("logcat *:E -d -f ${file.absolutePath}")
+        // Waited on so the file is complete before it's shared/notified - exec alone returns
+        // while logcat is still appending to it
+        Runtime.getRuntime().exec("logcat *:E -d -f ${file.absolutePath}").waitFor()
         return file
     }
 

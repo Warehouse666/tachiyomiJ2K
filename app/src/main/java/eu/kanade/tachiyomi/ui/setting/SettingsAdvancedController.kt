@@ -94,7 +94,10 @@ class SettingsAdvancedController : SettingsController() {
                 summaryRes = R.string.saves_error_logs
 
                 onClick {
-                    CrashLogUtil(context.localeContext).dumpLogs()
+                    // Off the main thread since dumping now waits for logcat to finish writing
+                    viewScope.launchIO {
+                        CrashLogUtil(context.localeContext).dumpLogs()
+                    }
                 }
             }
 
