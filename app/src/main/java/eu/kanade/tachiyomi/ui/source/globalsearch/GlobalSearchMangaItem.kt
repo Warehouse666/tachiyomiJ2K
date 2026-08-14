@@ -10,6 +10,7 @@ import eu.kanade.tachiyomi.data.database.models.Manga
 
 class GlobalSearchMangaItem(
     val manga: Manga,
+    private val isDuplicateInLibrary: Boolean = false,
 ) : AbstractFlexibleItem<GlobalSearchMangaHolder>() {
     override fun getLayoutRes(): Int = R.layout.source_global_search_controller_card_item
 
@@ -24,7 +25,7 @@ class GlobalSearchMangaItem(
         position: Int,
         payloads: MutableList<Any?>?,
     ) {
-        holder.bind(manga)
+        holder.bind(manga, isDuplicateInLibrary)
     }
 
     override fun equals(other: Any?): Boolean {

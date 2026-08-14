@@ -63,6 +63,26 @@ interface MangaQueries : DbProvider {
                     .build(),
             ).prepare()
 
+    fun getDuplicateLibraryMangas(mangas: List<Manga>) =
+        mangas
+            .map { it.title.lowercase() }
+            .distinct()
+            .let { titles ->
+                db
+                    .get()
+                    .listOfObjects(Manga::class.java)
+                    .withQuery(
+                        Query
+                            .builder()
+                            .table(MangaTable.TABLE)
+                            .where(
+                                "${MangaTable.COL_FAVORITE} = 1 AND " +
+                                    "LOWER(${MangaTable.COL_TITLE}) IN (${Queries.placeholders(titles.size)})",
+                            ).whereArgs(*titles.toTypedArray())
+                            .build(),
+                    ).prepare()
+            }
+
     fun getFavoriteMangas() =
         db
             .get()

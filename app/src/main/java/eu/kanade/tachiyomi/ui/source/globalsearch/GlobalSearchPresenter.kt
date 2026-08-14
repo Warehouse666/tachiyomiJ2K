@@ -12,8 +12,10 @@ import eu.kanade.tachiyomi.source.SourceManager
 import eu.kanade.tachiyomi.source.model.MangasPage
 import eu.kanade.tachiyomi.source.model.SManga
 import eu.kanade.tachiyomi.ui.base.presenter.BaseCoroutinePresenter
+import eu.kanade.tachiyomi.util.manga.duplicateLibraryMangaIds
 import eu.kanade.tachiyomi.util.system.launchIO
 import eu.kanade.tachiyomi.util.system.launchUI
+import eu.kanade.tachiyomi.util.system.withIOContext
 import eu.kanade.tachiyomi.util.system.withUIContext
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -187,11 +189,17 @@ open class GlobalSearchPresenter(
                             if (mangas.isNotEmpty() && !loadTime.containsKey(source.id)) {
                                 loadTime[source.id] = Date().time
                             }
-                            val result =
-                                createCatalogueSearchItem(
-                                    source,
-                                    mangas.map { GlobalSearchMangaItem(it) },
-                                )
+                            val duplicateIds =
+                                if (preferences.showDuplicateInLibraryItems().get()) {
+                                    withIOContext { db.duplicateLibraryMangaIds(mangas) }
+                                } else {
+                                    emptySet()
+                                }
+                            val mangaItems =
+                                mangas.map { manga ->
+                                    GlobalSearchMangaItem(manga, isDuplicateInLibrary = manga.id in duplicateIds)
+                                }
+                            val result = createCatalogueSearchItem(source, mangaItems)
                             items =
                                 items
                                     .map { item -> if (item.source == result.source) result else item }

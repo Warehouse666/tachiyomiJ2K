@@ -10,16 +10,12 @@ import coil.dispose
 import coil.request.ImageRequest
 import eu.davidea.flexibleadapter.FlexibleAdapter
 import eu.davidea.flexibleadapter.items.IFlexible
-import eu.kanade.tachiyomi.data.database.DatabaseHelper
 import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.data.image.coil.CoverViewTarget
 import eu.kanade.tachiyomi.data.image.coil.MangaCoverFetcher
-import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.databinding.MangaGridItemBinding
 import eu.kanade.tachiyomi.ui.library.LibraryCategoryAdapter
 import eu.kanade.tachiyomi.util.view.setCards
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 
 /**
  * Class used to hold the displayed data of a manga in the library, like the cover or the title.
@@ -34,8 +30,6 @@ class BrowseSourceGridHolder(
     private val adapter: FlexibleAdapter<IFlexible<RecyclerView.ViewHolder>>,
     compact: Boolean,
     showOutline: Boolean,
-    val db: DatabaseHelper = Injekt.get(),
-    val prefs: PreferencesHelper = Injekt.get(),
 ) : BrowseSourceHolder(view, adapter) {
     private val binding = MangaGridItemBinding.bind(view)
 
@@ -59,7 +53,11 @@ class BrowseSourceGridHolder(
         // Update the title of the manga.
         binding.title.text = manga.title
         binding.compactTitle.text = binding.title.text
-        binding.unreadDownloadBadge.root.setInLibrary(manga.favorite)
+        if (isDuplicateInLibrary) {
+            binding.unreadDownloadBadge.root.setDuplicateInLibrary(true)
+        } else {
+            binding.unreadDownloadBadge.root.setInLibrary(manga.favorite)
+        }
 
         // Update the cover.
         setImage(manga)
@@ -80,18 +78,9 @@ class BrowseSourceGridHolder(
                     .build()
             Coil.imageLoader(view.context).enqueue(request)
 
-            binding.coverThumbnail.alpha = if (manga.favorite) 0.34f else 1.0f
+            binding.coverThumbnail.alpha = if (manga.favorite || isDuplicateInLibrary) 0.34f else 1.0f
             binding.card.strokeColorStateList?.defaultColor?.let { color ->
                 binding.card.strokeColor = ColorUtils.setAlphaComponent(color, if (manga.favorite) 87 else 255)
-            }
-
-            if (!manga.favorite && prefs.showDuplicateInLibraryItems().get()) {
-                val duplicatedManga = db.getDuplicateLibraryManga(manga).executeAsBlocking()
-
-                if (duplicatedManga != null) {
-                    binding.coverThumbnail.alpha = 0.34f
-                    binding.unreadDownloadBadge.root.setDuplicateInLibrary(true)
-                }
             }
         }
     }

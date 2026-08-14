@@ -26,6 +26,7 @@ import eu.kanade.tachiyomi.ui.source.filter.TextItem
 import eu.kanade.tachiyomi.ui.source.filter.TextSectionItem
 import eu.kanade.tachiyomi.ui.source.filter.TriStateItem
 import eu.kanade.tachiyomi.ui.source.filter.TriStateSectionItem
+import eu.kanade.tachiyomi.util.manga.duplicateLibraryMangaIds
 import eu.kanade.tachiyomi.util.system.launchIO
 import eu.kanade.tachiyomi.util.system.withUIContext
 import kotlinx.coroutines.Job
@@ -185,9 +186,21 @@ open class BrowseSourcePresenter(
                                 return@onEach
                             }
                             initializeMangas(mangas)
+                            val duplicateIds =
+                                if (prefs.showDuplicateInLibraryItems().get()) {
+                                    db.duplicateLibraryMangaIds(mangas)
+                                } else {
+                                    emptySet()
+                                }
                             val items =
                                 mangas.map {
-                                    BrowseSourceItem(it, browseAsList, sourceListType, outlineCovers)
+                                    BrowseSourceItem(
+                                        it,
+                                        browseAsList,
+                                        sourceListType,
+                                        outlineCovers,
+                                        isDuplicateInLibrary = it.id in duplicateIds,
+                                    )
                                 }
                             this@BrowseSourcePresenter.items.addAll(items)
                             withUIContext { view?.onAddPage(page, items) }

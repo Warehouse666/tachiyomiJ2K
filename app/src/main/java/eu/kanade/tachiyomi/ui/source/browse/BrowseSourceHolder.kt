@@ -17,6 +17,9 @@ abstract class BrowseSourceHolder(
     view: View,
     adapter: FlexibleAdapter<IFlexible<RecyclerView.ViewHolder>>,
 ) : BaseFlexibleViewHolder(view, adapter) {
+    /** Whether this entry duplicates one already in the library from another source. */
+    var isDuplicateInLibrary = false
+
     /**
      * Method called from [CatalogueAdapter.onBindViewHolder]. It updates the data for this
      * holder with the given manga.
