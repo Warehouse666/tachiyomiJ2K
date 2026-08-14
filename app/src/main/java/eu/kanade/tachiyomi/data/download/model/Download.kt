@@ -4,6 +4,9 @@ import eu.kanade.tachiyomi.data.database.models.Chapter
 import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.source.model.Page
 import eu.kanade.tachiyomi.source.online.HttpSource
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlin.math.roundToInt
 
 class Download(
@@ -23,8 +26,17 @@ class Download(
     var status: State = State.default
         set(status) {
             field = status
+            _statusFlow.value = status
             statusCallback?.invoke(this)
         }
+
+    @Transient private val _statusFlow = MutableStateFlow(State.default)
+
+    /**
+     * Emits on every [status] change. The downloader watches this to notice an active download
+     * erroring, which frees up its source for the next chapter without the queue itself changing.
+     */
+    @Transient val statusFlow: StateFlow<State> = _statusFlow.asStateFlow()
 
     @Transient private var statusCallback: ((Download) -> Unit)? = null
 

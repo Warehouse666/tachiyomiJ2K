@@ -1,10 +1,12 @@
 package eu.kanade.tachiyomi.data.download.model
 
-import com.jakewharton.rxrelay.PublishRelay
 import eu.kanade.tachiyomi.data.database.models.Chapter
 import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.data.download.DownloadStore
 import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.util.concurrent.CopyOnWriteArrayList
@@ -13,7 +15,10 @@ class DownloadQueue(
     private val store: DownloadStore,
     private val queue: MutableList<Download> = CopyOnWriteArrayList<Download>(),
 ) : List<Download> by queue {
-    private val updatedRelay = PublishRelay.create<Unit>()
+    private val _state = MutableStateFlow(emptyList<Download>())
+
+    /** Emits the queue's contents on every change, so the downloader can re-pick what to run. */
+    val state: StateFlow<List<Download>> = _state.asStateFlow()
 
     private val downloadListeners = mutableListOf<DownloadListener>()
 
@@ -26,7 +31,7 @@ class DownloadQueue(
         }
         queue.addAll(downloads)
         store.addAll(downloads)
-        updatedRelay.call(Unit)
+        _state.value = queue.toList()
     }
 
     fun remove(download: Download) {
@@ -38,7 +43,7 @@ class DownloadQueue(
         }
         downloadListeners.forEach { it.updateDownload(download) }
         if (removed) {
-            updatedRelay.call(Unit)
+            _state.value = queue.toList()
         }
     }
 
@@ -71,7 +76,7 @@ class DownloadQueue(
         }
         queue.clear()
         store.clear()
-        updatedRelay.call(Unit)
+        _state.value = queue.toList()
     }
 
     private fun setPagesFor(download: Download) {

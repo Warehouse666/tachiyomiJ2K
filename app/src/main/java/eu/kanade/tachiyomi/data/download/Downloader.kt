@@ -9,7 +9,6 @@ import android.os.Looper
 import android.provider.Settings
 import androidx.core.net.toUri
 import com.hippo.unifile.UniFile
-import com.jakewharton.rxrelay.PublishRelay
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.cache.ChapterCache
 import eu.kanade.tachiyomi.data.database.models.Chapter
@@ -32,21 +31,28 @@ import eu.kanade.tachiyomi.util.system.launchNow
 import eu.kanade.tachiyomi.util.system.withIOContext
 import eu.kanade.tachiyomi.util.system.withUIContext
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapMerge
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.retryWhen
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.flow.transformLatest
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
+import kotlinx.coroutines.withContext
 import okhttp3.Response
-import rx.Observable
-import rx.Subscription
-import rx.android.schedulers.AndroidSchedulers
-import rx.schedulers.Schedulers
 import timber.log.Timber
 import uy.kohesive.injekt.injectLazy
 import java.io.BufferedOutputStream
@@ -60,7 +66,8 @@ import kotlin.time.Duration.Companion.seconds
  * This class is the one in charge of downloading chapters.
  *
  * Its [queue] contains the list of chapters to download. In order to download them, the downloader
- * subscriptions must be running and the list of chapters must be sent to them by [downloadsRelay].
+ * job must be running - it picks what to work on off the queue's own state, so adding to the queue
+ * is enough to have it start on them.
  *
  * The queue manipulation must be done in one thread (currently the main thread) to avoid unexpected
  * behavior, but it's safe to read it from multiple threads.
@@ -96,21 +103,18 @@ class Downloader(
      */
     private val notifier by lazy { DownloadNotifier(context) }
 
-    /**
-     * Downloader subscription.
-     */
-    private var subscription: Subscription? = null
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     /**
-     * Relay to send a list of downloads to the downloader.
+     * Job deciding what to download and running it.
      */
-    private val downloadsRelay = PublishRelay.create<List<Download>>()
+    private var downloaderJob: Job? = null
 
     /**
      * Whether the downloader is running.
      */
     val isRunning: Boolean
-        get() = subscription != null
+        get() = downloaderJob?.isActive == true
 
     /**
      * Whether the downloader is paused
@@ -133,17 +137,17 @@ class Downloader(
      * @return true if the downloader is started, false otherwise.
      */
     fun start(): Boolean {
-        if (subscription != null || queue.isEmpty()) {
+        if (isRunning || queue.isEmpty()) {
             return false
         }
-        initializeSubscription()
 
         val pending = queue.filter { it.status != Download.State.DOWNLOADED }
         pending.forEach { if (it.status != Download.State.QUEUE) it.status = Download.State.QUEUE }
 
         isPaused = false
 
-        downloadsRelay.call(pending)
+        // Statuses first: the job picks its first batch off the queue as it starts
+        launchDownloaderJob()
         return pending.isNotEmpty()
     }
 
@@ -151,7 +155,7 @@ class Downloader(
      * Stops the downloader.
      */
     fun stop(reason: String? = null) {
-        destroySubscription()
+        cancelDownloaderJob()
         queue
             .filter { it.status == Download.State.DOWNLOADING }
             .forEach { it.status = Download.State.ERROR }
@@ -175,7 +179,7 @@ class Downloader(
      * Pauses the downloader
      */
     fun pause() {
-        destroySubscription()
+        cancelDownloaderJob()
         queue
             .filter { it.status == Download.State.DOWNLOADING }
             .forEach { it.status = Download.State.QUEUE }
@@ -188,7 +192,7 @@ class Downloader(
      * @param isNotification value that determines if status is set (needed for view updates)
      */
     fun clearQueue(isNotification: Boolean = false) {
-        destroySubscription()
+        cancelDownloaderJob()
 
         // Needed to update the chapter view
         if (isNotification) {
@@ -224,47 +228,84 @@ class Downloader(
     }
 
     /**
-     * Prepares the subscriptions to start downloading.
+     * Starts the job that decides what to download and runs it: one chapter at a time per source,
+     * across at most as many sources as the concurrency setting allows. Recomputed whenever the
+     * queue changes, the setting changes, or an active download errors - that last one frees up
+     * its source for the next chapter without the queue itself having changed.
      */
-    private fun initializeSubscription() {
+    private fun launchDownloaderJob() {
         if (isRunning) return
 
-        subscription =
-            downloadsRelay
-                .concatMapIterable { it }
-                // Concurrently download from N different sources
-                .groupBy { it.source }
-                .flatMap(
-                    { bySource ->
-                        bySource.concatMap { download ->
-                            Observable
-                                .fromCallable {
-                                    runBlocking { downloadChapter(download) }
-                                    download
-                                }.subscribeOn(Schedulers.io())
+        downloaderJob =
+            scope.launch {
+                val activeDownloadsFlow =
+                    combine(
+                        queue.state,
+                        preferences.numberOfConcurrentSourceDownloads().asFlow(),
+                    ) { queued, parallelCount -> queued to parallelCount }
+                        .transformLatest { (queued, parallelCount) ->
+                            while (true) {
+                                val activeDownloads =
+                                    queued
+                                        .asSequence()
+                                        .filter { it.status <= Download.State.DOWNLOADING }
+                                        .groupBy { it.source }
+                                        .toList()
+                                        .take(parallelCount)
+                                        .map { (_, downloads) -> downloads.first() }
+                                emit(activeDownloads)
+
+                                if (activeDownloads.isEmpty()) break
+                                // Suspend until one of them errors, then re-pick
+                                combine(activeDownloads.map(Download::statusFlow)) { states ->
+                                    states.contains(Download.State.ERROR)
+                                }.filter { it }
+                                    .first()
+                            }
+                        }.distinctUntilChanged()
+
+                // supervisorScope so one failed chapter doesn't take the rest down with it
+                supervisorScope {
+                    val downloadJobs = mutableMapOf<Download, Job>()
+
+                    activeDownloadsFlow.collectLatest { activeDownloads ->
+                        val toStop = downloadJobs.filterKeys { it !in activeDownloads }
+                        toStop.forEach { (download, job) ->
+                            job.cancel()
+                            downloadJobs.remove(download)
                         }
-                    },
-                    preferences.numberOfConcurrentSourceDownloads().get(),
-                ).onBackpressureLatest()
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(
-                    {
-                        completeDownload(it)
-                    },
-                    { error ->
-                        Timber.e(error)
-                        notifier.onError(error.message)
-                        stop()
-                    },
-                )
+
+                        activeDownloads
+                            .filter { it !in downloadJobs }
+                            .forEach { download -> downloadJobs[download] = launchDownloadJob(download) }
+                    }
+                }
+            }
     }
 
+    private fun CoroutineScope.launchDownloadJob(download: Download) =
+        launchIO {
+            try {
+                downloadChapter(download)
+                // NonCancellable as a chapter that finished has to leave the queue even if a pause
+                // is cancelling us right now - the status is already DOWNLOADED by this point, so
+                // pause's DOWNLOADING sweep won't catch it and it would sit in the queue for good.
+                // Main thread as the rest of this class assumes queue changes happen there
+                withContext(NonCancellable + Dispatchers.Main) { completeDownload(download) }
+            } catch (e: Throwable) {
+                if (e is CancellationException) throw e
+                Timber.e(e)
+                notifier.onError(e.message)
+                stop()
+            }
+        }
+
     /**
-     * Destroys the downloader subscriptions.
+     * Stops the job that decides what to download, cancelling anything in flight.
      */
-    private fun destroySubscription() {
-        subscription?.unsubscribe()
-        subscription = null
+    private fun cancelDownloaderJob() {
+        downloaderJob?.cancel()
+        downloaderJob = null
     }
 
     /**
@@ -305,12 +346,8 @@ class Downloader(
                 .map { Download(source, manga, it) }
 
         if (chaptersToQueue.isNotEmpty()) {
+            // Adding to the queue is enough - a running job re-picks off its state
             queue.addAll(chaptersToQueue)
-
-            if (isRunning) {
-                // Send the list of downloads to the downloader.
-                downloadsRelay.call(chaptersToQueue)
-            }
 
             // Start downloader if needed
             if (autoStart && wasEmpty) {
@@ -338,6 +375,10 @@ class Downloader(
     /**
      * Downloads a chapter.
      *
+     * Must leave [download] in either DOWNLOADED or ERROR on every path out. Anything at or below
+     * DOWNLOADING still counts as active to [launchDownloaderJob], so returning in one of those
+     * states stalls that source for good - nothing would remove it from the queue or signal it.
+     *
      * @param download the chapter to be downloaded.
      */
     private suspend fun downloadChapter(download: Download) {
@@ -359,6 +400,7 @@ class Downloader(
                     "package:${context.packageName}".toUri(),
                 )
 
+            download.status = Download.State.ERROR
             notifier.onError(
                 context.getString(R.string.external_storage_download_notice),
                 chapName,
