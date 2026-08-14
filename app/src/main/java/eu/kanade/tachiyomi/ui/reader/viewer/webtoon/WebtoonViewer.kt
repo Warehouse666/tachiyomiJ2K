@@ -367,11 +367,9 @@ class WebtoonViewer(
      * if the event was handled, false otherwise.
      */
     override fun handleKeyEvent(event: KeyEvent): Boolean {
-        // Scrolling should only fire once per physical press - repeatCount == 0 excludes the
-        // auto-repeated ACTION_DOWN events a held key/button generates, matching the old
-        // ACTION_UP-based firing (which has no repeat concept, only a single release). Zoom/pan
-        // is allowed to repeat while held instead, since continuously zooming/panning is the
-        // point, so those branches key off [isDown] alone.
+        // Unlike the pager, the strip scrolls freely, so scrolling and pan/zoom keep going on every
+        // auto-repeated ACTION_DOWN a held key generates. One move per press for the rest: the
+        // bumpers and left/right while not zoomed, plus the volume keys, whose repeat is OEM-dependent.
         val isDown = event.action == KeyEvent.ACTION_DOWN
         val isInitialDown = isDown && event.repeatCount == 0
 
@@ -394,7 +392,7 @@ class WebtoonViewer(
             // navigation between the menu's buttons instead of scrolling/panning pages. Up/down
             // always scroll - the reading motion is vertical, so it should never get hijacked
             // into panning. Left/right pan while zoomed in (matching the bumpers' direction
-            // below), otherwise scroll like up/down do.
+            // below), otherwise scroll a step at a time like the bumpers do.
             KeyEvent.KEYCODE_DPAD_RIGHT -> {
                 if (activity.menuVisible) return false
                 if (isZoomedIn()) {
