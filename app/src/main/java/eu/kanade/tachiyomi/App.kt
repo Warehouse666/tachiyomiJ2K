@@ -70,17 +70,19 @@ open class App :
 
         Injekt.importModule(AppModule(this))
 
-        GlobalExceptionHandler.initialize(applicationContext, CrashActivity::class.java)
-
         setupNotificationChannels()
 
         if (isErrorHandlerProcess()) {
             // CrashActivity runs in this process and only needs Injekt (for
             // PreferencesHelper/theming) and notification channels (for CrashLogUtil).
             // Everything below touches WorkManager-backed services (widgets) that aren't
-            // initialized outside the main process and would crash this process too.
+            // initialized outside the main process and would crash this process too. The
+            // handler below is skipped on purpose: pointing it at the activity hosted here
+            // would have a crashing CrashActivity relaunch itself in a loop.
             return
         }
+
+        GlobalExceptionHandler.initialize(applicationContext, CrashActivity::class.java)
 
         CoilSetup(this)
 
@@ -160,9 +162,16 @@ open class App :
     }
 
     private fun isErrorHandlerProcess(): Boolean {
-        val pid = android.os.Process.myPid()
-        val manager = getSystemService(Context.ACTIVITY_SERVICE) as? ActivityManager
-        val processName = manager?.runningAppProcesses?.firstOrNull { it.pid == pid }?.processName
+        val processName =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                getProcessName()
+            } else {
+                // runningAppProcesses can come back null/empty, which would leave this looking
+                // like the main process and run the full init the early return above avoids
+                val pid = android.os.Process.myPid()
+                val manager = getSystemService(Context.ACTIVITY_SERVICE) as? ActivityManager
+                manager?.runningAppProcesses?.firstOrNull { it.pid == pid }?.processName
+            }
         return processName?.endsWith(":error_handler") == true
     }
 
