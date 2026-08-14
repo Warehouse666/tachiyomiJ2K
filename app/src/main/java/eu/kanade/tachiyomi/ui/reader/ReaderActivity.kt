@@ -966,7 +966,7 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
                 return true
             }
             KeyEvent.KEYCODE_MENU -> {
-                if (isInitialPress && event?.isFromSource(InputDevice.SOURCE_GAMEPAD) != true) {
+                if (isInitialPress && !event.isFromSource(InputDevice.SOURCE_GAMEPAD)) {
                     toggleMenu()
                 }
                 return true
@@ -1848,6 +1848,8 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
      */
     private fun setProgressDialog(show: Boolean) {
         if (!show) {
+            binding.readerNav.startCell.isVisible = true
+            binding.readerNav.endCell.isVisible = true
             binding.readerNav.leftChapter.isVisible = true
             binding.readerNav.rightChapter.isVisible = true
 
