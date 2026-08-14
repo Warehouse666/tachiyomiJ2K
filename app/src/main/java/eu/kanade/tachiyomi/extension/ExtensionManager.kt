@@ -144,14 +144,22 @@ class ExtensionManager(
                 withUIContext { context.toast(R.string.extension_api_error) }
                 emptyList()
             }
-        enableAdditionalSubLanguages(extensions)
+        // Dedupe by pkgName so extensions served by multiple repos can't produce duplicate
+        // entries downstream (e.g. duplicate RecyclerView stable IDs). The newest copy wins, and
+        // every consumer below is handed the same list: picking a different duplicate for the
+        // update check than for the download leaves an update that can never install.
+        val availableExtensions =
+            extensions
+                .groupBy { it.pkgName }
+                .values
+                .map { duplicates -> duplicates.maxBy(Extension.Available::versionCode) }
 
-        // Dedupe by pkgName so extensions served by multiple repos can't produce
-        // duplicate entries downstream (e.g. duplicate RecyclerView stable IDs).
-        _availableExtensionsFlow.value = extensions.associateBy { it.pkgName }.values.toList()
-        updatedInstalledExtensionsStatuses(extensions)
+        enableAdditionalSubLanguages(availableExtensions)
+
+        _availableExtensionsFlow.value = availableExtensions
+        updatedInstalledExtensionsStatuses(availableExtensions)
         setupAvailableSourcesMap()
-        emitToInstaller("Finished/Available/${extensions.size}", (InstallStep.Done to null))
+        emitToInstaller("Finished/Available/${availableExtensions.size}", (InstallStep.Done to null))
     }
 
     /**
