@@ -54,7 +54,9 @@ class TypeSafeSharedPreferences(
         try {
             read()
         } catch (e: ClassCastException) {
-            Timber.d(e, "Preference \"$key\" had an unexpected type; resetting to default")
+            // Logged at error level so it lands in the shared crash log, which is filtered to
+            // logcat *:E - this is the only trace that a preference silently reset
+            Timber.e(e, "Preference \"$key\" had an unexpected type; resetting to default")
             delegate.edit { remove(key) }
             default
         }

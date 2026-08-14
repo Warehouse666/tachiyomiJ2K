@@ -15,8 +15,12 @@ import kotlinx.coroutines.flow.callbackFlow
 
 class AndroidPreferenceStore(
     context: Context,
-    private val sharedPreferences: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context),
+    prefs: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context),
 ) : PreferenceStore {
+    // Same guard PreferencesHelper puts on these: this reads the very same file, so a key left
+    // holding another fork's type would throw straight through here otherwise
+    private val sharedPreferences = TypeSafeSharedPreferences(prefs)
+
     private val keyFlow = sharedPreferences.keyFlow
 
     override fun getString(
