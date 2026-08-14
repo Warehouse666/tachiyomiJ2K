@@ -1004,11 +1004,15 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
      * expanded.
      */
     private fun toggleChapterList() {
-        toggleMenu()
         with(binding.chaptersSheet.chaptersBottomSheet) {
-            if (menuVisible) {
+            if (sheetBehavior?.isExpanded() == false) {
+                if (!menuVisible) {
+                    toggleMenu()
+                }
                 sheetBehavior?.expand()
                 focusCurrentChapter()
+            } else {
+                toggleMenu()
             }
         }
     }
