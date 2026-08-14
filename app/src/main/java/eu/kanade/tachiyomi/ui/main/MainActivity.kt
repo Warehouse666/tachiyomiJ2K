@@ -814,7 +814,7 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
                     if (expanded) sideNav.expand() else sideNav.collapse()
                 }
                 sideNavToggleButton?.setIconResource(
-                    if (expanded) R.drawable.ic_menu_open_24dp else R.drawable.ic_menu_24dp,
+                    if (expanded) R.drawable.ic_menu_collapse_24dp else R.drawable.ic_menu_expand_24dp,
                 )
                 updateControllersWithSideNavChanges()
             }

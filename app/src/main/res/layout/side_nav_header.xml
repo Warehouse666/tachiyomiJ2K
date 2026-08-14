@@ -10,4 +10,4 @@
     android:layout_height="wrap_content"
     app:iconTint="?actionBarTintColor"
     android:visibility="gone"
-    app:icon="@drawable/ic_menu_open_24dp" />
+    app:icon="@drawable/ic_menu_collapse_24dp" />
