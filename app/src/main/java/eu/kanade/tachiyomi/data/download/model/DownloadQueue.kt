@@ -7,15 +7,12 @@ import eu.kanade.tachiyomi.data.download.DownloadStore
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import rx.subjects.PublishSubject
 import java.util.concurrent.CopyOnWriteArrayList
 
 class DownloadQueue(
     private val store: DownloadStore,
     private val queue: MutableList<Download> = CopyOnWriteArrayList<Download>(),
 ) : List<Download> by queue {
-    private val statusSubject = PublishSubject.create<Download>()
-
     private val updatedRelay = PublishRelay.create<Unit>()
 
     private val downloadListeners = mutableListOf<DownloadListener>()
@@ -24,7 +21,6 @@ class DownloadQueue(
 
     fun addAll(downloads: List<Download>) {
         downloads.forEach { download ->
-            download.setStatusSubject(statusSubject)
             download.setStatusCallback(::setPagesFor)
             download.status = Download.State.QUEUE
         }
@@ -36,7 +32,6 @@ class DownloadQueue(
     fun remove(download: Download) {
         val removed = queue.remove(download)
         store.remove(download)
-        download.setStatusSubject(null)
         download.setStatusCallback(null)
         if (download.status == Download.State.DOWNLOADING || download.status == Download.State.QUEUE) {
             download.status = Download.State.NOT_DOWNLOADED
@@ -68,7 +63,6 @@ class DownloadQueue(
 
     fun clear() {
         queue.forEach { download ->
-            download.setStatusSubject(null)
             download.setStatusCallback(null)
             if (download.status == Download.State.DOWNLOADING || download.status == Download.State.QUEUE) {
                 download.status = Download.State.NOT_DOWNLOADED
@@ -93,7 +87,6 @@ class DownloadQueue(
             }
             callListeners(download)
         } else if (download.status == Download.State.DOWNLOADED || download.status == Download.State.ERROR) {
-//            setPagesSubject(download.pages, null)
             if (download.status == Download.State.ERROR) {
                 callListeners(download)
             }
@@ -105,14 +98,6 @@ class DownloadQueue(
     private fun callListeners(download: Download) {
         downloadListeners.forEach { it.updateDownload(download) }
     }
-
-//    private fun setPagesSubject(pages: List<Page>?, subject: PublishSubject<Int>?) {
-//        if (pages != null) {
-//            for (page in pages) {
-//                page.setStatusSubject(subject)
-//            }
-//        }
-//    }
 
     fun addListener(listener: DownloadListener) {
         downloadListeners.add(listener)

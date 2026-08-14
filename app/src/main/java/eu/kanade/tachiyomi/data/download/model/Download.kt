@@ -4,7 +4,6 @@ import eu.kanade.tachiyomi.data.database.models.Chapter
 import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.source.model.Page
 import eu.kanade.tachiyomi.source.online.HttpSource
-import rx.subjects.PublishSubject
 import kotlin.math.roundToInt
 
 class Download(
@@ -24,11 +23,8 @@ class Download(
     var status: State = State.default
         set(status) {
             field = status
-            statusSubject?.onNext(this)
             statusCallback?.invoke(this)
         }
-
-    @Transient private var statusSubject: PublishSubject<Download>? = null
 
     @Transient private var statusCallback: ((Download) -> Unit)? = null
 
@@ -43,10 +39,6 @@ class Download(
             val pages = pages ?: return 0
             return pages.map(Page::progress).average().roundToInt()
         }
-
-    fun setStatusSubject(subject: PublishSubject<Download>?) {
-        statusSubject = subject
-    }
 
     fun setStatusCallback(f: ((Download) -> Unit)?) {
         statusCallback = f
