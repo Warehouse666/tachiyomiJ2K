@@ -35,6 +35,8 @@ class ExtensionAdapter(
 
         fun onCancelClick(position: Int)
 
+        fun onWebViewClick(position: Int)
+
         fun onUpdateAllClicked(position: Int)
 
         fun onExtSortClicked(

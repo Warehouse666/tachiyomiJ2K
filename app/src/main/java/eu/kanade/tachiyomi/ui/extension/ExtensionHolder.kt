@@ -40,6 +40,9 @@ class ExtensionHolder(
         binding.cancelButton.setOnClickListener {
             adapter.buttonClickListener.onCancelClick(flexibleAdapterPosition)
         }
+        binding.webviewButton.setOnClickListener {
+            adapter.buttonClickListener.onWebViewClick(flexibleAdapterPosition)
+        }
     }
 
     fun bind(item: ExtensionItem) {
@@ -112,6 +115,9 @@ class ExtensionHolder(
         binding.installProgress.progress = item.sessionProgress ?: 0
         binding.installProgress.isVisible = item.sessionProgress != null
         binding.cancelButton.isVisible = item.sessionProgress != null
+        binding.webviewButton.isVisible =
+            extension is Extension.Available &&
+            extension.sources.any { it.baseUrl.isNotBlank() }
 
         binding.sourceImage.dispose()
 
@@ -135,14 +141,19 @@ class ExtensionHolder(
     fun bindButton(item: ExtensionItem) =
         with(binding.extButton) {
             if (item.installStep == InstallStep.Done) return@with
+            val installStep = item.installStep
+            val extension = item.extension
             isEnabled = true
             isClickable = true
 
             binding.installProgress.progress = item.sessionProgress ?: 0
             binding.cancelButton.isVisible = item.sessionProgress != null
             binding.installProgress.isVisible = item.sessionProgress != null
-            val extension = item.extension
-            val installStep = item.installStep
+
+            binding.webviewButton.isVisible =
+                extension is Extension.Available &&
+                extension.sources.any { it.baseUrl.isNotBlank() } &&
+                item.sessionProgress == null
             if (installStep != null) {
                 applyStyle(R.style.Widget_Tachiyomi_Button_TextButton)
                 setText(
@@ -177,6 +188,7 @@ class ExtensionHolder(
                 applyStyleFromAttr(R.attr.materialButtonOutlinedStyle)
                 setText(if (adapter.installPrivately) R.string.add else R.string.install)
             }
+            updateLayoutParams { width = ViewGroup.LayoutParams.WRAP_CONTENT }
         }
 
     fun setCorners(
