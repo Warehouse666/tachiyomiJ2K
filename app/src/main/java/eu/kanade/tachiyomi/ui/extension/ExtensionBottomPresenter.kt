@@ -10,8 +10,8 @@ import eu.kanade.tachiyomi.extension.model.InstalledExtensionsOrder
 import eu.kanade.tachiyomi.extension.util.ExtensionLoader
 import eu.kanade.tachiyomi.ui.migration.BaseMigrationPresenter
 import eu.kanade.tachiyomi.util.system.LocaleHelper
-import eu.kanade.tachiyomi.util.system.withUIContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
@@ -66,7 +66,7 @@ class ExtensionBottomPresenter : BaseMigrationPresenter<ExtensionBottomSheet>() 
                                     extensionManager.availableExtensionsFlow.value,
                                 ),
                             )
-                        withUIContext { view?.setExtensions(extensions) }
+                        withContext(NonCancellable + Dispatchers.Main) { view?.setExtensions(extensions) }
                         return@collect
                     }
                     val extension =
@@ -83,7 +83,7 @@ class ExtensionBottomPresenter : BaseMigrationPresenter<ExtensionBottomSheet>() 
                     }
                     val item = updateInstallStep(extension.extension, it.second.first, it.second.second)
                     if (item != null) {
-                        withUIContext { view?.downloadUpdate(item) }
+                        withContext(NonCancellable + Dispatchers.Main) { view?.downloadUpdate(item) }
                     }
                 }
         }
@@ -256,7 +256,7 @@ class ExtensionBottomPresenter : BaseMigrationPresenter<ExtensionBottomSheet>() 
                     }
                     val item = updateInstallStep(extension, it.first, it.second)
                     if (item != null) {
-                        withUIContext { view?.downloadUpdate(item) }
+                        withContext(NonCancellable + Dispatchers.Main) { view?.downloadUpdate(item) }
                     }
                 }
         }
