@@ -406,7 +406,6 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
         setContentView(binding.root)
 
         binding.toolbar.overflowIcon?.setTint(getResourceColor(R.attr.actionBarTintColor))
-        binding.sideNav?.submenuDividersEnabled = true
         if (isTablet()) {
             binding.sideNav?.let { sideNav ->
                 if (preferences.sideNavExpanded().get()) {

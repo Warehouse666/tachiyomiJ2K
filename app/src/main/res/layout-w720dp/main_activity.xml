@@ -241,6 +241,7 @@
     <eu.kanade.tachiyomi.ui.base.SideNavView
         android:id="@+id/side_nav"
         app:elevation="0dp"
+        app:submenuDividersEnabled="true"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
