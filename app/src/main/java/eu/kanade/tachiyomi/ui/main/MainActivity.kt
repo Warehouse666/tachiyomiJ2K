@@ -406,6 +406,7 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
         setContentView(binding.root)
 
         binding.toolbar.overflowIcon?.setTint(getResourceColor(R.attr.actionBarTintColor))
+        binding.sideNav?.submenuDividersEnabled = true
         if (isTablet()) {
             binding.sideNav?.let { sideNav ->
                 if (preferences.sideNavExpanded().get()) {
@@ -549,6 +550,10 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
             // Only moving the checkmark to follow the recents view, the tab is already showing
             if (isSyncingNavSelection) return@setOnItemSelectedListener true
             val currentController = router.backstack.lastOrNull()?.controller
+            if (id == R.id.nav_settings) {
+                showSettings()
+                return@setOnItemSelectedListener false
+            }
             if (!continueSwitchingTabs && currentController is BottomNavBarInterface) {
                 if (!currentController.canChangeTabs {
                         continueSwitchingTabs = true
