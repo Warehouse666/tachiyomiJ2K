@@ -2,9 +2,11 @@ package eu.kanade.tachiyomi.crash
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.ViewGroup
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat.Type.displayCutout
 import androidx.core.view.WindowInsetsCompat.Type.systemBars
+import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
 import androidx.lifecycle.lifecycleScope
 import eu.kanade.tachiyomi.R
@@ -24,7 +26,12 @@ class CrashActivity : BaseActivity<CrashActivityBinding>() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
         binding.root.doOnApplyWindowInsetsCompat { v, insets, _ ->
             val bars = insets.getInsets(systemBars() or displayCutout())
-            v.updatePadding(left = bars.left, top = bars.top, right = bars.right, bottom = bars.bottom)
+            binding.scrollView.updatePadding(left = bars.left, top = bars.top, right = bars.right)
+            binding.buttonContainer.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                leftMargin = bars.left
+                rightMargin = bars.right
+                bottomMargin = bars.bottom
+            }
         }
 
         val stackTrace = GlobalExceptionHandler.getStackTraceFromIntent(intent)

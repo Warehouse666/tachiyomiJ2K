@@ -6,7 +6,7 @@
     <!--============-->
     <style name="Theme"/>
 
-    <style name="Theme.Base" parent="Theme.Material3.DynamicColors.DayNight.NoActionBar">
+    <style name="Theme.Base" parent="Theme.Material3Expressive.DynamicColors.DayNight.NoActionBar">
         <item name="android:forceDarkAllowed" tools:targetApi="29">false</item>
         <item name="android:enforceNavigationBarContrast" tools:targetApi="29">false</item>
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
@@ -19,7 +19,7 @@
         <item name="colorPrimaryInverse">@color/primaryInverseTachiyomi</item>
         <item name="colorSecondary">@color/secondaryTachiyomi</item>
         <item name="colorAccent">?attr/colorPrimary</item>
-        <item name="android:colorAccent" tools:targetApi="21">?attr/colorPrimary</item>
+        <item name="android:colorAccent">?attr/colorPrimary</item>
         <item name="colorSurface">@color/background</item> //old colorSecondary
         <item name="colorSurfaceVariant">?colorSurfaceContainer</item> //old colorSecondary
         <item name="colorOnSurface">@color/colorOnSurface</item>
@@ -72,6 +72,7 @@
         <item name="sliderStyle">@style/Widget.Tachiyomi.Slider</item>
         <item name="bottomNavigationStyle">@style/Widget.Tachiyomi.BottomNavigationView</item>
         <item name="materialButtonStyle">@style/Widget.Tachiyomi.Button.Primary</item>
+        <item name="materialButtonOutlinedStyle">@style/Widget.Tachiyomi.Button.OutlinedButton</item>
         <item name="navigationRailStyle">@style/Widget.Tachiyomi.NavigationRail</item>
         <item name="elevationOverlayEnabled">false</item>
 

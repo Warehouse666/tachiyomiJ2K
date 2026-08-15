@@ -127,7 +127,7 @@
             android:layout_marginEnd="16dp">
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/clear_filters_button"
-                style="@style/Widget.Tachiyomi.Button.OutlinedButton"
+                style="?materialButtonOutlinedStyle"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"

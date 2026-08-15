@@ -142,7 +142,7 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/ext_button"
-                style="@style/Widget.Tachiyomi.Button.OutlinedButton"
+                style="?materialButtonOutlinedStyle"
                 app:strokeColor="@android:color/transparent"
                 android:textAllCaps="false"
                 android:layout_width="wrap_content"

@@ -347,7 +347,6 @@
 
     <style name="Widget.Tachiyomi.Button.IconButton.Outlined" parent="Widget.Material3Expressive.Button.IconButton.Outlined">
         <item name="iconGravity">textStart</item>
-        <item name="iconTint">?colorPrimary</item>
         <item name="android:layout_gravity">center</item>
     </style>
 
@@ -380,8 +379,8 @@
     </style>
 
     <style name="Widget.Tachiyomi.Button.OutlinedButton" parent="Widget.Material3Expressive.Button.OutlinedButton">
-        <item name="backgroundTint">@color/ext_bg_selector</item>
-        <item name="android:textColor">@color/ext_button_text_selector</item>
+<!--        <item name="backgroundTint">@color/ext_bg_selector</item>-->
+<!--        <item name="android:textColor">@color/ext_button_text_selector</item>-->
         <item name="rippleColor">?colorControlHighlight</item>
     </style>
 

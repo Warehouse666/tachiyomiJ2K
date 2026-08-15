@@ -717,8 +717,6 @@ class MangaHeaderHolder(
                 ColorStateList.valueOf(accentColor),
             )
             lessButton.setTextColor(accentColor)
-            webviewButton.iconTint = ColorStateList.valueOf(accentColor)
-            shareButton.iconTint = ColorStateList.valueOf(accentColor)
 
             filterButton.imageTintList = ColorStateList.valueOf(accentColor)
 
@@ -748,9 +746,9 @@ class MangaHeaderHolder(
                     contrastingTextColor(accentColor),
                 )
             val overflowButton =
-                (buttonLayout as? MaterialButtonGroup)
-                    ?.children
-                    ?.first { it.tag == MaterialButtonGroup.OVERFLOW_BUTTON_TAG } as? MaterialButton
+                buttonLayout
+                    .children
+                    .first { it.tag == MaterialButtonGroup.OVERFLOW_BUTTON_TAG } as? MaterialButton
             overflowButton ?.iconTint = ColorStateList.valueOf(accentColor)
             startReadingButton.setTextColor(ColorStateList(states, textColors))
             trackButton.iconTint = ColorStateList.valueOf(accentColor)
