@@ -247,7 +247,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:menuGravity="center"
         app:layout_constraintTop_toTopOf="parent"
-        app:headerLayout="@layout/side_nav_header"
+        tools:headerLayout="@layout/side_nav_header"
         app:menu="@menu/side_navigation" />
 
     <View
