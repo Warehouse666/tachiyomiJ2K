@@ -26,6 +26,15 @@ class MigrationProcessItem(
         holder.bind(this)
     }
 
+    override fun unbindViewHolder(
+        adapter: FlexibleAdapter<IFlexible<*>?>?,
+        holder: MigrationProcessHolder?,
+        position: Int,
+    ) {
+        super.unbindViewHolder(adapter, holder, position)
+        holder?.unbind()
+    }
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other is MigrationProcessItem) {

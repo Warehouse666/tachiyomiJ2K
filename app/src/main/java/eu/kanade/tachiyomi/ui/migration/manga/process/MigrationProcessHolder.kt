@@ -6,6 +6,7 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import coil.Coil
+import coil.dispose
 import coil.request.ImageRequest
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.database.DatabaseHelper
@@ -19,12 +20,14 @@ import eu.kanade.tachiyomi.source.SourceManager
 import eu.kanade.tachiyomi.ui.base.holder.BaseFlexibleViewHolder
 import eu.kanade.tachiyomi.ui.library.setFreeformCoverRatio
 import eu.kanade.tachiyomi.ui.manga.MangaDetailsController
+import eu.kanade.tachiyomi.util.system.executeOnIO
 import eu.kanade.tachiyomi.util.system.launchUI
+import eu.kanade.tachiyomi.util.system.withUIContext
 import eu.kanade.tachiyomi.util.view.setCards
 import eu.kanade.tachiyomi.util.view.setVectorCompat
 import eu.kanade.tachiyomi.util.view.withFadeTransaction
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.MainScope
 import uy.kohesive.injekt.injectLazy
 import java.text.DecimalFormat
 
@@ -36,6 +39,8 @@ class MigrationProcessHolder(
     private val sourceManager: SourceManager by injectLazy()
     private var item: MigrationProcessItem? = null
     private val binding = MigrationProcessItemBinding.bind(view)
+    private var migrationJob: Job? = null
+    private var scope = MainScope()
 
     init {
         // We need to post a Runnable to show the popup to make sure that the PopupMenu is
@@ -52,36 +57,41 @@ class MigrationProcessHolder(
 
     fun bind(item: MigrationProcessItem) {
         this.item = item
-        launchUI {
-            binding.migrationMangaCardFrom.setFreeformCoverRatio(item.manga.manga())
-            binding.migrationMangaCardTo.setFreeformCoverRatio(null)
+        migrationJob?.cancel()
+        binding.migrationMangaCardFrom.resetManga()
+        binding.migrationMangaCardTo.resetManga()
 
-            val manga = item.manga.manga()
-            val source = item.manga.mangaSource()
+        binding.migrationMenu.setVectorCompat(
+            R.drawable.ic_more_vert_24dp,
+            R.attr.colorOnBackground,
+        )
+        binding.skipManga.setVectorCompat(
+            R.drawable.ic_close_24dp,
+            R.attr.colorOnBackground,
+        )
+        binding.migrationMenu.isInvisible = true
+        binding.skipManga.isVisible = true
 
-            binding.migrationMenu.setVectorCompat(
-                R.drawable.ic_more_vert_24dp,
-                R.attr.colorOnBackground,
-            )
-            binding.skipManga.setVectorCompat(
-                R.drawable.ic_close_24dp,
-                R.attr.colorOnBackground,
-            )
-            binding.migrationMenu.isInvisible = true
-            binding.skipManga.isVisible = true
-            binding.migrationMangaCardTo.resetManga()
-            if (manga != null) {
-                withContext(Dispatchers.Main) {
-                    binding.migrationMangaCardFrom.attachManga(manga, source)
-                    binding.migrationMangaCardFrom.root.setOnClickListener {
-                        adapter.controller.router.pushController(
-                            MangaDetailsController(
-                                manga,
-                                true,
-                            ).withFadeTransaction(),
-                        )
+        migrationJob =
+            scope.launchUI {
+                binding.migrationMangaCardFrom.setFreeformCoverRatio(item.manga.manga())
+                binding.migrationMangaCardTo.setFreeformCoverRatio(null)
+
+                val manga = item.manga.manga()
+                val source = item.manga.mangaSource()
+
+                if (manga != null) {
+                    withUIContext {
+                        binding.migrationMangaCardFrom.attachManga(manga, source)
+                        binding.migrationMangaCardFrom.root.setOnClickListener {
+                            adapter.controller.router.pushController(
+                                MangaDetailsController(
+                                    manga,
+                                    true,
+                                ).withFadeTransaction(),
+                            )
+                        }
                     }
-                }
 
                 /*launchUI {
                     item.manga.progress.asFlow().collect { (max, progress) ->
@@ -94,46 +104,53 @@ class MigrationProcessHolder(
                     }
                 }*/
 
-                val searchResult =
-                    item.manga.searchResult.get()?.let {
-                        db.getManga(it).executeAsBlocking()
-                    }
-                val resultSource =
-                    searchResult?.source?.let {
-                        sourceManager.get(it)
-                    }
-                withContext(Dispatchers.Main) {
-                    if (item.manga.mangaId != this@MigrationProcessHolder.item?.manga?.mangaId ||
-                        item.manga.migrationStatus == MigrationStatus.RUNNUNG
-                    ) {
-                        return@withContext
-                    }
-                    if (searchResult != null && resultSource != null) {
-                        binding.migrationMangaCardTo.attachManga(searchResult, resultSource)
-                        binding.migrationMangaCardTo.root.setOnClickListener {
-                            adapter.controller.router.pushController(
-                                MangaDetailsController(
-                                    searchResult,
-                                    true,
-                                ).withFadeTransaction(),
-                            )
+                    val searchResult =
+                        item.manga.searchResult.get()?.let {
+                            db.getManga(it).executeOnIO()
                         }
-                    } else {
-                        binding.migrationMangaCardTo.coverThumbnail.setImageDrawable(null)
-                        binding.migrationMangaCardTo.progress.isVisible = false
-                        binding.migrationMangaCardTo.title.text =
-                            view.context.getString(R.string.no_alternatives_found)
+                    val resultSource =
+                        searchResult?.source?.let {
+                            sourceManager.get(it)
+                        }
+                    withUIContext {
+                        if (item.manga.mangaId != this@MigrationProcessHolder.item?.manga?.mangaId ||
+                            item.manga.migrationStatus == MigrationStatus.RUNNUNG
+                        ) {
+                            return@withUIContext
+                        }
+                        if (searchResult != null && resultSource != null) {
+                            binding.migrationMangaCardTo.attachManga(searchResult, resultSource)
+                            binding.migrationMangaCardTo.root.setOnClickListener {
+                                adapter.controller.router.pushController(
+                                    MangaDetailsController(
+                                        searchResult,
+                                        true,
+                                    ).withFadeTransaction(),
+                                )
+                            }
+                        } else {
+                            binding.migrationMangaCardTo.coverThumbnail.setImageDrawable(null)
+                            binding.migrationMangaCardTo.progress.isVisible = false
+                            binding.migrationMangaCardTo.title.text =
+                                view.context.getString(R.string.no_alternatives_found)
+                        }
+                        binding.migrationMenu.isVisible = true
+                        binding.skipManga.isVisible = false
+                        adapter.sourceFinished()
                     }
-                    binding.migrationMenu.isVisible = true
-                    binding.skipManga.isVisible = false
-                    adapter.sourceFinished()
                 }
             }
-        }
+    }
+
+    fun unbind() {
+        migrationJob?.cancel()
+        binding.migrationMangaCardTo.resetManga()
+        binding.migrationMangaCardFrom.resetManga()
     }
 
     private fun MangaGridItemBinding.resetManga() {
         progress.isVisible = true
+        coverThumbnail.dispose()
         coverThumbnail.setImageDrawable(null)
         compactTitle.text = ""
         title.text = ""
@@ -144,10 +161,11 @@ class MigrationProcessHolder(
         root.setOnClickListener(null)
     }
 
-    private fun MangaGridItemBinding.attachManga(
+    private suspend fun MangaGridItemBinding.attachManga(
         manga: Manga,
         source: Source,
     ) {
+        val mangaChapters = db.getChapters(manga).executeOnIO()
         (root.layoutParams as ConstraintLayout.LayoutParams).verticalBias = 1f
         progress.isVisible = false
 
@@ -172,7 +190,6 @@ class MigrationProcessHolder(
         gradient.isVisible = true
         title.text = source.toString()
 
-        val mangaChapters = db.getChapters(manga).executeAsBlocking()
         unreadDownloadBadge.badgeView.setChapters(mangaChapters.size)
         val latestChapter = mangaChapters.maxOfOrNull { it.chapter_number } ?: -1f
 
