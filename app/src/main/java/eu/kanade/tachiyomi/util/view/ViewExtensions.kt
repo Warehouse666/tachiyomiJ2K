@@ -32,14 +32,18 @@ import android.view.WindowInsets
 import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.TextView
+import androidx.annotation.AttrRes
 import androidx.annotation.Dimension
 import androidx.annotation.FloatRange
 import androidx.annotation.IdRes
 import androidx.annotation.RequiresApi
+import androidx.annotation.StyleRes
+import androidx.appcompat.view.ContextThemeWrapper
 import androidx.appcompat.view.menu.MenuBuilder
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.animation.addListener
 import androidx.core.content.ContextCompat
+import androidx.core.content.res.use
 import androidx.core.graphics.ColorUtils
 import androidx.core.view.OnApplyWindowInsetsListener
 import androidx.core.view.ViewCompat
@@ -313,11 +317,53 @@ fun SwipeRefreshLayout.setStyle() {
     setProgressBackgroundColorSchemeColor(context.getResourceColor(R.attr.colorSurfaceContainer))
 }
 
-fun MaterialButton.resetStrokeColor() {
-    strokeColor =
-        ColorStateList.valueOf(
-            context.getColor(R.color.m3expressive_button_outline_color_selector),
-        )
+// Sorted since obtainStyledAttributes expects the attr ids in ascending order.
+private val buttonStyleAttrs =
+    intArrayOf(
+        android.R.attr.textColor,
+        R.attr.backgroundTint,
+        R.attr.rippleColor,
+        R.attr.strokeColor,
+        R.attr.strokeWidth,
+    ).sortedArray()
+
+/**
+ * Swaps in the text color, background tint, ripple color, stroke color and stroke width of the
+ * style [styleAttr] points at, with their state lists (disabled, checked, etc) intact.
+ *
+ * Expressive button styles barely set any of these directly: the text color selector resolves
+ * ?colorOnContainer(Checked/Unchecked) from the style's materialThemeOverlay, and the stroke width
+ * resolves ?containerStrokeWidth from its materialSizeOverlay, so both overlays have to be applied
+ * before reading the style.
+ */
+fun MaterialButton.applyStyleFromAttr(
+    @AttrRes styleAttr: Int,
+) = applyStyle(context.obtainStyledAttributes(intArrayOf(styleAttr)).use { it.getResourceId(0, 0) })
+
+/** [applyStyleFromAttr] for a style referenced directly instead of through a theme attr. */
+fun MaterialButton.applyStyle(
+    @StyleRes styleRes: Int,
+) {
+    if (styleRes == 0) return
+    var styleContext: Context = context
+    intArrayOf(R.attr.materialThemeOverlay, R.attr.materialSizeOverlay).forEach { overlayAttr ->
+        val overlayRes =
+            styleContext.obtainStyledAttributes(styleRes, intArrayOf(overlayAttr)).use {
+                it.getResourceId(0, 0)
+            }
+        if (overlayRes != 0) {
+            styleContext = ContextThemeWrapper(styleContext, overlayRes)
+        }
+    }
+    styleContext.obtainStyledAttributes(styleRes, buttonStyleAttrs).use { attrs ->
+        attrs
+            .getColorStateList(buttonStyleAttrs.binarySearch(android.R.attr.textColor))
+            ?.let { setTextColor(it) }
+        backgroundTintList = attrs.getColorStateList(buttonStyleAttrs.binarySearch(R.attr.backgroundTint))
+        rippleColor = attrs.getColorStateList(buttonStyleAttrs.binarySearch(R.attr.rippleColor))
+        strokeColor = attrs.getColorStateList(buttonStyleAttrs.binarySearch(R.attr.strokeColor))
+        strokeWidth = attrs.getDimensionPixelSize(buttonStyleAttrs.binarySearch(R.attr.strokeWidth), 0)
+    }
 }
 
 @SuppressLint("RestrictedApi")

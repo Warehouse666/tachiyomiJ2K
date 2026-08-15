@@ -379,9 +379,13 @@
     </style>
 
     <style name="Widget.Tachiyomi.Button.OutlinedButton" parent="Widget.Material3Expressive.Button.OutlinedButton">
-<!--        <item name="backgroundTint">@color/ext_bg_selector</item>-->
-<!--        <item name="android:textColor">@color/ext_button_text_selector</item>-->
         <item name="rippleColor">?colorControlHighlight</item>
+    </style>
+
+    <!-- Expressive text buttons inherit the filled button's background tint, which paints a grey
+         container once disabled, so give them one that stays transparent. -->
+    <style name="Widget.Tachiyomi.Button.TextButton" parent="Widget.Material3Expressive.Button.TextButton">
+        <item name="backgroundTint">@color/text_button_bg_selector</item>
     </style>
 
     <style name="Widget.Tachiyomi.Button.Primary" parent="Widget.Material3Expressive.Button">

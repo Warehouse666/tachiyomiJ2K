@@ -1,13 +1,14 @@
 package eu.kanade.tachiyomi.ui.extension
 
 import android.content.res.ColorStateList
-import android.graphics.Color
 import android.view.View
+import android.view.ViewGroup
 import androidx.core.text.buildSpannedString
 import androidx.core.text.color
 import androidx.core.text.scale
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
+import androidx.core.view.updateLayoutParams
 import coil.dispose
 import coil.load
 import eu.kanade.tachiyomi.R
@@ -21,8 +22,9 @@ import eu.kanade.tachiyomi.ui.base.holder.BaseFlexibleViewHolder
 import eu.kanade.tachiyomi.util.system.LocaleHelper
 import eu.kanade.tachiyomi.util.system.getResourceColor
 import eu.kanade.tachiyomi.util.system.timeSpanFromNow
+import eu.kanade.tachiyomi.util.view.applyStyle
+import eu.kanade.tachiyomi.util.view.applyStyleFromAttr
 import eu.kanade.tachiyomi.util.view.makeContainerShape
-import eu.kanade.tachiyomi.util.view.resetStrokeColor
 import java.util.Locale
 
 class ExtensionHolder(
@@ -135,17 +137,14 @@ class ExtensionHolder(
             if (item.installStep == InstallStep.Done) return@with
             isEnabled = true
             isClickable = true
-            isActivated = false
 
             binding.installProgress.progress = item.sessionProgress ?: 0
             binding.cancelButton.isVisible = item.sessionProgress != null
             binding.installProgress.isVisible = item.sessionProgress != null
             val extension = item.extension
             val installStep = item.installStep
-            strokeColor = ColorStateList.valueOf(Color.TRANSPARENT)
-            rippleColor = ColorStateList.valueOf(context.getResourceColor(R.attr.colorControlHighlight))
-            stateListAnimator = null
             if (installStep != null) {
+                applyStyle(R.style.Widget_Tachiyomi_Button_TextButton)
                 setText(
                     when (installStep) {
                         InstallStep.Pending -> R.string.pending
@@ -154,7 +153,6 @@ class ExtensionHolder(
                         InstallStep.Installing -> R.string.installing
                         InstallStep.Installed -> R.string.installed
                         InstallStep.Error -> R.string.retry
-                        else -> return@with
                     },
                 )
                 if (installStep != InstallStep.Error) {
@@ -164,19 +162,19 @@ class ExtensionHolder(
             } else if (extension is Extension.Installed) {
                 when {
                     extension.hasUpdate -> {
-                        isActivated = true
-                        rippleColor = ColorStateList.valueOf(context.getColor(R.color.on_primary_highlight))
+                        applyStyleFromAttr(R.attr.materialButtonStyle)
                         setText(R.string.update)
                     }
                     else -> {
+                        applyStyle(R.style.Widget_Tachiyomi_Button_TextButton)
                         setText(R.string.settings)
                     }
                 }
             } else if (extension is Extension.Untrusted) {
-                resetStrokeColor()
+                applyStyleFromAttr(R.attr.materialButtonOutlinedStyle)
                 setText(R.string.trust)
             } else {
-                resetStrokeColor()
+                applyStyleFromAttr(R.attr.materialButtonOutlinedStyle)
                 setText(if (adapter.installPrivately) R.string.add else R.string.install)
             }
         }
