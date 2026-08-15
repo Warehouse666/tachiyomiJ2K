@@ -10,6 +10,8 @@ import eu.kanade.tachiyomi.extension.model.InstalledExtensionsOrder
 import eu.kanade.tachiyomi.extension.util.ExtensionLoader
 import eu.kanade.tachiyomi.ui.migration.BaseMigrationPresenter
 import eu.kanade.tachiyomi.util.system.LocaleHelper
+import eu.kanade.tachiyomi.util.system.isOnline
+import eu.kanade.tachiyomi.util.system.toast
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.async
@@ -240,6 +242,11 @@ class ExtensionBottomPresenter : BaseMigrationPresenter<ExtensionBottomSheet>() 
     }
 
     fun installExtension(extension: Extension.Available) {
+        val context = view?.context
+        if (context?.isOnline() == false) {
+            context.toast(R.string.no_network_connection)
+            return
+        }
         presenterScope.launch {
             extensionManager
                 .installExtension(

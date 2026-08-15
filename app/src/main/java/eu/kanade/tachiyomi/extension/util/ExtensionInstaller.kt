@@ -19,6 +19,7 @@ import eu.kanade.tachiyomi.extension.ShizukuInstaller
 import eu.kanade.tachiyomi.extension.model.InstallStep
 import eu.kanade.tachiyomi.ui.extension.ExtensionIntallInfo
 import eu.kanade.tachiyomi.util.storage.getUriCompat
+import eu.kanade.tachiyomi.util.system.isOnline
 import eu.kanade.tachiyomi.util.system.isPackageInstalled
 import eu.kanade.tachiyomi.util.system.launchUI
 import eu.kanade.tachiyomi.util.system.toast
@@ -127,6 +128,12 @@ internal class ExtensionInstaller(
     ): Flow<ExtensionIntallInfo> {
         val pkgName = extension.pkgName
 
+        // Bail rather than let the download manager park the download until there's a connection,
+        // it would otherwise sit on "pending" indefinitely with no way out of it
+        if (!context.isOnline()) {
+            return flowOf(ExtensionIntallInfo(InstallStep.Error, null))
+        }
+
         val oldDownload = activeDownloads[pkgName]
         if (oldDownload != null) {
             deleteDownload(pkgName)
@@ -224,6 +231,9 @@ internal class ExtensionInstaller(
                     when (downloadState) {
                         DownloadManager.STATUS_PENDING -> InstallStep.Pending
                         DownloadManager.STATUS_RUNNING -> InstallStep.Downloading
+                        // Paused is waiting on a connection that may never come back, and a failed
+                        // download used to end the flow without ever reporting anything
+                        DownloadManager.STATUS_PAUSED, DownloadManager.STATUS_FAILED -> InstallStep.Error
                         else -> return@flatMapConcat emptyFlow()
                     }
                 flowOf(ExtensionIntallInfo(step, null))
@@ -256,9 +266,13 @@ internal class ExtensionInstaller(
             }
         }.catch {
             Timber.e(it)
-        }.onCompletion {
+        }.onCompletion { cause ->
             deleteDownload(pkgName)
-            emit(InstallStep.Done to null)
+            // A failed download ends the merged flow while this one is still polling, and emitting
+            // into a collector that's already gone throws
+            if (cause == null) {
+                emit(InstallStep.Done to null)
+            }
         }
 
     /**

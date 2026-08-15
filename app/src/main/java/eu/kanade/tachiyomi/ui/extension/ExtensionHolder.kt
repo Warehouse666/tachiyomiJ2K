@@ -164,6 +164,7 @@ class ExtensionHolder(
                         InstallStep.Installing -> R.string.installing
                         InstallStep.Installed -> R.string.installed
                         InstallStep.Error -> R.string.retry
+                        InstallStep.Done -> return@with
                     },
                 )
                 if (installStep != InstallStep.Error) {
