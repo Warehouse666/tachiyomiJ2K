@@ -806,7 +806,7 @@ class MangaHeaderHolder(
             val checkedColors =
                 intArrayOf(
                     checkedIconColor,
-                    accentColor,
+                    root.context.getResourceColor(R.attr.colorOnSurfaceVariant),
                 )
             trackButton.setTextColor(ColorStateList(checkedStates, checkedTextColors))
             favoriteButton.setTextColor(ColorStateList(checkedStates, checkedTextColors))
