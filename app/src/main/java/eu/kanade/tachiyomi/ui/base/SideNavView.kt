@@ -34,12 +34,12 @@ class SideNavView : NavigationRailView {
 
     init {
         if (resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
-            setItemIconGravity(ITEM_ICON_GRAVITY_TOP)
-            setItemGravity(ITEM_GRAVITY_TOP_CENTER)
-            setItemActiveIndicatorExpandedHeight(itemActiveIndicatorHeight)
+            itemIconGravity = ITEM_ICON_GRAVITY_TOP
+            itemGravity = ITEM_GRAVITY_TOP_CENTER
+            itemActiveIndicatorExpandedHeight = itemActiveIndicatorHeight
             setItemActiveIndicatorExpandedPadding(0, 0, 0, 0)
+            itemActiveIndicatorExpandedMarginHorizontal = itemActiveIndicatorMarginHorizontal
         }
-        setItemActiveIndicatorExpandedMarginHorizontal(itemActiveIndicatorMarginHorizontal)
     }
 
     private val sideNavMenuView: SideNavMenuView?
@@ -96,12 +96,13 @@ private class SideNavMenuView(
     // other (icon-centered) row on this rail instead.
     override fun addView(child: View) {
         super.addView(child)
-        if (child is NavigationBarSubheaderView && child.itemData?.itemId == R.id.nav_recents_group) {
+        if (resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT &&
+            child is NavigationBarSubheaderView &&
+            child.itemData?.itemId == R.id.nav_recents_group
+        ) {
             child.findViewById<TextView>(MaterialR.id.navigation_menu_subheader_label)?.apply {
                 gravity = Gravity.CENTER
-                updateLayoutParams<ViewGroup.MarginLayoutParams> { marginStart = 0 }
-                textSize = 15f // Change this to your desired size in sp
-                setTypeface(null, android.graphics.Typeface.BOLD) // Change this to your desired thickness
+                updateLayoutParams<MarginLayoutParams> { marginStart = 0 }
             }
         }
     }
