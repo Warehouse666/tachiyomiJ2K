@@ -9,7 +9,6 @@ import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.drawable.Drawable
 import androidx.annotation.ColorInt
-import eu.kanade.tachiyomi.util.system.dpToPx
 
 /**
  * Draws a whole library badge: its rounded ends, the fill behind each part, and the slanted divider
@@ -34,6 +33,26 @@ class LibraryBadgeDrawable : Drawable() {
     private var isRtl = false
     private var outlineDirty = true
     private var alpha = 255
+
+    private var dividerSlant = 0f
+    private var smallCorner = 0f
+
+    /**
+     * The shared dpToPx/spToPx helpers read Resources.getSystem(), which always reflects the
+     * phone's own default display - never whatever display this badge actually ends up drawn on
+     * (an external monitor, say). So the density has to come from the badge's own window instead
+     * of a process-wide constant. Returns whether it actually changed.
+     */
+    fun setDensity(density: Float): Boolean {
+        val newDividerSlant = DIVIDER_SLANT_DP * density
+        val newSmallCorner = SMALL_CORNER_DP * density
+        if (newDividerSlant == dividerSlant && newSmallCorner == smallCorner) return false
+        dividerSlant = newDividerSlant
+        smallCorner = newSmallCorner
+        outlineDirty = true
+        invalidateSelf()
+        return true
+    }
 
     /**
      * Matches the shape [eu.kanade.tachiyomi.util.view.makeShapeCorners] gives the card around
@@ -117,7 +136,7 @@ class LibraryBadgeDrawable : Drawable() {
             outlinePath.addRoundRect(rect, radii, Path.Direction.CW)
             return
         }
-        val small = if (startRadius > 0 || endRadius > 0) SMALL_CORNER else 0f
+        val small = if (startRadius > 0 || endRadius > 0) smallCorner else 0f
         val trailing =
             when {
                 roundEnd -> endRadius
@@ -152,7 +171,7 @@ class LibraryBadgeDrawable : Drawable() {
     ) {
         if (bounds.isEmpty) return
         val bounds = bounds
-        val slant = if (isRtl) DIVIDER_SLANT else -DIVIDER_SLANT
+        val slant = if (isRtl) dividerSlant else -dividerSlant
         setPaintColor(color)
         partPath.rewind()
         partPath.moveTo(boundary, bounds.top.toFloat())
@@ -165,7 +184,7 @@ class LibraryBadgeDrawable : Drawable() {
     /** The part from [start] rightwards, its leading edge slanted the way the old overlay was. */
     private fun buildPart(start: Float) {
         val bounds = bounds
-        val slant = if (isRtl) DIVIDER_SLANT else -DIVIDER_SLANT
+        val slant = if (isRtl) dividerSlant else -dividerSlant
         partPath.rewind()
         partPath.moveTo(start, bounds.top.toFloat())
         partPath.lineTo(bounds.right.toFloat(), bounds.top.toFloat())
@@ -205,7 +224,7 @@ class LibraryBadgeDrawable : Drawable() {
         const val MAX_PARTS = 3
 
         /** The old divider was a 10dp image with the slant across its trailing half */
-        private val DIVIDER_SLANT = 5f.dpToPx
-        private val SMALL_CORNER = 4f.dpToPx
+        private const val DIVIDER_SLANT_DP = 5f
+        private const val SMALL_CORNER_DP = 4f
     }
 }

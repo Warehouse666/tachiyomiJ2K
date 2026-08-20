@@ -89,6 +89,7 @@ class LibraryBadge
             super.onFinishInflate()
             binding = UnreadDownloadBadgeBinding.bind(this)
             binding.badgeContent.background = badgeDrawable
+            badgeDrawable.setDensity(resources.displayMetrics.density)
             shapeAppearanceModel = makeShapeCorners(ogRadius, ogRadius)
             badgeDrawable.setCorners(ogRadius, ogRadius, roundEnd = false, isRtl = isRtl, uniform = true)
         }
