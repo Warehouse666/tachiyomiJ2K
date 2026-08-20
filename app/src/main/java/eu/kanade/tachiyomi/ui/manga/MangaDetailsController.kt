@@ -43,6 +43,7 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import coil.imageLoader
+import coil.request.CachePolicy
 import coil.request.ImageRequest
 import com.bluelinelabs.conductor.ControllerChangeHandler
 import com.bluelinelabs.conductor.ControllerChangeType
@@ -628,6 +629,8 @@ class MangaDetailsController :
                 .Builder(view.context)
                 .data(presenter.manga)
                 .allowHardware(false)
+                // Decoded at full size for the palette, keep it out of the entry the grid reads
+                .memoryCachePolicy(CachePolicy.READ_ONLY)
                 .memoryCacheKey(presenter.manga.key())
                 .target(
                     onSuccess = { drawable ->

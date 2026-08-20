@@ -878,6 +878,9 @@ class MangaHeaderHolder(
             builder = {
                 placeholder(drawable)
                 error(drawable)
+                // The placeholder is this same cover already, so refreshing shouldn't fade into
+                // itself just because the memory cache entry it reads was invalidated
+                crossfade(false)
                 if (manga.favorite) networkCachePolicy(CachePolicy.READ_ONLY)
                 diskCachePolicy(CachePolicy.READ_ONLY)
             },
@@ -887,6 +890,7 @@ class MangaHeaderHolder(
             builder = {
                 placeholder(drawable)
                 error(drawable)
+                crossfade(false)
                 if (manga.favorite) networkCachePolicy(CachePolicy.READ_ONLY)
                 diskCachePolicy(CachePolicy.READ_ONLY)
                 target(
