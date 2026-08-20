@@ -33,8 +33,7 @@ class LibraryMangaImageTarget(
                     BitmapFactory.decodeFile(file.path, options)
                     if (options.outWidth == -1 || options.outHeight == -1) {
                         file.delete()
-                        view.context.imageLoader.memoryCache
-                            ?.remove(MemoryCache.Key(manga.key()))
+                        view.context.imageLoader.removeCoverFromMemory(manga)
                     }
                 }
             }
@@ -57,6 +56,11 @@ inline fun ImageView.loadManga(
             .memoryCacheKey(manga.key())
             .build()
     return imageLoader.enqueue(request)
+}
+
+/** Drops this manga's cover from the shared memory cache entry every loader reads from. */
+fun ImageLoader.removeCoverFromMemory(manga: Manga) {
+    memoryCache?.remove(MemoryCache.Key(manga.key()))
 }
 
 fun Palette.getBestColor(defaultColor: Int) = getBestColor() ?: defaultColor

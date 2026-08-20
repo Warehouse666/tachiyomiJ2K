@@ -1595,7 +1595,7 @@ class LibraryPresenter(
             val libraryManga = db.getFavoriteMangas().executeOnIO()
             libraryManga.forEach { manga ->
                 try {
-                    withUIContext { MangaCoverMetadata.setRatioAndColors(manga) }
+                    MangaCoverMetadata.setRatioAndColors(manga)
                 } catch (_: Exception) {
                 }
             }
