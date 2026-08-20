@@ -1104,6 +1104,8 @@ open class LibraryController(
     }
 
     private fun setPreferenceFlows() {
+        // They may have been changed by another controller while this view was gone
+        LibraryItem.updateDisplayPrefs()
         listOf(
             preferences.libraryLayout(),
             preferences.uniformGrid(),
@@ -1114,10 +1116,11 @@ open class LibraryController(
                 .asFlow()
                 .drop(1)
                 .onEach {
+                    LibraryItem.updateDisplayPrefs()
                     reattachAdapter()
                 }.launchIn(viewScope)
         }
-        preferences.hideStartReadingButton().register()
+        preferences.hideStartReadingButton().register { LibraryItem.updateDisplayPrefs() }
         preferences.outlineOnCovers().register { adapter.showOutline = it }
         preferences.categoryNumberOfItems().register { adapter.showNumber = it }
     }
