@@ -1,5 +1,6 @@
 package eu.kanade.tachiyomi.data.image.coil
 
+import android.content.Context
 import android.graphics.BitmapFactory
 import android.graphics.drawable.Drawable
 import android.widget.ImageView
@@ -19,23 +20,33 @@ class LibraryMangaImageTarget(
     override val view: ImageView,
     val manga: Manga,
 ) : ImageViewTarget(view) {
-    private val coverCache: CoverCache by injectLazy()
-
     override fun onError(error: Drawable?) {
         super.onError(error)
-        if (manga.favorite) {
-            launchIO {
-                val file = coverCache.getCoverFile(manga)
-                // if the file exists and the there was still an error then the file is corrupted
-                if (file.exists()) {
-                    val options = BitmapFactory.Options()
-                    options.inJustDecodeBounds = true
-                    BitmapFactory.decodeFile(file.path, options)
-                    if (options.outWidth == -1 || options.outHeight == -1) {
-                        file.delete()
-                        view.context.imageLoader.removeCoverFromMemory(manga)
-                    }
-                }
+        checkForCorruptedCover(view.context, manga)
+    }
+}
+
+/**
+ * A load failing for a favorite manga usually means its cached cover file is corrupted, so remove
+ * it and let the next load re-fetch it. Shared by every target that loads a manga's cover, not
+ * just [LibraryMangaImageTarget].
+ */
+fun checkForCorruptedCover(
+    context: Context,
+    manga: Manga,
+) {
+    if (!manga.favorite) return
+    val coverCache: CoverCache by injectLazy()
+    launchIO {
+        val file = coverCache.getCoverFile(manga)
+        // if the file exists and the there was still an error then the file is corrupted
+        if (file.exists()) {
+            val options = BitmapFactory.Options()
+            options.inJustDecodeBounds = true
+            BitmapFactory.decodeFile(file.path, options)
+            if (options.outWidth == -1 || options.outHeight == -1) {
+                file.delete()
+                context.imageLoader.removeCoverFromMemory(manga)
             }
         }
     }

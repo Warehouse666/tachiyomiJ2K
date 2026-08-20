@@ -8,6 +8,7 @@ import android.graphics.RenderEffect
 import android.graphics.Shader
 import android.graphics.Typeface
 import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
 import android.os.Build
 import android.text.method.LinkMovementMethod
 import android.text.style.StyleSpan
@@ -37,6 +38,7 @@ import com.google.android.material.button.MaterialButtonGroup
 import com.google.android.material.chip.Chip
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.database.models.Manga
+import eu.kanade.tachiyomi.data.image.coil.checkForCorruptedCover
 import eu.kanade.tachiyomi.data.image.coil.loadManga
 import eu.kanade.tachiyomi.databinding.ChapterHeaderItemBinding
 import eu.kanade.tachiyomi.databinding.MangaHeaderItemBinding
@@ -873,6 +875,8 @@ class MangaHeaderHolder(
         binding ?: return
         if (!manga.initialized) return
         val drawable = adapter.controller.binding.mangaCoverFull.drawable
+        // mangaCover and backdrop show the same cover, decoded once and applied to both together
+        // instead of two separate requests finishing at two separate, unsynced moments.
         binding.mangaCover.loadManga(
             manga,
             builder = {
@@ -883,35 +887,37 @@ class MangaHeaderHolder(
                 crossfade(false)
                 if (manga.favorite) networkCachePolicy(CachePolicy.READ_ONLY)
                 diskCachePolicy(CachePolicy.READ_ONLY)
-            },
-        )
-        binding.backdrop.loadManga(
-            manga,
-            builder = {
-                placeholder(drawable)
-                error(drawable)
-                crossfade(false)
-                if (manga.favorite) networkCachePolicy(CachePolicy.READ_ONLY)
-                diskCachePolicy(CachePolicy.READ_ONLY)
                 target(
-                    onSuccess = {
-                        val bitmap = (it as? BitmapDrawable)?.bitmap
-                        if (bitmap == null) {
-                            binding.backdrop.setImageDrawable(it)
-                            return@target
-                        }
-                        val yOffset = (bitmap.height / 2 * 0.33).toInt()
-
-                        binding.backdrop.setImageDrawable(
-                            Bitmap
-                                .createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height - yOffset)
-                                .toDrawable(itemView.resources),
-                        )
-                        applyBlur()
+                    onStart = { placeholder ->
+                        binding.mangaCover.setImageDrawable(placeholder)
+                        placeholder?.let { setBackdrop(it) }
+                    },
+                    onSuccess = { result ->
+                        binding.mangaCover.setImageDrawable(result)
+                        setBackdrop(result)
+                    },
+                    onError = { error ->
+                        error?.let { binding.mangaCover.setImageDrawable(it) }
+                        checkForCorruptedCover(itemView.context, manga)
                     },
                 )
             },
         )
+    }
+
+    private fun setBackdrop(drawable: Drawable) {
+        val bitmap = (drawable as? BitmapDrawable)?.bitmap
+        if (bitmap == null) {
+            binding?.backdrop?.setImageDrawable(drawable)
+            return
+        }
+        val yOffset = (bitmap.height / 2 * 0.33).toInt()
+        binding?.backdrop?.setImageDrawable(
+            Bitmap
+                .createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height - yOffset)
+                .toDrawable(itemView.resources),
+        )
+        applyBlur()
     }
 
     fun expand() {
