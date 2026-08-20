@@ -92,6 +92,7 @@ import eu.kanade.tachiyomi.data.updater.RELEASE_URL
 import eu.kanade.tachiyomi.databinding.MainActivityBinding
 import eu.kanade.tachiyomi.extension.ExtensionManager
 import eu.kanade.tachiyomi.extension.api.ExtensionApi
+import eu.kanade.tachiyomi.source.isIncognitoModeForSource
 import eu.kanade.tachiyomi.source.online.HttpSource
 import eu.kanade.tachiyomi.ui.base.MaterialMenuSheet
 import eu.kanade.tachiyomi.ui.base.SmallToolbarInterface
@@ -716,6 +717,7 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
                 ) {
                     to?.view?.alpha = 1f
                     syncActivityViewWithController(to, from, isPush)
+                    updateIncognitoBadge()
                     binding.appBar.isVisible = true
                     binding.appBar.alpha = 1f
                     if (binding.backShadow.isVisible && !isPush) {
@@ -801,9 +803,7 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
         preferences
             .incognitoMode()
             .asImmediateFlowIn(lifecycleScope) {
-                binding.toolbar.setIncognitoMode(it)
-                binding.searchToolbar.setIncognitoMode(it)
-                SecureActivityDelegate.setSecure(this)
+                updateIncognitoBadge()
             }
         preferences
             .sideNavIconAlignment()
@@ -1650,6 +1650,19 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
         val controller = if (this::router.isInitialized) router.backstack.lastOrNull()?.controller else null
         binding.appBar.setToolbarModeBy(controller)
         setFloatingToolbar(canShowFloatingToolbar(controller), changeBG = false)
+    }
+
+    /**
+     * Updates the toolbar incognito badge, taking into account both the global incognito
+     * toggle and any per-extension incognito state for the source currently on screen.
+     */
+    private fun updateIncognitoBadge() {
+        if (!isBindingInitialized || !this::router.isInitialized) return
+        val sourceId = (router.backstack.lastOrNull()?.controller as? BaseController<*>)?.getIncognitoSourceId()
+        val incognito = isIncognitoModeForSource(sourceId, preferences)
+        binding.toolbar.setIncognitoMode(incognito)
+        binding.searchToolbar.setIncognitoMode(incognito)
+        SecureActivityDelegate.setSecure(this, sourceId)
     }
 
     protected open fun syncActivityViewWithController(

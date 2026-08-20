@@ -233,6 +233,8 @@ class MangaDetailsController :
 
     override fun getTitle(): String? = manga?.title
 
+    override fun getIncognitoSourceId(): Long? = manga?.source
+
     override fun createBinding(inflater: LayoutInflater) = MangaDetailsControllerBinding.inflate(inflater)
 
     //region UI Methods
