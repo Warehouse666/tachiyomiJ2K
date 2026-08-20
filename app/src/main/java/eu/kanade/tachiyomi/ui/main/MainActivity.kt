@@ -11,6 +11,7 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.Rect
 import android.os.Build
@@ -408,11 +409,14 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
         binding.toolbar.overflowIcon?.setTint(getResourceColor(R.attr.actionBarTintColor))
         if (isTablet()) {
             binding.sideNav?.let { sideNav ->
-                if (preferences.sideNavExpanded().get()) {
+                val isPortrait = resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT
+                if (preferences.sideNavExpanded().get() || isPortrait) {
                     sideNav.expand()
                 }
-                if (sideNav.headerView == null) {
+                if (sideNav.headerView == null && !isPortrait) {
                     sideNav.addHeaderView(R.layout.side_nav_header)
+                } else if (isPortrait) {
+                    binding.sideNav?.removeHeaderView()
                 }
                 sideNav.headerView?.isVisible = true
                 // The rail centers its header, line it up with the icons of the items instead
@@ -816,8 +820,10 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
             .asImmediateFlowIn(lifecycleScope) { expanded ->
                 if (!isTablet()) return@asImmediateFlowIn
                 val sideNav = binding.sideNav ?: return@asImmediateFlowIn
+                val isPortrait = resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT
                 // Whichever recents entry is about to go away may be the checked one, so hand the
                 // selection over before the rail animates rather than during
+                val expanded = expanded || isPortrait
                 syncRecentsNavSelection(expanded)
                 if (sideNav.isExpanded != expanded) {
                     if (expanded) sideNav.expand() else sideNav.collapse()
