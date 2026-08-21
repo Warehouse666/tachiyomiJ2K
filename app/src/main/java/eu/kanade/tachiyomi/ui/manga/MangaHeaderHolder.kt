@@ -38,7 +38,7 @@ import com.google.android.material.button.MaterialButtonGroup
 import com.google.android.material.chip.Chip
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.database.models.Manga
-import eu.kanade.tachiyomi.data.image.coil.checkForCorruptedCover
+import eu.kanade.tachiyomi.data.image.coil.LibraryMangaImageTarget
 import eu.kanade.tachiyomi.data.image.coil.loadManga
 import eu.kanade.tachiyomi.databinding.ChapterHeaderItemBinding
 import eu.kanade.tachiyomi.databinding.MangaHeaderItemBinding
@@ -887,18 +887,19 @@ class MangaHeaderHolder(
                 crossfade(false)
                 if (manga.favorite) networkCachePolicy(CachePolicy.READ_ONLY)
                 diskCachePolicy(CachePolicy.READ_ONLY)
+                // A plain lambda target doesn't start Animatable results or observe the lifecycle
+                // to pause/resume them, so an animated cover needs the real target class for that.
                 target(
-                    onStart = { placeholder ->
-                        binding.mangaCover.setImageDrawable(placeholder)
-                        placeholder?.let { setBackdrop(it) }
-                    },
-                    onSuccess = { result ->
-                        binding.mangaCover.setImageDrawable(result)
-                        setBackdrop(result)
-                    },
-                    onError = { error ->
-                        error?.let { binding.mangaCover.setImageDrawable(it) }
-                        checkForCorruptedCover(itemView.context, manga)
+                    object : LibraryMangaImageTarget(binding.mangaCover, manga) {
+                        override fun onStart(placeholder: Drawable?) {
+                            super.onStart(placeholder)
+                            placeholder?.let { setBackdrop(it) }
+                        }
+
+                        override fun onSuccess(result: Drawable) {
+                            super.onSuccess(result)
+                            setBackdrop(result)
+                        }
                     },
                 )
             },
