@@ -28,6 +28,7 @@ import eu.kanade.tachiyomi.ui.setting.preference
 import eu.kanade.tachiyomi.ui.setting.preferenceCategory
 import eu.kanade.tachiyomi.ui.setting.titleRes
 import eu.kanade.tachiyomi.util.CrashLogUtil
+import eu.kanade.tachiyomi.util.lang.toTimestampString
 import eu.kanade.tachiyomi.util.system.isOnline
 import eu.kanade.tachiyomi.util.system.localeContext
 import eu.kanade.tachiyomi.util.system.materialAlertDialog
@@ -40,6 +41,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.text.DateFormat
+import java.text.ParseException
+import java.text.SimpleDateFormat
+import java.util.Locale
+import java.util.TimeZone
 
 class AboutController : SettingsController() {
     /**
@@ -235,17 +240,16 @@ class AboutController : SettingsController() {
 
     companion object {
         fun getFormattedBuildTime(dateFormat: DateFormat): String {
-            return ""
-//            try {
-//                val inputDf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS", Locale.getDefault())
-//                inputDf.timeZone = TimeZone.getTimeZone("UTC")
-//                val buildTime =
-//                    inputDf.parse(BuildConfig.BUILD_TIME) ?: return BuildConfig.BUILD_TIME
-//
-//                return buildTime.toTimestampString(dateFormat)
-//            } catch (e: ParseException) {
-//                return BuildConfig.BUILD_TIME
-//            }
+            return try {
+                val inputDf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'", Locale.getDefault())
+                inputDf.timeZone = TimeZone.getTimeZone("UTC")
+                val buildTime =
+                    inputDf.parse(BuildConfig.BUILD_TIME) ?: return BuildConfig.BUILD_TIME
+
+                buildTime.toTimestampString(dateFormat)
+            } catch (e: ParseException) {
+                BuildConfig.BUILD_TIME
+            }
         }
     }
 }
