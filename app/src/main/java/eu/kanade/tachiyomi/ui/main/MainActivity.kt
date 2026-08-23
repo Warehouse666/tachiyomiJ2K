@@ -27,6 +27,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.Window
 import android.view.WindowManager
+import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.DecelerateInterpolator
 import android.widget.FrameLayout
 import androidx.activity.BackEventCompat
@@ -484,6 +485,7 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
         supportActionBar?.setDisplayShowCustomEnabled(true)
 
         setNavBarColor(content.rootWindowInsetsCompat)
+        binding.statusBar.gradientBackgroundColor = getColor(R.color.status_bar)
         binding.appBar.mainActivity = this
         nav.isVisible = false
         content.doOnApplyWindowInsetsCompat { v, insets, _ ->
@@ -504,6 +506,9 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
                 top = systemInsets.top,
             )
             binding.statusBar.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                height = systemInsets.top
+            }
+            binding.actionModeStatusBar.updateLayoutParams<ViewGroup.MarginLayoutParams> {
                 height = systemInsets.top
             }
             binding.navBar.updateLayoutParams<ViewGroup.MarginLayoutParams> {
@@ -1055,13 +1060,30 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
     }
 
     override fun startSupportActionMode(callback: ActionMode.Callback): ActionMode? {
-        binding.statusBar.gradientBackgroundColor = getResourceColor(R.attr.colorSurfaceContainer)
+        binding.actionModeStatusBar.backgroundColor = getResourceColor(R.attr.colorSurfaceContainer)
+        binding.actionModeStatusBar.animate().cancel()
+        binding.actionModeStatusBar.alpha = 0f
+        binding.actionModeStatusBar.isVisible = true
+        binding.actionModeStatusBar
+            .animate()
+            .alpha(1f)
+            .setDuration(ACTION_MODE_FADE_DURATION)
+            .setInterpolator(AccelerateDecelerateInterpolator())
+            .start()
         actionMode = super.startSupportActionMode(callback)
         reEnableBackPressedCallBack()
         return actionMode
     }
 
     override fun onSupportActionModeFinished(mode: ActionMode) {
+        binding.actionModeStatusBar.animate().cancel()
+        binding.actionModeStatusBar
+            .animate()
+            .alpha(0f)
+            .setDuration(ACTION_MODE_FADE_DURATION)
+            .setInterpolator(AccelerateDecelerateInterpolator())
+            .withEndAction { binding.actionModeStatusBar.isVisible = false }
+            .start()
         actionMode = null
         reEnableBackPressedCallBack()
         super.onSupportActionModeFinished(mode)
@@ -1873,6 +1895,9 @@ open class MainActivity : BaseActivity<MainActivityBinding>() {
     companion object {
         private const val SWIPE_THRESHOLD = 100
         private const val SWIPE_VELOCITY_THRESHOLD = 100
+
+        // Matches AppCompat's unset ViewPropertyAnimator default (ValueAnimator.DURATION) used to fade mActionModeView
+        private const val ACTION_MODE_FADE_DURATION = 300L
 
         const val MAIN_ACTIVITY = "eu.kanade.tachiyomi.ui.main.MainActivity"
 

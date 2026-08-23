@@ -584,9 +584,10 @@ class MangaDetailsController :
         }
         val scrollingColor = headerColor ?: activity.getResourceColor(R.attr.colorSurfaceContainer)
         val topColor = ColorUtils.setAlphaComponent(scrollingColor, 0)
-        val scrollingStatusColor =
-            ColorUtils.setAlphaComponent(scrollingColor, (0.87f * 255).roundToInt())
+        val statusColor = themeColors.background ?: activity.getResourceColor(R.attr.background)
         colorAnimator?.cancel()
+        activityBinding?.statusBar?.gradientBackgroundColor =
+            if (toolbarIsColored) statusColor else Color.TRANSPARENT
         if (animate) {
             val cA =
                 ValueAnimator.ofFloat(
@@ -603,22 +604,10 @@ class MangaDetailsController :
                         animator.animatedValue as Float,
                     ),
                 )
-                activityBinding?.statusBar?.gradientBackgroundColor =
-                    if (toolbarIsColored) {
-                        ColorUtils.blendARGB(
-                            topColor,
-                            scrollingStatusColor,
-                            animator.animatedValue as Float,
-                        )
-                    } else {
-                        Color.TRANSPARENT
-                    }
             }
             cA.start()
         } else {
             activityBinding?.appBar?.setBackgroundColor(if (toolbarIsColored) scrollingColor else topColor)
-            activityBinding?.statusBar?.gradientBackgroundColor =
-                if (toolbarIsColored) scrollingStatusColor else topColor
         }
     }
 
@@ -674,10 +663,9 @@ class MangaDetailsController :
 
     private fun setStatusBarAndToolbar() {
         val scrollingColor = headerColor ?: activity!!.getResourceColor(R.attr.colorSurfaceContainer)
-        val scrollingStatusColor =
-            ColorUtils.setAlphaComponent(scrollingColor, (0.87f * 255).roundToInt())
+        val statusColor = themeColors.background ?: activity!!.getResourceColor(R.attr.background)
         activityBinding?.statusBar?.gradientBackgroundColor =
-            if (toolbarIsColored) scrollingStatusColor else Color.TRANSPARENT
+            if (toolbarIsColored) statusColor else Color.TRANSPARENT
         activityBinding?.appBar?.setBackgroundColor(
             if (toolbarIsColored) scrollingColor else Color.TRANSPARENT,
         )
