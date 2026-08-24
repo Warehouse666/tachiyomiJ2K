@@ -12,14 +12,15 @@
         android:paddingTop="12dp"
         android:paddingBottom="12dp">
 
-        <LinearLayout
+        <eu.kanade.tachiyomi.ui.library.MangaStackRecyclerView
             android:id="@+id/manga_stack"
-            android:layout_width="wrap_content"
-            android:clipToPadding="false"
+            android:layout_width="match_parent"
             android:layout_height="165dp"
-            android:layout_marginStart="16dp"
             android:layout_marginBottom="12dp"
-            android:orientation="horizontal" />
+            android:clipToPadding="false"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            tools:listitem="@layout/bulk_edit_manga_stack_cover" />
 
         <eu.kanade.tachiyomi.widget.MaterialSpinnerView
             android:id="@+id/manga_status"

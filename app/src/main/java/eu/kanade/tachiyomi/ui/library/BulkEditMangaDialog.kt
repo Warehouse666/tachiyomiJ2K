@@ -3,14 +3,17 @@ package eu.kanade.tachiyomi.ui.library
 import android.app.Dialog
 import android.content.Context
 import android.os.Bundle
-import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
-import android.widget.LinearLayout
 import androidx.core.view.children
 import androidx.core.view.isVisible
+import androidx.core.view.updatePaddingRelative
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.LinearSnapHelper
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.chip.Chip
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.database.models.Manga
@@ -19,12 +22,16 @@ import eu.kanade.tachiyomi.databinding.BulkEditMangaDialogBinding
 import eu.kanade.tachiyomi.databinding.BulkEditMangaStackCoverBinding
 import eu.kanade.tachiyomi.source.model.SManga
 import eu.kanade.tachiyomi.ui.base.controller.DialogController
+import eu.kanade.tachiyomi.util.system.dpToPx
 import eu.kanade.tachiyomi.util.system.isInNightMode
 import eu.kanade.tachiyomi.util.system.materialAlertDialog
 import eu.kanade.tachiyomi.util.view.applyTagColors
 import eu.kanade.tachiyomi.util.view.tagChipColors
-import kotlin.math.pow
+import kotlin.math.abs
 import kotlin.math.roundToInt
+
+/** How much each cover overlaps the one before it, as a fraction of the cover's width. */
+internal const val STACK_OVERLAP_FRACTION = 0.25f
 
 class BulkEditMangaDialog : DialogController {
     private val mangaIds: LongArray
@@ -57,7 +64,7 @@ class BulkEditMangaDialog : DialogController {
         initialState = libraryController.presenter.getBulkEditState(mangaIds.toList())
         displayedTags += initialState.sharedTags
 
-        renderMangaStack(libraryController.presenter.getBulkEditMangaCovers(mangaIds.toList()))
+        setupMangaStack(libraryController.presenter.getBulkEditMangaCovers(mangaIds.toList()))
 
         val statusEntries =
             listOf(activity!!.getString(R.string.bulk_edit_default)) +
@@ -97,7 +104,7 @@ class BulkEditMangaDialog : DialogController {
 
         return activity!!
             .materialAlertDialog()
-            .setTitle(R.string.edit)
+            .setTitle(resources!!.getQuantityString(R.plurals.edit_x_series, mangaIds.size, mangaIds.size))
             .setView(binding.root)
             .setNegativeButton(android.R.string.cancel, null)
             .setPositiveButton(R.string.save) { _, _ ->
@@ -208,30 +215,27 @@ class BulkEditMangaDialog : DialogController {
         renderSharedTags()
     }
 
-    private fun renderMangaStack(mangas: List<Manga>) {
+    private fun setupMangaStack(mangas: List<Manga>) {
         val stack = binding.mangaStack
-        stack.removeAllViews()
+        val looping = mangas.size > LOOP_MIN_ITEMS
 
-        val visibleMangas = mangas.take(MAX_STACK_COVERS)
-        visibleMangas.forEachIndexed { index, manga ->
-            val coverBinding = BulkEditMangaStackCoverBinding.inflate(LayoutInflater.from(stack.context), stack, false)
-            val cover = coverBinding.root
-//            cover.cardElevation =
-            cover.translationZ = (visibleMangas.size - index).toFloat()
-            coverBinding.coverImage.alpha = (1f - index * STACK_FADE_STEP).coerceAtLeast(STACK_MIN_ALPHA)
-            val scale = STACK_SCALE_STEP.pow(index)
-            val width = STACK_WIDTH_STEP.pow(index)
-            val layoutParams = cover.layoutParams as LinearLayout.LayoutParams
-            val ogWidth = layoutParams.width
-            layoutParams.gravity = Gravity.CENTER
-            layoutParams.width = (layoutParams.width * width * scale).toInt()
-            layoutParams.height = (layoutParams.height * scale).toInt()
-            if (index > 0) {
-                val prevWidth = (ogWidth * STACK_WIDTH_STEP.pow(index - 1)).roundToInt()
-                layoutParams.marginStart = -(prevWidth * .25).roundToInt()
-            }
-            stack.addView(cover)
-            coverBinding.coverImage.loadManga(manga)
+        val layoutManager = PeekingLinearLayoutManager(stack.context)
+        stack.layoutManager = layoutManager
+        stack.adapter = BulkEditMangaStackAdapter(mangas, looping)
+        StartSnapHelper().attachToRecyclerView(stack)
+
+        if (looping) {
+            val midpoint = Int.MAX_VALUE / 2
+            // scrollToPosition only guarantees the item becomes visible somewhere, not that
+            // it's flush against the start edge - which left it not actually snapped on first
+            // load. scrollToPositionWithOffset(pos, 0) is the API that actually guarantees that.
+            layoutManager.scrollToPositionWithOffset(midpoint - midpoint % mangas.size, 0)
+        } else {
+            // A short, non-looping selection fits without ever needing to scroll - lock it so a
+            // stray drag can't move it, and give it more breathing room than the tighter padding
+            // that's there to let the next card peek in while scrolling.
+            stack.isScrollingEnabled = false
+            stack.updatePaddingRelative(start = STATIC_STACK_START_PADDING_DP.dpToPx)
         }
     }
 
@@ -266,10 +270,105 @@ class BulkEditMangaDialog : DialogController {
         private const val KEY_MANGA_IDS = "manga_ids"
         private const val DEFAULT_POSITION = 0
         private const val STATIC_TAG_EDITOR_CHILDREN = 2
-        private const val MAX_STACK_COVERS = 8
-        private const val STACK_FADE_STEP = 0.25f
-        private const val STACK_MIN_ALPHA = 0.25f
-        private const val STACK_SCALE_STEP = 0.95f
-        private const val STACK_WIDTH_STEP = 0.8f
+        private const val LOOP_MIN_ITEMS = 4
+        private const val STATIC_STACK_START_PADDING_DP = 40
+    }
+}
+
+/**
+ * A horizontal [LinearLayoutManager] that lays out a couple of extra items beyond each edge of
+ * the viewport, so covers are already measured/positioned (and thus transformed by
+ * [MangaStackRecyclerView]) before they scroll into view, instead of only appearing - already
+ * at full size - the moment they cross into the visible bounds. Kept modest (not a full extra
+ * screen) since farther-out items still get pulled toward the front by an unbounded transform;
+ * prefetching too far out risks that pull visually yanking one back into view early.
+ */
+private class PeekingLinearLayoutManager(
+    context: Context,
+) : LinearLayoutManager(context, HORIZONTAL, false) {
+    override fun calculateExtraLayoutSpace(
+        state: RecyclerView.State,
+        extraLayoutSpace: IntArray,
+    ) {
+        val extra = width / 2
+        extraLayoutSpace[0] = extra
+        extraLayoutSpace[1] = extra
+    }
+}
+
+private class BulkEditMangaStackAdapter(
+    private val mangas: List<Manga>,
+    private val looping: Boolean,
+) : RecyclerView.Adapter<BulkEditMangaStackAdapter.ViewHolder>() {
+    override fun getItemCount() = if (looping) Int.MAX_VALUE else mangas.size
+
+    override fun onCreateViewHolder(
+        parent: ViewGroup,
+        viewType: Int,
+    ): ViewHolder {
+        val coverBinding = BulkEditMangaStackCoverBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        val layoutParams = coverBinding.root.layoutParams as ViewGroup.MarginLayoutParams
+        layoutParams.marginStart = -(layoutParams.width * STACK_OVERLAP_FRACTION).roundToInt()
+        return ViewHolder(coverBinding)
+    }
+
+    override fun onBindViewHolder(
+        holder: ViewHolder,
+        position: Int,
+    ) {
+        holder.binding.coverImage.loadManga(mangas[position % mangas.size])
+    }
+
+    class ViewHolder(
+        val binding: BulkEditMangaStackCoverBinding,
+    ) : RecyclerView.ViewHolder(binding.root)
+}
+
+/**
+ * Snaps the [RecyclerView] so items align to the start edge instead of [LinearSnapHelper]'s
+ * default of centering them.
+ *
+ * [findSnapView] picks whichever laid-out child's start edge is closest to the RecyclerView's
+ * start - not simply [LinearLayoutManager.findFirstVisibleItemPosition], which (with overlapping
+ * items) can return a child that's almost entirely scrolled past. Snapping that sliver back to
+ * the start caused a large corrective jump every time, which changed what was "first visible"
+ * and triggered another correction - an infinite back-and-forth that never settled.
+ */
+private class StartSnapHelper : LinearSnapHelper() {
+    override fun calculateDistanceToFinalSnap(
+        layoutManager: RecyclerView.LayoutManager,
+        targetView: View,
+    ): IntArray {
+        val out = IntArray(2)
+        if (layoutManager.canScrollHorizontally()) {
+            out[0] = targetView.left - layoutManager.paddingLeft
+        }
+        return out
+    }
+
+    override fun findSnapView(layoutManager: RecyclerView.LayoutManager): View? {
+        if (layoutManager !is LinearLayoutManager) return super.findSnapView(layoutManager)
+        var closest: View? = null
+        var closestDistance = Int.MAX_VALUE
+        for (i in 0 until layoutManager.childCount) {
+            val child = layoutManager.getChildAt(i) ?: continue
+            val distance = abs(child.left - layoutManager.paddingLeft)
+            if (distance < closestDistance) {
+                closestDistance = distance
+                closest = child
+            }
+        }
+        return closest
+    }
+
+    override fun findTargetSnapPosition(
+        layoutManager: RecyclerView.LayoutManager,
+        velocityX: Int,
+        velocityY: Int,
+    ): Int {
+        if (layoutManager !is LinearLayoutManager) return RecyclerView.NO_POSITION
+        val firstVisible = layoutManager.findFirstVisibleItemPosition()
+        if (firstVisible == RecyclerView.NO_POSITION) return RecyclerView.NO_POSITION
+        return if (velocityX > 0) firstVisible + 1 else firstVisible
     }
 }

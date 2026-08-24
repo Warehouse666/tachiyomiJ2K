@@ -607,6 +607,10 @@
     <string name="sort_by_chapter_number">Sort by chapter number</string>
     <string name="newest_first">Newest to oldest</string>
     <string name="oldest_first">Oldest to newest</string>
+    <plurals name="edit_x_series">
+        <item quantity="one">Edit %d series</item>
+        <item quantity="other">Edit %d series</item>
+    </plurals>
     <string name="shared_tags">Shared tags</string>
     <string name="bulk_edit_default">Default</string>
     <string name="source_default">Source default</string>
