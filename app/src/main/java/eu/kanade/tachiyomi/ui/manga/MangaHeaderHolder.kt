@@ -48,6 +48,7 @@ import eu.kanade.tachiyomi.ui.base.holder.BaseFlexibleViewHolder
 import eu.kanade.tachiyomi.util.isLocal
 import eu.kanade.tachiyomi.util.lang.toNormalized
 import eu.kanade.tachiyomi.util.system.getResourceColor
+import eu.kanade.tachiyomi.util.system.hueShiftedTo
 import eu.kanade.tachiyomi.util.system.isInNightMode
 import eu.kanade.tachiyomi.util.system.isLTR
 import eu.kanade.tachiyomi.util.view.backgroundColor
@@ -76,6 +77,19 @@ class MangaHeaderHolder(
         } catch (e: Exception) {
             null
         }
+
+    // Captured once at inflation, before any tinting - the theme's own resolved text colors,
+    // used as the base that applyTextColorTint() hue-shifts from on every recolor.
+    private val baseTitleColor = binding?.title?.currentTextColor
+    private val baseAuthorColor = binding?.mangaAuthor?.currentTextColor
+    private val baseStatusColor = binding?.mangaStatus?.currentTextColor
+    private val baseSourceColor = binding?.mangaSource?.currentTextColor
+    private val baseSummaryLabelColor = binding?.mangaSummaryLabel?.currentTextColor
+    private val baseSummaryColor = binding?.mangaSummary?.currentTextColor
+    private val baseChaptersTitleColor = (binding?.chaptersTitle ?: chapterBinding?.chaptersTitle)?.currentTextColor
+    private val baseFiltersTextColor = (binding?.filtersText ?: chapterBinding?.filtersText)?.currentTextColor
+    private val baseWebviewIconColor = binding?.webviewButton?.iconTint?.defaultColor
+    private val baseShareIconColor = binding?.shareButton?.iconTint?.defaultColor
 
     private var showReadingButton = true
     private var showMoreButton = true
@@ -394,9 +408,9 @@ class MangaHeaderHolder(
                 val count = presenter.chapters.size
                 chapterBinding.chaptersTitle.text = chaptersTitleText(count, presenter)
                 chapterBinding.filtersText.text = presenter.currentFilters()
-                if (adapter.preferences.themeMangaDetails()) {
-                    val accentColor = adapter.delegate.themeColors().accent ?: return
-                    chapterBinding.filterButton.imageTintList = ColorStateList.valueOf(accentColor)
+                applyTextColorTint()
+                adapter.delegate.themeColors().accent?.let {
+                    chapterBinding.filterButton.imageTintList = ColorStateList.valueOf(it)
                 }
             }
             return
@@ -468,6 +482,7 @@ class MangaHeaderHolder(
                 ?: itemView.context.getResourceColor(R.attr.background),
         )
         applyBackgroundTint(binding)
+        applyTextColorTint()
 
         val tracked = presenter.isTracked() && !item.isLocked
 
@@ -683,6 +698,25 @@ class MangaHeaderHolder(
         binding.trueBackdrop.setBackgroundColor(color)
     }
 
+    /** Shifts the header/chapter-list text colors' hue to match the accent color, keeping their own saturation/lightness */
+    private fun applyTextColorTint() {
+        val accent = adapter.delegate.themeColors().accent
+        binding?.let {
+            baseTitleColor?.let { c -> it.title.setTextColor(c.hueShiftedTo(accent)) }
+            baseAuthorColor?.let { c -> it.mangaAuthor.setTextColor(c.hueShiftedTo(accent)) }
+            baseStatusColor?.let { c -> it.mangaStatus.setTextColor(c.hueShiftedTo(accent)) }
+            baseSourceColor?.let { c -> it.mangaSource.setTextColor(c.hueShiftedTo(accent)) }
+            baseSummaryLabelColor?.let { c -> it.mangaSummaryLabel.setTextColor(c.hueShiftedTo(accent)) }
+            baseSummaryColor?.let { c -> it.mangaSummary.setTextColor(c.hueShiftedTo(accent)) }
+            baseChaptersTitleColor?.let { c -> it.chaptersTitle.setTextColor(c.hueShiftedTo(accent)) }
+            baseFiltersTextColor?.let { c -> it.filtersText.setTextColor(c.hueShiftedTo(accent)) }
+        }
+        chapterBinding?.let {
+            baseChaptersTitleColor?.let { c -> it.chaptersTitle.setTextColor(c.hueShiftedTo(accent)) }
+            baseFiltersTextColor?.let { c -> it.filtersText.setTextColor(c.hueShiftedTo(accent)) }
+        }
+    }
+
     /** Tints the plain-background fill areas around the backdrop and "more" fade with the page's themed background */
     private fun applyBackgroundTint(binding: MangaHeaderItemBinding) {
         val bgColor =
@@ -699,11 +733,13 @@ class MangaHeaderHolder(
         if (binding == null) {
             if (chapterBinding != null) {
                 chapterBinding.filterButton.imageTintList = ColorStateList.valueOf(accentColor)
+                applyTextColorTint()
             }
             return
         }
         val manga = adapter.presenter.manga
         with(binding) {
+            applyTextColorTint()
             trueBackdrop.setBackgroundColor(
                 adapter.delegate.themeColors().cover
                     ?: trueBackdrop.context.getResourceColor(R.attr.background),
@@ -753,8 +789,8 @@ class MangaHeaderHolder(
                     .first { it.tag == MaterialButtonGroup.OVERFLOW_BUTTON_TAG } as? MaterialButton
             overflowButton ?.iconTint = ColorStateList.valueOf(accentColor)
             startReadingButton.setTextColor(ColorStateList(states, textColors))
-            trackButton.iconTint = ColorStateList.valueOf(accentColor)
-            favoriteButton.iconTint = ColorStateList.valueOf(accentColor)
+            baseWebviewIconColor?.let { webviewButton.iconTint = ColorStateList.valueOf(it.hueShiftedTo(accentColor)) }
+            baseShareIconColor?.let { shareButton.iconTint = ColorStateList.valueOf(it.hueShiftedTo(accentColor)) }
 
             val onBGHsl = FloatArray(3)
             val accentHsl = FloatArray(3)
@@ -791,7 +827,7 @@ class MangaHeaderHolder(
             val checkedTextColors =
                 intArrayOf(
                     contrastingTextColor(bgCheckedColor),
-                    root.context.getResourceColor(R.attr.colorOnBackground),
+                    root.context.getResourceColor(R.attr.colorOnBackground).hueShiftedTo(accentColor),
                 )
             // Some themes have colorful text/icons by default with not good contrast
             if (ColorUtils.calculateContrast(checkedIconColor, bgCheckedColor) < 5) {
@@ -808,7 +844,7 @@ class MangaHeaderHolder(
             val checkedColors =
                 intArrayOf(
                     checkedIconColor,
-                    root.context.getResourceColor(R.attr.colorOnSurfaceVariant),
+                    root.context.getResourceColor(R.attr.colorOnSurfaceVariant).hueShiftedTo(accentColor),
                 )
             trackButton.setTextColor(ColorStateList(checkedStates, checkedTextColors))
             favoriteButton.setTextColor(ColorStateList(checkedStates, checkedTextColors))
