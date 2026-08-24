@@ -64,7 +64,7 @@ class BulkEditMangaDialog : DialogController {
         initialState = libraryController.presenter.getBulkEditState(mangaIds.toList())
         displayedTags += initialState.sharedTags
 
-        setupMangaStack(libraryController.presenter.getBulkEditMangaCovers(mangaIds.toList()))
+        setupMangaStack(libraryController.presenter.getBulkEditMangas(mangaIds.toList()))
 
         val statusEntries =
             listOf(activity!!.getString(R.string.bulk_edit_default)) +
@@ -226,14 +226,11 @@ class BulkEditMangaDialog : DialogController {
 
         if (looping) {
             val midpoint = Int.MAX_VALUE / 2
-            // scrollToPosition only guarantees the item becomes visible somewhere, not that
-            // it's flush against the start edge - which left it not actually snapped on first
-            // load. scrollToPositionWithOffset(pos, 0) is the API that actually guarantees that.
+            // scrollToPosition alone doesn't guarantee it lands flush at the start edge.
             layoutManager.scrollToPositionWithOffset(midpoint - midpoint % mangas.size, 0)
         } else {
-            // A short, non-looping selection fits without ever needing to scroll - lock it so a
-            // stray drag can't move it, and give it more breathing room than the tighter padding
-            // that's there to let the next card peek in while scrolling.
+            // Nothing to scroll to with this few items - lock it and give it more breathing
+            // room than the tighter padding meant to let the next card peek in while scrolling.
             stack.isScrollingEnabled = false
             stack.updatePaddingRelative(start = STATIC_STACK_START_PADDING_DP.dpToPx)
         }
@@ -276,12 +273,10 @@ class BulkEditMangaDialog : DialogController {
 }
 
 /**
- * A horizontal [LinearLayoutManager] that lays out a couple of extra items beyond each edge of
- * the viewport, so covers are already measured/positioned (and thus transformed by
- * [MangaStackRecyclerView]) before they scroll into view, instead of only appearing - already
- * at full size - the moment they cross into the visible bounds. Kept modest (not a full extra
- * screen) since farther-out items still get pulled toward the front by an unbounded transform;
- * prefetching too far out risks that pull visually yanking one back into view early.
+ * Lays out a couple of extra items beyond each edge of the viewport so covers are already
+ * measured/positioned before they scroll into view, instead of popping in at full size the
+ * moment they cross into the visible bounds. Kept modest, not a full extra screen, since
+ * [MangaStackRecyclerView]'s overlap pull could otherwise yank a far-off item back into view.
  */
 private class PeekingLinearLayoutManager(
     context: Context,
@@ -325,14 +320,11 @@ private class BulkEditMangaStackAdapter(
 }
 
 /**
- * Snaps the [RecyclerView] so items align to the start edge instead of [LinearSnapHelper]'s
- * default of centering them.
- *
- * [findSnapView] picks whichever laid-out child's start edge is closest to the RecyclerView's
- * start - not simply [LinearLayoutManager.findFirstVisibleItemPosition], which (with overlapping
- * items) can return a child that's almost entirely scrolled past. Snapping that sliver back to
- * the start caused a large corrective jump every time, which changed what was "first visible"
- * and triggered another correction - an infinite back-and-forth that never settled.
+ * Snaps items to the start edge instead of [LinearSnapHelper]'s default of centering them.
+ * [findSnapView] picks whichever child is closest to the start rather than
+ * [LinearLayoutManager.findFirstVisibleItemPosition], which (with overlapping items) can return
+ * an almost-fully-scrolled-past sliver - snapping that back to start caused a runaway
+ * back-and-forth as each correction changed what counted as "first visible."
  */
 private class StartSnapHelper : LinearSnapHelper() {
     override fun calculateDistanceToFinalSnap(

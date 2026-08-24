@@ -1225,7 +1225,7 @@ class LibraryPresenter(
     }
 
     fun getBulkEditState(mangaIds: List<Long>): BulkEditState {
-        val mangas = getBulkEditMangas(mangaIds)
+        val mangas = getBulkEditMangas(mangaIds, excludeLocal = true)
         if (mangas.isEmpty()) {
             return BulkEditState(null, null, emptyList(), emptyList())
         }
@@ -1393,22 +1393,15 @@ class LibraryPresenter(
         }
     }
 
-    private fun getBulkEditMangas(mangaIds: List<Long>): List<Manga> {
+    fun getBulkEditMangas(
+        mangaIds: List<Long>,
+        excludeLocal: Boolean = false,
+    ): List<Manga> {
         val ids = mangaIds.toSet()
         return allLibraryItems
             .asSequence()
             .map { it.manga }
-            .filter { it.id?.let(ids::contains) == true && !it.isLocal() }
-            .distinctBy { it.id }
-            .toList()
-    }
-
-    fun getBulkEditMangaCovers(mangaIds: List<Long>): List<Manga> {
-        val ids = mangaIds.toSet()
-        return allLibraryItems
-            .asSequence()
-            .map { it.manga }
-            .filter { it.id?.let(ids::contains) == true }
+            .filter { it.id?.let(ids::contains) == true && (!excludeLocal || !it.isLocal()) }
             .distinctBy { it.id }
             .toList()
     }
