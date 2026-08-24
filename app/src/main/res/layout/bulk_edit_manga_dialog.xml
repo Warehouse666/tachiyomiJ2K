@@ -20,7 +20,7 @@
             android:clipToPadding="false"
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
-            tools:listitem="@layout/bulk_edit_manga_stack_cover" />
+            tools:listitem="@layout/manga_cover_stack_item" />
 
         <eu.kanade.tachiyomi.widget.MaterialSpinnerView
             android:id="@+id/manga_status"

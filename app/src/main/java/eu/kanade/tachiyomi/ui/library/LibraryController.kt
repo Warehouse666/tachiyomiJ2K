@@ -74,6 +74,7 @@ import eu.kanade.tachiyomi.data.notification.NotificationReceiver
 import eu.kanade.tachiyomi.data.notification.Notifications
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.databinding.LibraryControllerBinding
+import eu.kanade.tachiyomi.databinding.MarkReadStatusDialogBinding
 import eu.kanade.tachiyomi.source.LocalSource
 import eu.kanade.tachiyomi.ui.base.MaterialMenuSheet
 import eu.kanade.tachiyomi.ui.base.MiniSearchView
@@ -2477,22 +2478,14 @@ open class LibraryController(
                 presenter.downloadUnread(selectedMangas.toList())
             }
             R.id.action_mark_as_read -> {
-                activity!!
-                    .materialAlertDialog()
-                    .setMessage(R.string.mark_all_chapters_as_read)
-                    .setPositiveButton(R.string.mark_as_read) { _, _ ->
-                        markReadStatus(R.string.marked_as_read, true)
-                    }.setNegativeButton(android.R.string.cancel, null)
-                    .show()
+                showMarkReadStatusDialog(R.string.mark_all_chapters_as_read, R.string.mark_as_read) {
+                    markReadStatus(R.string.marked_as_read, true)
+                }
             }
             R.id.action_mark_as_unread -> {
-                activity!!
-                    .materialAlertDialog()
-                    .setMessage(R.string.mark_all_chapters_as_unread)
-                    .setPositiveButton(R.string.mark_as_unread) { _, _ ->
-                        markReadStatus(R.string.marked_as_unread, false)
-                    }.setNegativeButton(android.R.string.cancel, null)
-                    .show()
+                showMarkReadStatusDialog(R.string.mark_all_chapters_as_unread, R.string.mark_as_unread) {
+                    markReadStatus(R.string.marked_as_unread, false)
+                }
             }
             R.id.action_migrate -> {
                 val skipPre = preferences.skipPreMigration().get()
@@ -2506,6 +2499,22 @@ open class LibraryController(
             else -> return false
         }
         return true
+    }
+
+    private fun showMarkReadStatusDialog(
+        messageRes: Int,
+        positiveButtonRes: Int,
+        onPositive: () -> Unit,
+    ) {
+        val dialogBinding = MarkReadStatusDialogBinding.inflate(activity!!.layoutInflater)
+        dialogBinding.mangaStack.setupMangaCoverStack(selectedMangas.toList())
+        dialogBinding.message.setText(messageRes)
+        activity!!
+            .materialAlertDialog()
+            .setView(dialogBinding.root)
+            .setPositiveButton(positiveButtonRes) { _, _ -> onPositive() }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     private fun markReadStatus(
