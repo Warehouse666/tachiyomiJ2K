@@ -97,7 +97,7 @@ interface Source {
         val allExt = httpSource.getExtension(extManager)?.lang == "all"
         val onlyAll = httpSource.extOnlyHasAllLanguage(extManager)
         val isMultiLingual = enabledLanguages.filterNot { it == "all" }.size > 1
-        return (isMultiLingual && allExt) || (lang == "all" && !onlyAll)
+        return (isMultiLingual && allExt) || (lang == "all" && !onlyAll) || lang !in enabledLanguages
     }
 
     fun nameBasedOnEnabledLanguages(
