@@ -2,21 +2,29 @@ package eu.kanade.tachiyomi.ui.library
 
 import android.app.Dialog
 import android.content.Context
-import android.content.res.ColorStateList
 import android.os.Bundle
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
+import android.widget.LinearLayout
 import androidx.core.view.children
 import androidx.core.view.isVisible
 import com.google.android.material.chip.Chip
-import com.google.android.material.color.MaterialColors
 import eu.kanade.tachiyomi.R
+import eu.kanade.tachiyomi.data.database.models.Manga
+import eu.kanade.tachiyomi.data.image.coil.loadManga
 import eu.kanade.tachiyomi.databinding.BulkEditMangaDialogBinding
+import eu.kanade.tachiyomi.databinding.BulkEditMangaStackCoverBinding
 import eu.kanade.tachiyomi.source.model.SManga
 import eu.kanade.tachiyomi.ui.base.controller.DialogController
+import eu.kanade.tachiyomi.util.system.isInNightMode
 import eu.kanade.tachiyomi.util.system.materialAlertDialog
+import eu.kanade.tachiyomi.util.view.applyTagColors
+import eu.kanade.tachiyomi.util.view.tagChipColors
+import kotlin.math.pow
+import kotlin.math.roundToInt
 
 class BulkEditMangaDialog : DialogController {
     private val mangaIds: LongArray
@@ -49,6 +57,8 @@ class BulkEditMangaDialog : DialogController {
         initialState = libraryController.presenter.getBulkEditState(mangaIds.toList())
         displayedTags += initialState.sharedTags
 
+        renderMangaStack(libraryController.presenter.getBulkEditMangaCovers(mangaIds.toList()))
+
         val statusEntries =
             listOf(activity!!.getString(R.string.bulk_edit_default)) +
                 resources!!.getStringArray(R.array.manga_statuses).toList() +
@@ -67,6 +77,9 @@ class BulkEditMangaDialog : DialogController {
         binding.seriesType.setEntries(seriesTypeEntries)
         val initialSeriesTypePosition = initialState.commonSeriesType ?: DEFAULT_POSITION
         binding.seriesType.setSelection(initialSeriesTypePosition)
+        binding.seriesType.onItemSelectedListener = {
+            binding.resetsReadingMode.isVisible = it != initialSeriesTypePosition
+        }
 
         setupTagEditor()
         binding.resetTags.setOnClickListener {
@@ -195,12 +208,43 @@ class BulkEditMangaDialog : DialogController {
         renderSharedTags()
     }
 
+    private fun renderMangaStack(mangas: List<Manga>) {
+        val stack = binding.mangaStack
+        stack.removeAllViews()
+
+        val visibleMangas = mangas.take(MAX_STACK_COVERS)
+        visibleMangas.forEachIndexed { index, manga ->
+            val coverBinding = BulkEditMangaStackCoverBinding.inflate(LayoutInflater.from(stack.context), stack, false)
+            val cover = coverBinding.root
+//            cover.cardElevation =
+            cover.translationZ = (visibleMangas.size - index).toFloat()
+            coverBinding.coverImage.alpha = (1f - index * STACK_FADE_STEP).coerceAtLeast(STACK_MIN_ALPHA)
+            val scale = STACK_SCALE_STEP.pow(index)
+            val width = STACK_WIDTH_STEP.pow(index)
+            val layoutParams = cover.layoutParams as LinearLayout.LayoutParams
+            val ogWidth = layoutParams.width
+            layoutParams.gravity = Gravity.CENTER
+            layoutParams.width = (layoutParams.width * width * scale).toInt()
+            layoutParams.height = (layoutParams.height * scale).toInt()
+            if (index > 0) {
+                val prevWidth = (ogWidth * STACK_WIDTH_STEP.pow(index - 1)).roundToInt()
+                layoutParams.marginStart = -(prevWidth * .25).roundToInt()
+            }
+            stack.addView(cover)
+            coverBinding.coverImage.loadManga(manga)
+        }
+    }
+
     private fun renderSharedTags() {
         val tagGroup = binding.sharedTags
         tagGroup.children
             .toList()
             .filter { it.id != R.id.add_tag_chip && it.id != R.id.add_tag_edit_text }
             .forEach(tagGroup::removeView)
+
+        val dark = tagGroup.context.isInNightMode()
+        val amoled = libraryController.preferences.themeDarkAmoled().get()
+        val tagColors = tagGroup.tagChipColors(dark, amoled)
 
         displayedTags.forEach { tag ->
             val chip =
@@ -209,7 +253,7 @@ class BulkEditMangaDialog : DialogController {
                     .inflate(R.layout.genre_chip, tagGroup, false) as Chip
             chip.id = View.generateViewId()
             chip.text = tag.name
-            applyTagColors(chip, tag)
+            chip.applyTagColors(tagColors, tag.isCustom)
             chip.isCloseIconVisible = tag.removable
             if (tag.removable) {
                 chip.setOnCloseIconClickListener { removeTag(tag) }
@@ -218,33 +262,14 @@ class BulkEditMangaDialog : DialogController {
         }
     }
 
-    private fun applyTagColors(
-        chip: Chip,
-        tag: BulkSharedTag,
-    ) {
-        val backgroundAttr =
-            if (tag.isCustom) {
-                androidx.appcompat.R.attr.colorPrimary
-            } else {
-                com.google.android.material.R.attr.colorSurfaceContainerHighest
-            }
-        val foregroundAttr =
-            if (tag.isCustom) {
-                com.google.android.material.R.attr.colorOnPrimary
-            } else {
-                com.google.android.material.R.attr.colorOnSurface
-            }
-        val background = MaterialColors.getColor(chip, backgroundAttr)
-        val foreground = MaterialColors.getColor(chip, foregroundAttr)
-
-        chip.chipBackgroundColor = ColorStateList.valueOf(background)
-        chip.setTextColor(foreground)
-        chip.closeIconTint = ColorStateList.valueOf(foreground)
-    }
-
     companion object {
         private const val KEY_MANGA_IDS = "manga_ids"
         private const val DEFAULT_POSITION = 0
         private const val STATIC_TAG_EDITOR_CHILDREN = 2
+        private const val MAX_STACK_COVERS = 8
+        private const val STACK_FADE_STEP = 0.25f
+        private const val STACK_MIN_ALPHA = 0.25f
+        private const val STACK_SCALE_STEP = 0.95f
+        private const val STACK_WIDTH_STEP = 0.8f
     }
 }

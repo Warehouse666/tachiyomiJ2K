@@ -1403,6 +1403,16 @@ class LibraryPresenter(
             .toList()
     }
 
+    fun getBulkEditMangaCovers(mangaIds: List<Long>): List<Manga> {
+        val ids = mangaIds.toSet()
+        return allLibraryItems
+            .asSequence()
+            .map { it.manga }
+            .filter { it.id?.let(ids::contains) == true }
+            .distinctBy { it.id }
+            .toList()
+    }
+
     private fun customTagsForManga(manga: Manga): List<String> {
         val customGenres =
             customMangaManager
