@@ -325,7 +325,9 @@ class LibraryPresenter(
 
     fun getMangaInCategories(catId: Int?): List<LibraryManga>? {
         catId ?: return null
-        return allLibraryItems.filter { it.header.category.id == catId }.map { it.manga }
+        return (allLibraryItems + hiddenLibraryItems)
+            .filter { it.header.category.id == catId && !it.manga.isBlank() }
+            .map { it.manga }
     }
 
     private suspend fun sectionLibrary(
@@ -907,8 +909,9 @@ class LibraryPresenter(
 
                 items
             } else {
-                val (items, customCategories) = getCustomMangaItems(libraryManga)
+                val (items, customCategories, hiddenDynamicItems) = getCustomMangaItems(libraryManga)
                 this.categories = customCategories
+                hiddenItems.addAll(hiddenDynamicItems)
                 items
             }
 
@@ -917,9 +920,12 @@ class LibraryPresenter(
         return items to hiddenItems
     }
 
-    private fun getCustomMangaItems(libraryManga: List<LibraryManga>): Pair<
+    private fun getCustomMangaItems(
+        libraryManga: List<LibraryManga>,
+    ): Triple<
         List<LibraryItem>,
         List<Category>,
+        List<LibraryItem>,
     > {
         val tagItems: MutableMap<String, LibraryHeaderItem> = mutableMapOf()
 
@@ -1073,6 +1079,7 @@ class LibraryPresenter(
         if (preferences.collapsedDynamicAtBottom().get()) {
             headers = headers.filterNot { it.isHidden } + headers.filter { it.isHidden }
         }
+        val hiddenItems = mutableListOf<LibraryItem>()
         headers.forEach { category ->
             val catId = category.id ?: return@forEach
             val headerItem =
@@ -1090,6 +1097,7 @@ class LibraryPresenter(
                         it.manga.title + "-" + it.manga.author
                     }
                 sectionedLibraryItems[catId] = mangaToRemove
+                hiddenItems.addAll(mangaToRemove)
                 items.removeAll { it.header.catId == catId }
                 if (headerItem != null) {
                     items.add(
@@ -1104,7 +1112,7 @@ class LibraryPresenter(
         }
 
         headers.forEachIndexed { index, category -> category.order = index }
-        return items to headers
+        return Triple(items, headers, hiddenItems)
     }
 
     private fun mapTrackingOrder(status: String): String {

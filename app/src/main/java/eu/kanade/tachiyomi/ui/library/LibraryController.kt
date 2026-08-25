@@ -683,7 +683,7 @@ open class LibraryController(
         // Debounce so a burst of updates (e.g. restoring a backup emits one per manga)
         // collapses into a single library refresh instead of one per manga.
         LibraryUpdateJob.updateFlow
-            .debounce(200)
+            .debounce(200.milliseconds)
             .onEach(::onUpdateManga)
             .launchIn(viewScope)
 
