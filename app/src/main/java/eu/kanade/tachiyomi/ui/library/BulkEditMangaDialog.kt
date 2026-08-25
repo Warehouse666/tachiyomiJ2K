@@ -53,7 +53,7 @@ class BulkEditMangaDialog : DialogController {
         binding.mangaStack.setupMangaCoverStack(libraryController.presenter.getBulkEditMangas(mangaIds.toList()))
 
         val statusEntries =
-            listOf(activity!!.getString(R.string.bulk_edit_default)) +
+            listOf(activity!!.getString(R.string.default_value)) +
                 resources!!.getStringArray(R.array.manga_statuses).toList() +
                 activity!!.getString(R.string.source_default)
         binding.mangaStatus.setEntries(statusEntries)
@@ -64,7 +64,7 @@ class BulkEditMangaDialog : DialogController {
         binding.mangaStatus.setSelection(initialStatusPosition)
 
         val seriesTypeEntries =
-            listOf(activity!!.getString(R.string.bulk_edit_default)) +
+            listOf(activity!!.getString(R.string.default_value)) +
                 resources!!.getStringArray(R.array.series_type).toList() +
                 activity!!.getString(R.string.source_default)
         binding.seriesType.setEntries(seriesTypeEntries)

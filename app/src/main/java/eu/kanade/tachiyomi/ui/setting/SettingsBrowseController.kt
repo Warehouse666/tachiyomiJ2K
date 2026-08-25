@@ -117,7 +117,7 @@ class SettingsBrowseController : SettingsController() {
             }
 
             preferenceCategory {
-                titleRes = R.string.pref_global_search
+                titleRes = R.string.label_global_search
                 twoButtonPreference {
                     bindTo(preferences.onlySearchPinned())
                     titleRes = R.string.sources_to_search
