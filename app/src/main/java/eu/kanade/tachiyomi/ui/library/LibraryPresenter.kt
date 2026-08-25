@@ -108,6 +108,9 @@ class LibraryPresenter(
     /** Job waiting on the download cache's first scan to redo the badge/filter pass. */
     private var downloadBadgeJob: Job? = null
 
+    /** Job for the currently running sort/filter pass, so a newer request can cancel a stale one. */
+    private var sortFilterJob: Job? = null
+
     /** All categories of the library, in case they are hidden because of hide categories is on */
     var allCategories: List<Category> = emptyList()
         private set
@@ -255,6 +258,7 @@ class LibraryPresenter(
             categories = lastCategories ?: db.getCategories().executeAsBlocking().toMutableList()
         }
         libraryJob?.cancel()
+        sortFilterJob?.cancel()
         // Only supersede the pending badge refresh once the cache is actually ready - this load
         // then already computes correct counts. While it's still cold that job is the only thing
         // that will fix the badges, so it has to outlive the refresh.
@@ -662,33 +666,45 @@ class LibraryPresenter(
             db.getLastFetchedManga().executeAsBlocking().associate { it.id!! to counter++ }
         }
 
-        // Assign a default sort mode once per category up front instead of lazily inside the
-        // comparator. Only categories with 2+ items here ever reach the same-category comparator
+        // Category.mangaSort/mangaOrder are mutable and shared with the UI thread (e.g.
+        // sortCategory() mutates them directly while a background sort may still be reading
+        // them), so every category's sort mode is snapshotted once up front rather than read
+        // live from the comparator - reading live let the same sort see a category's mode
+        // flip mid-sort, which TimSort reports as "Comparison method violates its general
+        // contract!". Only categories with 2+ items ever reach the same-category comparator
         // branch below, so this only touches the same categories the old inline check did.
-        itemList
-            .groupBy { it.header.category.id }
-            .values
-            .filter { it.size > 1 }
-            .forEach { group ->
-                val category = group.first().header.category
-                if (category.mangaOrder.isEmpty() && category.mangaSort == null) {
-                    category.changeSortTo(preferences.librarySortingMode().get())
-                    if (category.id == 0) {
-                        preferences
-                            .defaultMangaOrder()
-                            .set(category.mangaSort.toString())
-                    } else if (!category.isDynamic) {
-                        db.insertCategory(category).executeAsBlocking()
+        data class CategorySortSnapshot(
+            val sortingMode: LibrarySort?,
+            val ascending: Boolean,
+            val orderIndex: Map<Long, Int>,
+            val isDynamic: Boolean,
+        )
+
+        val categorySnapshots =
+            itemList
+                .groupBy { it.header.category.id }
+                .values
+                .filter { it.size > 1 }
+                .associate { group ->
+                    val category = group.first().header.category
+                    if (category.mangaOrder.isEmpty() && category.mangaSort == null) {
+                        category.changeSortTo(preferences.librarySortingMode().get())
+                        if (category.id == 0) {
+                            preferences
+                                .defaultMangaOrder()
+                                .set(category.mangaSort.toString())
+                        } else if (!category.isDynamic) {
+                            db.insertCategory(category).executeAsBlocking()
+                        }
                     }
+                    (category.id ?: 0) to
+                        CategorySortSnapshot(
+                            sortingMode = if (category.mangaSort != null) category.sortingMode() ?: LibrarySort.Title else null,
+                            ascending = category.isAscending(),
+                            orderIndex = category.mangaOrder.withIndex().associate { (index, id) -> id to index },
+                            isDynamic = category.isDynamic,
+                        )
                 }
-            }
-
-        val mangaOrderIndexCache = mutableMapOf<Int, Map<Long, Int>>()
-
-        fun mangaOrderIndex(category: Category): Map<Long, Int> =
-            mangaOrderIndexCache.getOrPut(category.id ?: 0) {
-                category.mangaOrder.withIndex().associate { (index, id) -> id to index }
-            }
 
         val sortTitleCache = mutableMapOf<Long, String>()
 
@@ -705,19 +721,20 @@ class LibraryPresenter(
 
         val sortFn: (LibraryItem, LibraryItem) -> Int = { i1, i2 ->
             if (i1.header.category.id == i2.header.category.id) {
-                val category = i1.header.category
+                val snapshot = categorySnapshots[i1.header.category.id ?: 0]
                 val compare =
                     when {
-                        category.mangaSort != null -> {
+                        snapshot == null -> 0
+                        snapshot.sortingMode != null -> {
                             var sort =
-                                when (category.sortingMode() ?: LibrarySort.Title) {
+                                when (snapshot.sortingMode) {
                                     LibrarySort.Title -> sortAlphabetical(i1, i2)
                                     LibrarySort.LatestChapter -> i2.manga.last_update.compareTo(i1.manga.last_update)
                                     LibrarySort.Unread ->
                                         when {
                                             i1.manga.unread == i2.manga.unread -> 0
-                                            i1.manga.unread == 0 -> if (category.isAscending()) 1 else -1
-                                            i2.manga.unread == 0 -> if (category.isAscending()) -1 else 1
+                                            i1.manga.unread == 0 -> if (snapshot.ascending) 1 else -1
+                                            i2.manga.unread == 0 -> if (snapshot.ascending) -1 else 1
                                             else -> i1.manga.unread.compareTo(i2.manga.unread)
                                         }
                                     LibrarySort.LastRead -> {
@@ -739,7 +756,7 @@ class LibraryPresenter(
                                     }
                                     LibrarySort.DateAdded -> i2.manga.date_added.compareTo(i1.manga.date_added)
                                     LibrarySort.DragAndDrop -> {
-                                        if (category.isDynamic) {
+                                        if (snapshot.isDynamic) {
                                             val category1 =
                                                 allCategories.find { i1.manga.category == it.id }?.order
                                                     ?: 0
@@ -752,13 +769,12 @@ class LibraryPresenter(
                                         }
                                     }
                                 }
-                            if (!category.isAscending()) sort *= -1
+                            if (!snapshot.ascending) sort *= -1
                             sort
                         }
-                        category.mangaOrder.isNotEmpty() -> {
-                            val order = mangaOrderIndex(category)
-                            val index1 = order[i1.manga.id!!] ?: -1
-                            val index2 = order[i2.manga.id!!] ?: -1
+                        snapshot.orderIndex.isNotEmpty() -> {
+                            val index1 = snapshot.orderIndex[i1.manga.id!!] ?: -1
+                            val index2 = snapshot.orderIndex[i2.manga.id!!] ?: -1
                             when {
                                 index1 == index2 -> 0
                                 index1 == -1 -> -1
@@ -1144,12 +1160,14 @@ class LibraryPresenter(
 
     /** Requests the library to be filtered. */
     fun requestFilterUpdate() {
-        presenterScope.launch {
-            var mangaMap = allLibraryItems
-            mangaMap = applyFilters(mangaMap)
-            mangaMap = applySort(mangaMap)
-            sectionLibrary(mangaMap)
-        }
+        sortFilterJob?.cancel()
+        sortFilterJob =
+            presenterScope.launch {
+                var mangaMap = allLibraryItems
+                mangaMap = applyFilters(mangaMap)
+                mangaMap = applySort(mangaMap)
+                sectionLibrary(mangaMap)
+            }
     }
 
     private fun requestBadgeUpdate(badgeUpdate: (List<LibraryItem>) -> Unit) {
@@ -1180,11 +1198,13 @@ class LibraryPresenter(
 
     /** Requests the library to be sorted. */
     private fun requestSortUpdate() {
-        presenterScope.launch {
-            var mangaMap = libraryItems
-            mangaMap = applySort(mangaMap)
-            sectionLibrary(mangaMap)
-        }
+        sortFilterJob?.cancel()
+        sortFilterJob =
+            presenterScope.launch {
+                var mangaMap = libraryItems
+                mangaMap = applySort(mangaMap)
+                sectionLibrary(mangaMap)
+            }
     }
 
     fun getMangaUrls(mangas: List<Manga>): List<String> {
