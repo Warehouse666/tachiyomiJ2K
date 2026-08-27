@@ -3,7 +3,6 @@ package eu.kanade.tachiyomi.ui.webview
 import android.annotation.SuppressLint
 import android.app.assist.AssistContent
 import android.content.res.Configuration
-import android.graphics.Color
 import android.os.Bundle
 import android.util.TypedValue
 import android.view.View
@@ -35,6 +34,7 @@ import eu.kanade.tachiyomi.util.system.getPrefTheme
 import eu.kanade.tachiyomi.util.system.getResourceColor
 import eu.kanade.tachiyomi.util.system.isInNightMode
 import eu.kanade.tachiyomi.util.system.setDefaultSettings
+import eu.kanade.tachiyomi.util.view.backgroundColor
 import eu.kanade.tachiyomi.util.view.setStyle
 
 open class BaseWebViewActivity : BaseActivity<WebviewActivityBinding>() {
@@ -96,11 +96,6 @@ open class BaseWebViewActivity : BaseActivity<WebviewActivityBinding>() {
             )
 
         ViewCompat.setOnApplyWindowInsetsListener(content) { v, insets ->
-            // if pure white theme on a device that does not support dark status bar
-            /*if (getResourceColor(android.R.attr.statusBarColor) != Color.TRANSPARENT)
-                window.statusBarColor = Color.BLACK
-            else window.statusBarColor = getResourceColor(R.attr.colorPrimary)*/
-            window.navigationBarColor = getResourceColor(R.attr.colorSurfaceContainer)
             v.setPadding(
                 insets.getInsets(systemBars()).left,
                 insets.getInsets(systemBars()).top,
@@ -206,7 +201,6 @@ open class BaseWebViewActivity : BaseActivity<WebviewActivityBinding>() {
         val colorSurfaceContainer = attrs.getColor(2, 0)
         attrs.recycle()
 
-        window.statusBarColor = ColorUtils.setAlphaComponent(colorSurface, 255)
         binding.toolbar.setBackgroundColor(colorSurface)
         binding.toolbar.popupTheme =
             if (lightMode) {
@@ -220,13 +214,8 @@ open class BaseWebViewActivity : BaseActivity<WebviewActivityBinding>() {
         binding.toolbar.overflowIcon?.setTint(actionBarTintColor)
         binding.swipeRefresh.setColorSchemeColors(actionBarTintColor)
         binding.swipeRefresh.setProgressBackgroundColorSchemeColor(colorSurfaceContainer)
-
-        window.navigationBarColor =
-            if (!lightMode) {
-                colorSurfaceContainer
-            } else {
-                Color.BLACK
-            }
+        binding.webLinearLayout.backgroundColor = colorSurface
+        binding.root.backgroundColor = colorSurface
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
     }
