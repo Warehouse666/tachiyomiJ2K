@@ -320,7 +320,7 @@
     <string name="latest">Latest</string>
     <string name="popular">Popular</string>
     <string name="browse">Browse</string>
-    <string name="in_library">In Library</string>
+    <string name="in_library">In library</string>
     <string name="duplicate_in_library">Duplicate</string>
     <string name="search_extensions">Search extensions…</string>
     <string name="all_sources">All sources</string>
