@@ -931,7 +931,7 @@
     </plurals>
     <string name="clean_up_cached_covers">Clean up cached covers</string>
     <string name="delete_old_covers_in_library_used_">Delete old and unused cached covers of
-        entries in your library that has been updated.\nCurrently using: %1$s</string>
+        entries in your library that have been updated.\nCurrently using: %1$s</string>
     <string name="clear_cached_covers_non_library">Clear cached covers not in library</string>
     <string name="delete_all_covers__not_in_library_used_">Delete all covers cached that are
         not in your library \nCurrently using: %1$s</string>
