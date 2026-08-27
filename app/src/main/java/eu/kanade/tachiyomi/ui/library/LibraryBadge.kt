@@ -371,8 +371,9 @@ class LibraryBadge
             binding.unreadText.updateLayoutParams { width = LayoutParams.WRAP_CONTENT }
             binding.unreadText.setTextColor(colors.onUnread)
             binding.unreadText.text = resources.getText(textRes)
-            shapeAppearanceModel = shapeAppearanceModel.withCornerSize(ogRadius)
-            badgeDrawable.setCorners(ogRadius, ogRadius, roundEnd = false, isRtl = isRtl, uniform = true)
+            // Same diagonal corner pattern as the rest of the badge family, not a plain pill
+            shapeAppearanceModel = makeShapeCorners(ogRadius, ogRadius)
+            badgeDrawable.setCorners(ogRadius, ogRadius, roundEnd = false, isRtl = isRtl, uniform = false)
             updateParts()
         }
     }
