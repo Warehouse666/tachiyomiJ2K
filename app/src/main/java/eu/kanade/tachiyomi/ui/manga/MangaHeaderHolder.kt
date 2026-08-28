@@ -792,6 +792,25 @@ class MangaHeaderHolder(
             baseWebviewIconColor?.let { webviewButton.iconTint = ColorStateList.valueOf(it.hueShiftedTo(accentColor)) }
             baseShareIconColor?.let { shareButton.iconTint = ColorStateList.valueOf(it.hueShiftedTo(accentColor)) }
 
+            val checkedStates =
+                arrayOf(
+                    intArrayOf(android.R.attr.state_checked),
+                    intArrayOf(),
+                )
+            val buttonOutlineColor =
+                contrastSafeOutlineColor(
+                    root.context.getResourceColor(R.attr.colorOutlineVariant).hueShiftedTo(accentColor),
+                    binding.backdropFill.backgroundColor ?: root.context.getResourceColor(R.attr.background),
+                )
+            // Checked favorite/track buttons already get a filled background, so the outline
+            // would be redundant there - only the icon-only buttons keep it in every state.
+            val checkableOutline = ColorStateList(checkedStates, intArrayOf(Color.TRANSPARENT, buttonOutlineColor))
+            val outlineColorList = ColorStateList.valueOf(buttonOutlineColor)
+            favoriteButton.strokeColor = checkableOutline
+            trackButton.strokeColor = checkableOutline
+            webviewButton.strokeColor = outlineColorList
+            shareButton.strokeColor = outlineColorList
+
             val onBGHsl = FloatArray(3)
             val accentHsl = FloatArray(3)
             ColorUtils.colorToHSL(root.context.getResourceColor(R.attr.colorOnBackground), onBGHsl)
@@ -804,11 +823,6 @@ class MangaHeaderHolder(
                         onBGHsl[1],
                         onBGHsl[2],
                     ),
-                )
-            val checkedStates =
-                arrayOf(
-                    intArrayOf(android.R.attr.state_checked),
-                    intArrayOf(),
                 )
             val bgCheckedColor =
                 ColorUtils.setAlphaComponent(
@@ -864,6 +878,23 @@ class MangaHeaderHolder(
         val whiteContrast = ColorUtils.calculateContrast(Color.WHITE, fullBackground)
         val blackContrast = ColorUtils.calculateContrast(Color.BLACK, fullBackground)
         return if (whiteContrast >= blackContrast) Color.WHITE else Color.BLACK
+    }
+
+    /**
+     * A themed [outline] hue-shifted to the accent, nudged away from [background]'s own lightness
+     * if that leaves too little contrast to read as a border (e.g. a highly saturated background).
+     */
+    private fun contrastSafeOutlineColor(
+        outline: Int,
+        background: Int,
+    ): Int {
+        if (ColorUtils.calculateContrast(outline, ColorUtils.setAlphaComponent(background, 255)) >= 1.2f) return outline
+        val bgHsl = FloatArray(3)
+        ColorUtils.colorToHSL(background, bgHsl)
+        val outlineHsl = FloatArray(3)
+        ColorUtils.colorToHSL(outline, outlineHsl)
+        outlineHsl[2] = (outlineHsl[2] + (0.25f * if (bgHsl[2] > 0.5f) -1 else 1)).coerceIn(0f, 1f)
+        return ColorUtils.HSLToColor(outlineHsl)
     }
 
     fun updateTracking() {
