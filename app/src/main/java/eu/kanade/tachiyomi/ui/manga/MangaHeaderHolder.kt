@@ -45,6 +45,7 @@ import eu.kanade.tachiyomi.databinding.MangaHeaderItemBinding
 import eu.kanade.tachiyomi.source.SourceManager
 import eu.kanade.tachiyomi.source.model.SManga
 import eu.kanade.tachiyomi.ui.base.holder.BaseFlexibleViewHolder
+import eu.kanade.tachiyomi.ui.reader.viewer.missingChaptersCount
 import eu.kanade.tachiyomi.util.isLocal
 import eu.kanade.tachiyomi.util.lang.toNormalized
 import eu.kanade.tachiyomi.util.system.getResourceColor
@@ -322,13 +323,9 @@ class MangaHeaderHolder(
                 when {
                     desc.isNullOrBlank() -> itemView.context.getString(R.string.no_description)
                     binding.mangaSummary.maxLines != Int.MAX_VALUE ->
-                        desc.replace(
-                            Regex(
-                                "[\\r\\n\\s*]{2,}",
-                                setOf(RegexOption.MULTILINE),
-                            ),
-                            "\n",
-                        )
+                        desc
+                            .replace(Regex("\\s+", setOf(RegexOption.MULTILINE)), " ")
+                            .trim()
                     else -> markwon().toMarkdown(desc.trim())
                 }
             // setTextIsSelectable() resets the movement method, so it must be re-applied
@@ -376,26 +373,7 @@ class MangaHeaderHolder(
         }
     }
 
-    private fun missingChapterCount(presenter: MangaDetailsPresenter): Int {
-        val chapterNumbers =
-            presenter.chapters
-                .map { it.chapter_number }
-                .filterNot { it == -1f }
-                .map { it.toInt() }
-                .distinct()
-                .sorted()
-        if (chapterNumbers.isEmpty()) return 0
-
-        var missingCount = 0
-        var previousChapter = 0
-        for (currentChapter in chapterNumbers) {
-            if (currentChapter > previousChapter + 1) {
-                missingCount += currentChapter - previousChapter - 1
-            }
-            previousChapter = currentChapter
-        }
-        return missingCount
-    }
+    private fun missingChapterCount(presenter: MangaDetailsPresenter): Int = missingChaptersCount(presenter.chapters.map { it.chapter })
 
     @SuppressLint("SetTextI18n")
     fun bind(
