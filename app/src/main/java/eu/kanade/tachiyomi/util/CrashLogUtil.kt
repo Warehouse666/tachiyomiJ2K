@@ -68,6 +68,7 @@ class CrashLogUtil(
 
     fun getDebugInfo(): String =
         """
+        App ID: ${BuildConfig.APPLICATION_ID}
         App version: ${BuildConfig.VERSION_NAME} (${BuildConfig.FLAVOR}, ${BuildConfig.COMMIT_SHA}, ${BuildConfig.VERSION_CODE}, ${BuildConfig.BUILD_TIME})
         Android version: ${Build.VERSION.RELEASE} (SDK ${Build.VERSION.SDK_INT})
         Android build ID: ${Build.DISPLAY}
