@@ -643,7 +643,7 @@ class MangaDetailsController :
                                 } else {
                                     setCoverColorValue()
                                     setBackgroundColorValue()
-                                    themeColors.cover?.let { color -> getHeader()?.setBackDrop(color) }
+                                    themeColors.background?.let { color -> getHeader()?.setBackDrop(color) }
                                 }
                             }
                         }

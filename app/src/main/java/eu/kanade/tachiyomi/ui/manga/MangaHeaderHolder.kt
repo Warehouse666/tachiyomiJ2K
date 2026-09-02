@@ -704,6 +704,7 @@ class MangaHeaderHolder(
         binding.backdropFill.setBackgroundColor(bgColor)
         binding.moreBgGradient.backgroundTintList = ColorStateList.valueOf(bgColor)
         binding.moreBgSolid.setBackgroundColor(bgColor)
+        binding.trueBackdrop.setBackgroundColor(bgColor)
     }
 
     fun updateColors(updateAll: Boolean = true) {
@@ -718,10 +719,6 @@ class MangaHeaderHolder(
         val manga = adapter.presenter.manga
         with(binding) {
             applyTextColorTint()
-            trueBackdrop.setBackgroundColor(
-                adapter.delegate.themeColors().cover
-                    ?: trueBackdrop.context.getResourceColor(R.attr.background),
-            )
             applyBackgroundTint(binding)
             TextViewCompat.setCompoundDrawableTintList(
                 moreButton,
