@@ -178,12 +178,11 @@ open class ReaderPageImageView
             val topInsets = insetInfo.topCutoutInset
             val bottomInsets = insetInfo.bottomCutoutInset
             if (insetInfo.cutoutBehavior == PagerConfig.CUTOUT_START_EXTENDED &&
-                topInsets + bottomInsets > 0 &&
-                insetInfo.scaleTypeIsFullFit
+                topInsets + bottomInsets > 0
             ) {
                 setScaleAndCenter(
                     scale,
-                    PointF(centerV, (center?.y?.plus(topInsets)?.minus(bottomInsets) ?: 0f)),
+                    PointF(centerV, height / (2f * scale)),
                 )
             }
         }
@@ -201,10 +200,9 @@ open class ReaderPageImageView
                 val bottomInsets = config.insetInfo.bottomCutoutInset
                 setExtendPastCutout(
                     config.insetInfo.cutoutBehavior == PagerConfig.CUTOUT_START_EXTENDED &&
-                        config.insetInfo.scaleTypeIsFullFit &&
                         topInsets + bottomInsets > 0,
                 )
-                if ((config.insetInfo.cutoutBehavior != PagerConfig.CUTOUT_IGNORE || !config.insetInfo.scaleTypeIsFullFit) &&
+                if (config.insetInfo.cutoutBehavior != PagerConfig.CUTOUT_IGNORE &&
                     android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q &&
                     config.insetInfo.isFullscreen
                 ) {
@@ -345,7 +343,6 @@ open class ReaderPageImageView
             val cutoutBehavior: Int,
             val topCutoutInset: Float,
             val bottomCutoutInset: Float,
-            val scaleTypeIsFullFit: Boolean,
             val isFullscreen: Boolean,
             val insets: WindowInsets?,
         )

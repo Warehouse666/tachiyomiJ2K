@@ -120,14 +120,6 @@ class ReaderPagedView
                 binding.webtoonInvertDoublePages,
                 binding.webtoonPageTransitions,
             ).forEach { it.isVisible = !show }
-            val isFullFit =
-                when (preferences.imageScaleType().get()) {
-                    SubsamplingScaleImageView.SCALE_TYPE_FIT_HEIGHT,
-                    SubsamplingScaleImageView.SCALE_TYPE_SMART_FIT,
-                    SubsamplingScaleImageView.SCALE_TYPE_CENTER_CROP,
-                    -> true
-                    else -> false
-                }
             val ogView = (context as? Activity)?.window?.decorView
             val hasCutout =
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -148,7 +140,7 @@ class ReaderPagedView
             binding.landscapeZoom.isVisible =
                 show &&
                 preferences.imageScaleType().get() == SubsamplingScaleImageView.SCALE_TYPE_CENTER_INSIDE
-            binding.extendPastCutout.isVisible = show && isFullFit && hasCutout && preferences.fullscreen().get()
+            binding.extendPastCutout.isVisible = show && hasCutout && preferences.fullscreen().get()
             binding.extendPastCutoutLandscape.isVisible = hasAnyCutout &&
                 preferences.fullscreen().get() &&
                 ogView?.resources?.configuration?.orientation == Configuration.ORIENTATION_LANDSCAPE
