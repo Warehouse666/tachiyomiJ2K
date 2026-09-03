@@ -40,6 +40,7 @@ class DownloadHolder(
                     binding.downloadProgress.setProgress(binding.downloadProgress.progress, false)
                     binding.downloadProgress.progressDrawable?.jumpToCurrentState()
                     binding.downloadProgress.indeterminateDrawable?.jumpToCurrentState()
+                    binding.downloadProgress.waveSpeed = 0
                 }
             },
         )
@@ -67,6 +68,7 @@ class DownloadHolder(
         if (pages == null) {
             binding.downloadProgress.isIndeterminate = true
             binding.downloadProgress.setWavelength(0)
+            binding.downloadProgress.waveSpeed = 0
             binding.downloadProgress.progress = 0
             binding.downloadProgress.max = 1
             binding.downloadProgressText.text = ""
@@ -109,6 +111,7 @@ class DownloadHolder(
                 0
             },
         )
+        binding.downloadProgress.waveSpeed = if (!binding.downloadProgress.isIndeterminate) 10.dpToPx else 0
         if (!animate) {
             binding.downloadProgress.waveAmplitude = if (!isRunning) 0 else 2.dpToPx
             return
