@@ -178,12 +178,64 @@ open class ReaderPageImageView
             val topInsets = insetInfo.topCutoutInset
             val bottomInsets = insetInfo.bottomCutoutInset
             if (insetInfo.cutoutBehavior == PagerConfig.CUTOUT_START_EXTENDED &&
-                topInsets + bottomInsets > 0
+                topInsets + bottomInsets > 0 &&
+                insetInfo.isFullscreen
             ) {
                 setScaleAndCenter(
                     scale,
                     PointF(centerV, height / (2f * scale)),
                 )
+            }
+        }
+
+        /**
+         * Applies (or clears) the extend-past-cutout scale/pan behaviour for the given
+         * [insetInfo]. Safe to call again on an already-loaded image, e.g. when fullscreen/
+         * multi-window state changes, since it always resets extra space rather than leaving a
+         * stale value from a previous call.
+         */
+        private fun SubsamplingScaleImageView.applyCutoutInsets(insetInfo: InsetInfo?) {
+            insetInfo ?: return
+            val topInsets = insetInfo.topCutoutInset
+            val bottomInsets = insetInfo.bottomCutoutInset
+            setExtendPastCutout(
+                insetInfo.cutoutBehavior == PagerConfig.CUTOUT_START_EXTENDED &&
+                    topInsets + bottomInsets > 0 &&
+                    insetInfo.isFullscreen,
+            )
+            if (insetInfo.cutoutBehavior != PagerConfig.CUTOUT_IGNORE &&
+                android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q &&
+                insetInfo.isFullscreen
+            ) {
+                val insets: WindowInsets? = insetInfo.insets
+                setExtraSpace(
+                    0f,
+                    insets
+                        ?.displayCutout
+                        ?.boundingRectTop
+                        ?.height()
+                        ?.toFloat() ?: 0f,
+                    0f,
+                    insets
+                        ?.displayCutout
+                        ?.boundingRectBottom
+                        ?.height()
+                        ?.toFloat() ?: 0f,
+                )
+            } else {
+                setExtraSpace(0f, 0f, 0f, 0f)
+            }
+        }
+
+        /**
+         * Re-applies cutout insets to an already-loaded image (e.g. after entering/exiting
+         * multi-window mode) without reloading the image or resetting to the initial zoom-start
+         * position.
+         */
+        fun refreshCutoutInsets(config: Config) {
+            (pageView as? SubsamplingScaleImageView)?.apply {
+                applyCutoutInsets(config.insetInfo)
+                center?.let { setScaleAndCenter(scale, it) }
             }
         }
 
@@ -195,34 +247,7 @@ open class ReaderPageImageView
             setMinimumScaleType(config.minimumScaleType)
             setMinimumDpi(1) // Just so that very small image will be fit for initial load
             setCropBorders(config.cropBorders)
-            if (config.insetInfo != null) {
-                val topInsets = config.insetInfo.topCutoutInset
-                val bottomInsets = config.insetInfo.bottomCutoutInset
-                setExtendPastCutout(
-                    config.insetInfo.cutoutBehavior == PagerConfig.CUTOUT_START_EXTENDED &&
-                        topInsets + bottomInsets > 0,
-                )
-                if (config.insetInfo.cutoutBehavior != PagerConfig.CUTOUT_IGNORE &&
-                    android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q &&
-                    config.insetInfo.isFullscreen
-                ) {
-                    val insets: WindowInsets? = config.insetInfo.insets
-                    setExtraSpace(
-                        0f,
-                        insets
-                            ?.displayCutout
-                            ?.boundingRectTop
-                            ?.height()
-                            ?.toFloat() ?: 0f,
-                        0f,
-                        insets
-                            ?.displayCutout
-                            ?.boundingRectBottom
-                            ?.height()
-                            ?.toFloat() ?: 0f,
-                    )
-                }
-            }
+            applyCutoutInsets(config.insetInfo)
             setOnImageEventListener(
                 object : SubsamplingScaleImageView.DefaultOnImageEventListener() {
                     override fun onReady() {

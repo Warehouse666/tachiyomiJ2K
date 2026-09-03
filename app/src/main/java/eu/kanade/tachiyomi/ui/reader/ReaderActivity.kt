@@ -1704,6 +1704,7 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
     ) {
         super.onMultiWindowModeChanged(isInMultiWindowMode, newConfig)
         config?.setFullscreen()
+        (viewer as? PagerViewer)?.refreshCutoutInsets()
         if (isInMultiWindowMode) {
             wic.show(systemBars())
         } else if (!menuVisible && preferences.fullscreen().get()) {

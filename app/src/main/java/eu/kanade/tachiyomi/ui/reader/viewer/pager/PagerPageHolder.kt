@@ -323,6 +323,15 @@ class PagerPageHolder(
     }
 
     /**
+     * Re-applies cutout insets, e.g. after entering/exiting multi-window mode, without
+     * reloading the page or resetting its zoom/pan position.
+     */
+    fun refreshCutoutInsets() {
+        if (status != Page.State.READY) return
+        refreshCutoutInsets(imageConfig)
+    }
+
+    /**
      * Zooms the image in by one step, e.g. from a gamepad or keyboard press.
      */
     fun zoomIn() = animateZoomBy(ZOOM_STEP)

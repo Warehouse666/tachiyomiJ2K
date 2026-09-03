@@ -237,6 +237,17 @@ abstract class PagerViewer(
 
     override fun isZoomedIn(): Boolean = currentPageHolder()?.isZoomedIn() ?: false
 
+    /**
+     * Re-applies cutout insets on every currently attached page (the visible page plus any
+     * preloaded neighbors), e.g. after entering/exiting multi-window mode, without reloading
+     * pages or resetting their zoom/pan position.
+     */
+    fun refreshCutoutInsets() {
+        pager.children
+            .filterIsInstance(PagerPageHolder::class.java)
+            .forEach { it.refreshCutoutInsets() }
+    }
+
     override fun isAtEndOfReader(): Boolean = (currentPage as? ChapterTransition.Next)?.let { it.to == null } ?: false
 
     override fun zoomIn() {
