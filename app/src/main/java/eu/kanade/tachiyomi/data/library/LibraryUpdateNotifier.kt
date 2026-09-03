@@ -6,6 +6,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
@@ -177,7 +178,7 @@ class LibraryUpdateNotifier(
     /**
      * Shows the notification containing the result of the update done by the service.
      *
-     * @param updates a list of manga with new updates.
+     * @param newUpdates a list of manga with new updates.
      */
     fun showResultNotification(newUpdates: Map<LibraryManga, Array<Chapter>>) {
         // create a copy of the list since it will be cleared by the time it is used
@@ -188,83 +189,36 @@ class LibraryUpdateNotifier(
                 updates.forEach {
                     val manga = it.key
                     val chapters = it.value
+                    val notificationId = manga.id.hashCode()
                     val chapterNames =
                         chapters.map { chapter ->
                             chapter.preferredChapterName(context, manga, preferences)
                         }
+
+                    // A details refresh running alongside this chapter update may still be
+                    // writing a new cover to disk, so the cache-only lookup can miss it.
+                    val cachedIcon = getMangaIconBitmap(manga, allowNetwork = false)
                     notifications.add(
                         Pair(
-                            context.notification(Notifications.CHANNEL_NEW_CHAPTERS) {
-                                setSmallIcon(R.drawable.ic_tachij2k_notification)
-                                try {
-                                    val request =
-                                        ImageRequest
-                                            .Builder(context)
-                                            .data(manga)
-                                            .networkCachePolicy(CachePolicy.DISABLED)
-                                            .diskCachePolicy(CachePolicy.ENABLED)
-                                            .transformations(CircleCropTransformation())
-                                            .size(width = ICON_SIZE, height = ICON_SIZE)
-                                            .build()
-
-                                    Coil
-                                        .imageLoader(context)
-                                        .execute(request)
-                                        .drawable
-                                        ?.let { drawable ->
-                                            setLargeIcon((drawable as? BitmapDrawable)?.bitmap)
-                                        }
-                                } catch (e: Exception) {
-                                }
-                                setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_SUMMARY)
-                                setContentTitle(manga.title)
-                                color = ContextCompat.getColor(context, R.color.primaryTachiyomi)
-                                val chaptersNames =
-                                    if (chapterNames.size > MAX_CHAPTERS) {
-                                        "${chapterNames.take(MAX_CHAPTERS - 1).joinToString(", ")}, " +
-                                            context.resources.getQuantityString(
-                                                R.plurals.notification_and_n_more,
-                                                (chapterNames.size - (MAX_CHAPTERS - 1)),
-                                                (chapterNames.size - (MAX_CHAPTERS - 1)),
-                                            )
-                                    } else {
-                                        chapterNames.joinToString(", ")
-                                    }
-                                setContentText(chaptersNames)
-                                setStyle(NotificationCompat.BigTextStyle().bigText(chaptersNames))
-                                priority = NotificationCompat.PRIORITY_HIGH
-                                setGroup(Notifications.GROUP_NEW_CHAPTERS)
-                                setContentIntent(
-                                    NotificationReceiver.openChapterPendingActivity(
-                                        context,
-                                        manga,
-                                        chapters.first(),
-                                    ),
-                                )
-                                addAction(
-                                    R.drawable.ic_eye_24dp,
-                                    context.getString(R.string.mark_as_read),
-                                    NotificationReceiver.markAsReadPendingBroadcast(
-                                        context,
-                                        manga,
-                                        chapters,
-                                        Notifications.ID_NEW_CHAPTERS,
-                                    ),
-                                )
-                                addAction(
-                                    R.drawable.ic_book_24dp,
-                                    context.getString(R.string.view_chapters),
-                                    NotificationReceiver.openChapterPendingActivity(
-                                        context,
-                                        manga,
-                                        Notifications.ID_NEW_CHAPTERS,
-                                    ),
-                                )
-                                setAutoCancel(true)
-                            },
-                            manga.id.hashCode(),
+                            buildNewChaptersNotification(manga, chapters, chapterNames, cachedIcon),
+                            notificationId,
                         ),
                     )
+
+                    if (cachedIcon == null) {
+                        launch {
+                            val networkIcon = getMangaIconBitmap(manga, allowNetwork = true) ?: return@launch
+                            if (ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)
+                                != PackageManager.PERMISSION_GRANTED
+                            ) {
+                                return@launch
+                            }
+                            NotificationManagerCompat.from(context).notify(
+                                notificationId,
+                                buildNewChaptersNotification(manga, chapters, chapterNames, networkIcon),
+                            )
+                        }
+                    }
                 }
             }
 
@@ -323,6 +277,85 @@ class LibraryUpdateNotifier(
             }
         }
     }
+
+    /**
+     * Fetches the large icon bitmap for a manga's notification. Tries disk cache first;
+     * pass [allowNetwork] to fall back to a network fetch when the cache misses.
+     */
+    private suspend fun getMangaIconBitmap(
+        manga: Manga,
+        allowNetwork: Boolean,
+    ): Bitmap? =
+        try {
+            val request =
+                ImageRequest
+                    .Builder(context)
+                    .data(manga)
+                    .networkCachePolicy(if (allowNetwork) CachePolicy.ENABLED else CachePolicy.DISABLED)
+                    .diskCachePolicy(CachePolicy.ENABLED)
+                    .transformations(CircleCropTransformation())
+                    .size(width = ICON_SIZE, height = ICON_SIZE)
+                    .build()
+            (Coil.imageLoader(context).execute(request).drawable as? BitmapDrawable)?.bitmap
+        } catch (e: Exception) {
+            null
+        }
+
+    private fun buildNewChaptersNotification(
+        manga: LibraryManga,
+        chapters: Array<Chapter>,
+        chapterNames: List<String>,
+        icon: Bitmap?,
+    ): Notification =
+        context.notification(Notifications.CHANNEL_NEW_CHAPTERS) {
+            setSmallIcon(R.drawable.ic_tachij2k_notification)
+            icon?.let { setLargeIcon(it) }
+            setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_SUMMARY)
+            setContentTitle(manga.title)
+            color = ContextCompat.getColor(context, R.color.primaryTachiyomi)
+            val chaptersNames =
+                if (chapterNames.size > MAX_CHAPTERS) {
+                    "${chapterNames.take(MAX_CHAPTERS - 1).joinToString(", ")}, " +
+                        context.resources.getQuantityString(
+                            R.plurals.notification_and_n_more,
+                            (chapterNames.size - (MAX_CHAPTERS - 1)),
+                            (chapterNames.size - (MAX_CHAPTERS - 1)),
+                        )
+                } else {
+                    chapterNames.joinToString(", ")
+                }
+            setContentText(chaptersNames)
+            setStyle(NotificationCompat.BigTextStyle().bigText(chaptersNames))
+            priority = NotificationCompat.PRIORITY_HIGH
+            setGroup(Notifications.GROUP_NEW_CHAPTERS)
+            setContentIntent(
+                NotificationReceiver.openChapterPendingActivity(
+                    context,
+                    manga,
+                    chapters.first(),
+                ),
+            )
+            addAction(
+                R.drawable.ic_eye_24dp,
+                context.getString(R.string.mark_as_read),
+                NotificationReceiver.markAsReadPendingBroadcast(
+                    context,
+                    manga,
+                    chapters,
+                    Notifications.ID_NEW_CHAPTERS,
+                ),
+            )
+            addAction(
+                R.drawable.ic_book_24dp,
+                context.getString(R.string.view_chapters),
+                NotificationReceiver.openChapterPendingActivity(
+                    context,
+                    manga,
+                    Notifications.ID_NEW_CHAPTERS,
+                ),
+            )
+            setAutoCancel(true)
+        }
 
     fun showQueueSizeWarningNotification() {
         val notification =
