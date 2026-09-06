@@ -12,8 +12,12 @@ import eu.kanade.tachiyomi.data.backup.BackupConst.BACKUP_CHAPTER
 import eu.kanade.tachiyomi.data.backup.BackupConst.BACKUP_CHAPTER_MASK
 import eu.kanade.tachiyomi.data.backup.BackupConst.BACKUP_CUSTOM_INFO
 import eu.kanade.tachiyomi.data.backup.BackupConst.BACKUP_CUSTOM_INFO_MASK
+import eu.kanade.tachiyomi.data.backup.BackupConst.BACKUP_EXTENSION_REPOS
+import eu.kanade.tachiyomi.data.backup.BackupConst.BACKUP_EXTENSION_REPOS_MASK
 import eu.kanade.tachiyomi.data.backup.BackupConst.BACKUP_HISTORY
 import eu.kanade.tachiyomi.data.backup.BackupConst.BACKUP_HISTORY_MASK
+import eu.kanade.tachiyomi.data.backup.BackupConst.BACKUP_PRIVATE_PREFS
+import eu.kanade.tachiyomi.data.backup.BackupConst.BACKUP_PRIVATE_PREFS_MASK
 import eu.kanade.tachiyomi.data.backup.BackupConst.BACKUP_READ_MANGA
 import eu.kanade.tachiyomi.data.backup.BackupConst.BACKUP_READ_MANGA_MASK
 import eu.kanade.tachiyomi.data.backup.BackupConst.BACKUP_SOURCE_PREFS
@@ -94,7 +98,7 @@ class BackupCreator(
                     backupCategories(),
                     emptyList(),
                     backupExtensionInfo(databaseManga),
-                    backupAppPreferences(flags),
+                    backupAppPreferences(flags) + backupExtensionRepoPreferences(flags),
                     backupSourcePreferences(flags),
                 )
         }
@@ -253,26 +257,39 @@ class BackupCreator(
 
     private fun backupAppPreferences(flags: Int): List<BackupPreference> {
         if (flags and BACKUP_APP_PREFS_MASK != BACKUP_APP_PREFS) return emptyList()
-        return preferenceStore.getAll().toBackupPreferences()
+        val includePrivate = flags and BACKUP_PRIVATE_PREFS_MASK == BACKUP_PRIVATE_PREFS
+        return preferenceStore
+            .getAll()
+            .filterKeys { it !in BackupConst.EXTENSION_REPO_PREFERENCE_KEYS }
+            .toBackupPreferences(includePrivate)
+    }
+
+    private fun backupExtensionRepoPreferences(flags: Int): List<BackupPreference> {
+        if (flags and BACKUP_EXTENSION_REPOS_MASK != BACKUP_EXTENSION_REPOS) return emptyList()
+        return preferenceStore
+            .getAll()
+            .filterKeys { it in BackupConst.EXTENSION_REPO_PREFERENCE_KEYS }
+            .toBackupPreferences(includePrivate = true)
     }
 
     private fun backupSourcePreferences(flags: Int): List<BackupSourcePreferences> {
         if (flags and BACKUP_SOURCE_PREFS_MASK != BACKUP_SOURCE_PREFS) return emptyList()
+        val includePrivate = flags and BACKUP_PRIVATE_PREFS_MASK == BACKUP_PRIVATE_PREFS
         return sourceManager
             .getOnlineSources()
             .filterIsInstance<ConfigurableSource>()
             .map {
                 BackupSourcePreferences(
                     it.preferenceKey(),
-                    it.sourcePreferences().all.toBackupPreferences(),
+                    it.sourcePreferences().all.toBackupPreferences(includePrivate),
                 )
             }
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun Map<String, *>.toBackupPreferences(): List<BackupPreference> {
+    private fun Map<String, *>.toBackupPreferences(includePrivate: Boolean): List<BackupPreference> {
         return this
-            .filterKeys { !Preference.isPrivate(it) }
+            .filterKeys { includePrivate || !Preference.isPrivate(it) }
             .mapNotNull { (key, value) ->
                 // j2k fork differences
                 if (key == "library_sorting_mode" && value is Int) {

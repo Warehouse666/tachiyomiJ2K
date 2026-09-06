@@ -856,8 +856,10 @@
     <string name="restoring_backup_canceled">Canceled restore</string>
     <string name="backup_restore_invalid_uri">Error: empty URI</string>
     <string name="creating_backup">Creating backup</string>
-    <string name="backup_info">Automatic backups are highly recommended. You should keep copies in other places as well.</string>
+    <string name="backup_info">Automatic backups are highly recommended. You should keep copies in other places as well. Backups may contain sensitive data including any stored passwords; be careful if sharing.</string>
     <string name="what_should_backup">What do you want to backup?</string>
+    <string name="what_should_restore">What do you want to restore?</string>
+    <string name="private_settings">Include sensitive settings (e.g. tracker login tokens)</string>
     <string name="restoring_backup">Restoring backup</string>
     <string name="restore_duration">%02d min, %02d sec</string>
     <string name="restore_miui_warning">Backup/restore may not function properly if MIUI Optimization is disabled.</string>

@@ -66,12 +66,15 @@ class BackupRestorer(
 
     private val errors = mutableListOf<Pair<Date, String>>()
 
-    suspend fun restoreBackup(uri: Uri): Boolean {
+    suspend fun restoreBackup(
+        uri: Uri,
+        flags: Int,
+    ): Boolean {
         val startTime = System.currentTimeMillis()
         restoreProgress = 0
         errors.clear()
 
-        if (!performRestore(uri)) {
+        if (!performRestore(uri, flags)) {
             return false
         }
 
@@ -84,13 +87,27 @@ class BackupRestorer(
         return true
     }
 
-    private suspend fun performRestore(uri: Uri): Boolean {
+    private suspend fun performRestore(
+        uri: Uri,
+        flags: Int,
+    ): Boolean {
         val backup = BackupUtil.decodeBackup(context, uri)
 
-        restoreAmount = backup.backupManga.size + 3 // +3 for categories, app prefs, source prefs
+        val restoreLibrary = flags and BackupConst.RESTORE_LIBRARY_MASK == BackupConst.RESTORE_LIBRARY
+        val restoreCategories = flags and BackupConst.RESTORE_CATEGORY_MASK == BackupConst.RESTORE_CATEGORY
+        val restoreAppPrefs = flags and BackupConst.RESTORE_APP_PREFS_MASK == BackupConst.RESTORE_APP_PREFS
+        val restoreExtensionRepos = flags and BackupConst.RESTORE_EXTENSION_REPOS_MASK == BackupConst.RESTORE_EXTENSION_REPOS
+        val restoreSourcePrefs = flags and BackupConst.RESTORE_SOURCE_PREFS_MASK == BackupConst.RESTORE_SOURCE_PREFS
+
+        restoreAmount =
+            (if (restoreLibrary) backup.backupManga.size else 0) +
+            (if (restoreCategories) 1 else 0) +
+            (if (restoreAppPrefs) 1 else 0) +
+            (if (restoreExtensionRepos) 1 else 0) +
+            (if (restoreSourcePrefs) 1 else 0)
 
         // Restore categories
-        if (backup.backupCategories.isNotEmpty()) {
+        if (restoreCategories && backup.backupCategories.isNotEmpty()) {
             restoreCategories(backup.backupCategories)
         }
 
@@ -99,18 +116,23 @@ class BackupRestorer(
         sourceMapping = backupMaps.associate { it.sourceId to it.name }
 
         return coroutineScope {
-            restoreAppPreferences(backup.backupPreferences)
-            restoreSourcePreferences(backup.backupSourcePreferences)
+            if (restoreAppPrefs) restoreAppPreferences(backup.backupPreferences)
+            if (restoreExtensionRepos) restoreExtensionRepoPreferences(backup.backupPreferences)
+            if (restoreSourcePrefs) restoreSourcePreferences(backup.backupSourcePreferences)
 
-            // Restore individual manga, batched into transactions to avoid
-            // committing to disk on every single database write
-            backup.backupManga.chunked(100).forEach { mangaChunk ->
-                if (!isActive) {
-                    return@coroutineScope false
-                }
+            if (restoreLibrary) {
+                val categoriesForManga = if (restoreCategories) backup.backupCategories else emptyList()
 
-                db.inTransaction {
-                    mangaChunk.forEach { restoreManga(it, backup.backupCategories) }
+                // Restore individual manga, batched into transactions to avoid
+                // committing to disk on every single database write
+                backup.backupManga.chunked(100).forEach { mangaChunk ->
+                    if (!isActive) {
+                        return@coroutineScope false
+                    }
+
+                    db.inTransaction {
+                        mangaChunk.forEach { restoreManga(it, categoriesForManga) }
+                    }
                 }
             }
             true
@@ -422,7 +444,8 @@ class BackupRestorer(
     }
 
     private fun restoreAppPreferences(preferences: List<BackupPreference>) {
-        restorePreferences(preferences, preferenceStore)
+        val filtered = preferences.filter { it.key !in BackupConst.EXTENSION_REPO_PREFERENCE_KEYS }
+        restorePreferences(filtered, preferenceStore)
 
         ExtensionUpdateJob.setupTask(context)
         LibraryUpdateJob.setupTask(context)
@@ -430,6 +453,14 @@ class BackupRestorer(
 
         restoreProgress += 1
         showRestoreProgress(restoreProgress, restoreAmount, context.getString(R.string.app_settings))
+    }
+
+    private fun restoreExtensionRepoPreferences(preferences: List<BackupPreference>) {
+        val filtered = preferences.filter { it.key in BackupConst.EXTENSION_REPO_PREFERENCE_KEYS }
+        restorePreferences(filtered, preferenceStore)
+
+        restoreProgress += 1
+        showRestoreProgress(restoreProgress, restoreAmount, context.getString(R.string.extension_repos))
     }
 
     private fun restoreSourcePreferences(preferences: List<BackupSourcePreferences>) {

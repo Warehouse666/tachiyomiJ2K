@@ -41,12 +41,13 @@ class BackupRestoreJob(
         tryToSetForeground()
 
         val uriPath = inputData.getString(BackupConst.EXTRA_URI) ?: return Result.failure()
+        val flags = inputData.getInt(BACKUP_FLAGS_KEY, BackupConst.RESTORE_ALL)
 
         val uri = Uri.parse(uriPath) ?: return Result.failure()
 
         withIOContext {
             try {
-                if (!restorer.restoreBackup(uri)) {
+                if (!restorer.restoreBackup(uri, flags)) {
                     notifier.showRestoreError(context.getString(R.string.restoring_backup_canceled))
                 }
             } catch (exception: Exception) {
@@ -67,12 +68,17 @@ class BackupRestoreJob(
         fun start(
             context: Context,
             uri: Uri,
+            flags: Int = BackupConst.RESTORE_ALL,
         ) {
             val request =
                 OneTimeWorkRequestBuilder<BackupRestoreJob>()
                     .addTag(TAG)
-                    .setInputData(workDataOf(BackupConst.EXTRA_URI to uri.toString()))
-                    .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+                    .setInputData(
+                        workDataOf(
+                            BackupConst.EXTRA_URI to uri.toString(),
+                            BACKUP_FLAGS_KEY to flags,
+                        ),
+                    ).setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
                     .build()
             WorkManager
                 .getInstance(context)
@@ -86,3 +92,5 @@ class BackupRestoreJob(
         fun isRunning(context: Context) = WorkManager.getInstance(context).jobIsRunning(TAG)
     }
 }
+
+private const val BACKUP_FLAGS_KEY = "restore_flags" // Int

@@ -230,18 +230,21 @@ class SettingsBackupController : SettingsController() {
                 R.string.chapters,
                 R.string.tracking,
                 R.string.history,
-                R.string.app_settings,
-                R.string.source_settings,
                 R.string.custom_manga_info,
                 R.string.all_read_manga,
+                R.string.app_settings,
+                R.string.source_settings,
+                R.string.extension_repos,
+                R.string.private_settings,
             ).map { activity.getString(it) }
+        val privateSettingsIndex = options.lastIndex
 
         activity
             .materialAlertDialog()
             .setTitle(R.string.what_should_backup)
             .setMultiChoiceItems(
                 options.toTypedArray(),
-                options.map { true }.toBooleanArray(),
+                List(options.size) { index -> index != privateSettingsIndex }.toBooleanArray(),
             ) { dialog, position, _ ->
                 if (position == 0) {
                     val listView = (dialog as AlertDialog).listView
@@ -257,10 +260,12 @@ class SettingsBackupController : SettingsController() {
                             2 -> flags = flags or BackupConst.BACKUP_CHAPTER
                             3 -> flags = flags or BackupConst.BACKUP_TRACK
                             4 -> flags = flags or BackupConst.BACKUP_HISTORY
-                            5 -> flags = flags or BackupConst.BACKUP_APP_PREFS
-                            6 -> flags = flags or BackupConst.BACKUP_SOURCE_PREFS
-                            7 -> flags = flags or BackupConst.BACKUP_CUSTOM_INFO
-                            8 -> flags = flags or BackupConst.BACKUP_READ_MANGA
+                            5 -> flags = flags or BackupConst.BACKUP_CUSTOM_INFO
+                            6 -> flags = flags or BackupConst.BACKUP_READ_MANGA
+                            7 -> flags = flags or BackupConst.BACKUP_APP_PREFS
+                            8 -> flags = flags or BackupConst.BACKUP_SOURCE_PREFS
+                            9 -> flags = flags or BackupConst.BACKUP_EXTENSION_REPOS
+                            10 -> flags = flags or BackupConst.BACKUP_PRIVATE_PREFS
                         }
                     }
                 }
@@ -299,12 +304,9 @@ class SettingsBackupController : SettingsController() {
                 .setTitle(R.string.restore_backup)
                 .setMessage(message)
                 .setPositiveButton(R.string.restore) { _, _ ->
-                    val context = applicationContext
-                    if (context != null) {
-                        activity.toast(R.string.restoring_backup)
-                        BackupRestoreJob.start(context, uri)
-                    }
-                }.show()
+                    showRestoreOptionsDialog(uri)
+                }.setNegativeButton(android.R.string.cancel, null)
+                .show()
         } catch (e: Exception) {
             activity
                 .materialAlertDialog()
@@ -313,6 +315,50 @@ class SettingsBackupController : SettingsController() {
                 .setPositiveButton(android.R.string.cancel, null)
                 .show()
         }
+    }
+
+    private fun showRestoreOptionsDialog(uri: Uri) {
+        val activity = activity ?: return
+        val options =
+            arrayOf(
+                R.string.library_entries,
+                R.string.categories,
+                R.string.app_settings,
+                R.string.extension_repos,
+                R.string.source_settings,
+            ).map { activity.getString(it) }
+
+        activity
+            .materialAlertDialog()
+            .setTitle(R.string.what_should_restore)
+            .setMultiChoiceItems(
+                options.toTypedArray(),
+                options.map { true }.toBooleanArray(),
+            ) { dialog, _, _ ->
+                val listView = (dialog as AlertDialog).listView
+                val anyChecked = (0 until listView.count).any { listView.isItemChecked(it) }
+                dialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = anyChecked
+            }.setPositiveButton(R.string.restore) { dialog, _ ->
+                val listView = (dialog as AlertDialog).listView
+                var flags = 0
+                for (i in 0 until listView.count) {
+                    if (listView.isItemChecked(i)) {
+                        when (i) {
+                            0 -> flags = flags or BackupConst.RESTORE_LIBRARY
+                            1 -> flags = flags or BackupConst.RESTORE_CATEGORY
+                            2 -> flags = flags or BackupConst.RESTORE_APP_PREFS
+                            3 -> flags = flags or BackupConst.RESTORE_EXTENSION_REPOS
+                            4 -> flags = flags or BackupConst.RESTORE_SOURCE_PREFS
+                        }
+                    }
+                }
+                val context = applicationContext
+                if (context != null) {
+                    activity.toast(R.string.restoring_backup)
+                    BackupRestoreJob.start(context, uri, flags)
+                }
+            }.setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 }
 
