@@ -1,5 +1,6 @@
 package eu.kanade.tachiyomi.ui.library
 
+import android.graphics.Color
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
@@ -10,6 +11,8 @@ import eu.kanade.tachiyomi.data.image.coil.loadManga
 import eu.kanade.tachiyomi.databinding.MangaListItemBinding
 import eu.kanade.tachiyomi.util.lang.highlightText
 import eu.kanade.tachiyomi.util.system.dpToPx
+import eu.kanade.tachiyomi.util.system.getResourceColor
+import eu.kanade.tachiyomi.util.view.makeContainerShape
 import eu.kanade.tachiyomi.util.view.setCards
 
 /**
@@ -27,8 +30,12 @@ class LibraryListHolder(
 ) : LibraryHolder(view, adapter) {
     private val binding = MangaListItemBinding.bind(view)
 
+    private var transitionMangaId: Long? = null
+
     init {
         binding.unreadDownloadBadge.badgeView.libraryColors = adapter.colors
+        binding.playLayout.setOnClickListener { playButtonClicked() }
+        binding.playLayout.setOnLongClickListener { itemView.performLongClick() }
     }
 
     /**
@@ -39,6 +46,7 @@ class LibraryListHolder(
      */
     override fun onSetValues(item: LibraryItem) {
         setCards(adapter.showOutline, binding.card, binding.unreadDownloadBadge.root)
+        applyListCardStyle(LibraryItem.libraryLayout == LibraryItem.LAYOUT_LIST)
         binding.title.isVisible = true
         binding.constraintLayout.minHeight = 56.dpToPx
         if (item.manga.isBlank()) {
@@ -64,6 +72,7 @@ class LibraryListHolder(
             binding.unreadDownloadBadge.badgeView.isVisible = false
             binding.padding.isVisible = false
             binding.subtitle.isVisible = false
+            binding.playLayout.isVisible = false
             return
         }
         binding.constraintLayout.updateLayoutParams<ViewGroup.MarginLayoutParams> {
@@ -73,9 +82,16 @@ class LibraryListHolder(
         binding.card.isVisible = true
         binding.title.textAlignment = View.TEXT_ALIGNMENT_TEXT_START
 
+        // Only the view that started a transition keeps a name, dropped once it shows another manga
+        if (transitionMangaId != null && transitionMangaId != item.manga.id) {
+            binding.playButton.transitionName = null
+            transitionMangaId = null
+        }
+
         // Update the binding.title of the manga.
         binding.title.text = item.manga.title.highlightText(item.filter, color)
         setUnreadBadge(binding.unreadDownloadBadge.badgeView, item)
+        binding.playLayout.isVisible = item.manga.unread > 0 && !LibraryItem.hideReadingButton
 
         val authorArtist =
             if (item.manga.author == item.manga.artist || item.manga.artist.isNullOrBlank()) {
@@ -103,6 +119,41 @@ class LibraryListHolder(
         // Update the cover.
         binding.coverThumbnail.dispose()
         binding.coverThumbnail.loadManga(item.manga)
+    }
+
+    /**
+     * The blank placeholder row reuses this layout even while the library is shown in grid mode,
+     * where it should stay flat like before rather than pick up the list's card styling.
+     */
+    private fun applyListCardStyle(isListMode: Boolean) {
+        binding.listCard.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+            val margin = if (isListMode) 10.dpToPx else 0
+            marginStart = margin
+            marginEnd = margin
+        }
+        if (isListMode) {
+            binding.listCard.setCardBackgroundColor(itemView.context.getResourceColor(R.attr.colorSurfaceContainerLowest))
+        } else {
+            binding.listCard.setCardBackgroundColor(Color.TRANSPARENT)
+            binding.listCard.cardElevation = 0f
+            binding.listCard.strokeWidth = 0
+        }
+    }
+
+    /** Merges consecutive rows in the same category into one rounded card, like ChapterHolder does for chapters. */
+    fun setCorners(
+        top: Boolean,
+        bottom: Boolean,
+    ) {
+        if (LibraryItem.libraryLayout != LibraryItem.LAYOUT_LIST) return
+        binding.listCard.shapeAppearanceModel = binding.listCard.makeContainerShape(top, bottom)
+    }
+
+    private fun playButtonClicked() {
+        val manga = (adapter.getItem(flexibleAdapterPosition) as? LibraryItem)?.manga
+        transitionMangaId = manga?.id
+        binding.playButton.transitionName = "library chapter ${manga?.id ?: bindingAdapterPosition} transition"
+        adapter.libraryListener?.startReading(flexibleAdapterPosition, binding.playButton)
     }
 
     override fun onActionStateChanged(

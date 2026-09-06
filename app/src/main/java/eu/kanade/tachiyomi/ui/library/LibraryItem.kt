@@ -80,6 +80,12 @@ class LibraryItem(
         }
         holder.onSetValues(this)
         (holder as? LibraryGridHolder)?.setSelected(adapter.isSelected(position))
+        if (holder is LibraryListHolder) {
+            val libraryAdapter = adapter as LibraryCategoryAdapter
+            val setTop = libraryAdapter.getItem(position - 1) !is LibraryItem
+            val setBottom = libraryAdapter.getItem(position + 1) !is LibraryItem
+            holder.setCorners(setTop, setBottom)
+        }
         val layoutParams = holder.itemView.layoutParams as? StaggeredGridLayoutManager.LayoutParams
         layoutParams?.isFullSpan = manga.isBlank()
         if (libraryLayout == LAYOUT_COVER_ONLY_GRID) {

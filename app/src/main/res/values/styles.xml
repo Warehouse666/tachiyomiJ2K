@@ -355,6 +355,16 @@
         <item name="android:insetRight">0dp</item>
     </style>
 
+    <!-- Sits on top of an arbitrary cover image, so it needs its own always-legible fill/stroke
+         rather than the theme's surface colors -->
+    <style name="Widget.Tachiyomi.Button.IconButton.CoverOverlay" parent="Widget.Material3Expressive.Button.IconButton.Outlined">
+        <item name="iconGravity">textStart</item>
+        <item name="iconTint">@android:color/white</item>
+        <item name="backgroundTint">@color/md_black_1000_54</item>
+        <item name="strokeColor">@color/md_white_1000_38</item>
+        <item name="rippleColor">@color/md_white_1000_20</item>
+    </style>
+
     <style name="Widget.Tachiyomi.Button.OutlinedButton.Icon" parent="Widget.Material3Expressive.Button.OutlinedButton">
         <item name="android:paddingStart">12dp</item>
         <item name="android:paddingEnd">16dp</item>

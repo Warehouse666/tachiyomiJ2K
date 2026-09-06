@@ -80,6 +80,11 @@ class BrowseSourceItem(
     ) {
         holder.isDuplicateInLibrary = isDuplicateInLibrary
         holder.onSetValues(manga)
+        if (holder is BrowseSourceListHolder) {
+            val setTop = adapter.getItem(position - 1) !is BrowseSourceItem
+            val setBottom = adapter.getItem(position + 1) !is BrowseSourceItem
+            holder.setCorners(setTop, setBottom)
+        }
     }
 
     override fun equals(other: Any?): Boolean {

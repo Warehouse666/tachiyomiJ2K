@@ -651,6 +651,7 @@ open class LibraryController(
         setRecyclerLayout()
         binding.libraryGridRecycler.recycler.setHasFixedSize(true)
         binding.libraryGridRecycler.recycler.adapter = adapter
+        binding.libraryGridRecycler.recycler.addItemDecoration(LibraryListDivider(view.context))
 
         adapter.fastScroller = binding.fastScroller
         binding.fastScroller.controller = this

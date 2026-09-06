@@ -88,24 +88,26 @@
                 android:layout_width="50dp"
                 android:layout_height="50dp"
                 android:layout_gravity="end"
+                android:tooltipText="@string/start_reading"
                 android:clickable="true"
                 android:focusable="true"
                 android:visibility="gone"
                 tools:visibility="visible">
 
-                <ImageView
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/play_button"
-                    android:layout_width="30dp"
-                    android:layout_height="30dp"
+                    style="@style/Widget.Tachiyomi.Button.IconButton.CoverOverlay"
+                    android:layout_width="38dp"
+                    android:layout_height="38dp"
                     android:layout_gravity="end"
-                    android:layout_marginTop="6dp"
-                    android:layout_marginEnd="6dp"
-                    android:layout_marginBottom="6dp"
-                    android:background="@drawable/round_play_background"
+                    android:clickable="false"
+                    android:focusable="false"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginEnd="4dp"
+                    android:layout_marginBottom="4dp"
                     android:contentDescription="@string/start_reading"
-                    android:padding="6dp"
-                    android:src="@drawable/ic_start_reading_24dp"
-                    app:tint="@android:color/white" />
+                    app:icon="@drawable/ic_start_reading_24dp"
+                    app:iconSize="18dp" />
 
             </FrameLayout>
 

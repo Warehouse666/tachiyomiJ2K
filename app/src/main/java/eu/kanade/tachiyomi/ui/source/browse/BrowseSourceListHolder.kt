@@ -12,6 +12,7 @@ import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.data.image.coil.CoverViewTarget
 import eu.kanade.tachiyomi.data.image.coil.MangaCoverFetcher
 import eu.kanade.tachiyomi.databinding.MangaListItemBinding
+import eu.kanade.tachiyomi.util.view.makeContainerShape
 import eu.kanade.tachiyomi.util.view.setCards
 
 /**
@@ -45,6 +46,14 @@ class BrowseSourceListHolder(
         binding.duplicateInLibraryBadge.duplicateBadge.isVisible = isDuplicateInLibrary
 
         setImage(manga)
+    }
+
+    /** Merges consecutive rows into one rounded card, the way [ChapterHolder] does for chapters. */
+    fun setCorners(
+        top: Boolean,
+        bottom: Boolean,
+    ) {
+        binding.listCard.shapeAppearanceModel = binding.listCard.makeContainerShape(top, bottom)
     }
 
     override fun setImage(manga: Manga) {
