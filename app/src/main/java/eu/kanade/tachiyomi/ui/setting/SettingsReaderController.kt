@@ -9,6 +9,7 @@ import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.preference.PreferenceValues
 import eu.kanade.tachiyomi.data.preference.asImmediateFlow
 import eu.kanade.tachiyomi.data.preference.asImmediateFlowIn
+import eu.kanade.tachiyomi.ui.reader.settings.FlashColor
 import eu.kanade.tachiyomi.ui.reader.settings.OrientationType
 import eu.kanade.tachiyomi.ui.reader.settings.PageLayout
 import eu.kanade.tachiyomi.ui.reader.settings.ReaderBackgroundColor
@@ -133,6 +134,47 @@ class SettingsReaderController : SettingsController() {
                         } else {
                             Build.VERSION.SDK_INT >= Build.VERSION_CODES.P
                         }
+                }
+            }
+
+            preferenceCategory {
+                titleRes = R.string.e_ink
+
+                switchPreference {
+                    bindTo(preferences.flashOnPageChange())
+                    titleRes = R.string.flash_page_on_change
+                    summaryRes = R.string.flash_page_on_change_summary
+                }
+                sliderPreference {
+                    bindTo(preferences.flashDurationMillis())
+                    titleRes = R.string.flash_duration
+                    entryValues = (100..1500 step 100).toList()
+                    valueFormatter = { "${it}ms" }
+                    visibleIf(preferences.flashOnPageChange()) { it }
+                }
+                sliderPreference {
+                    bindTo(preferences.flashPageInterval())
+                    titleRes = R.string.flash_page_interval
+                    entryValues = (1..10).toList()
+                    valueFormatter = { context.resources.getQuantityString(R.plurals.pages_plural, it, it) }
+                    visibleIf(preferences.flashOnPageChange()) { it }
+                }
+                listPreference(activity) {
+                    bindTo(preferences.flashColor())
+                    titleRes = R.string.flash_with
+                    entriesRes =
+                        arrayOf(
+                            R.string.flash_black,
+                            R.string.flash_white,
+                            R.string.flash_white_then_black,
+                        )
+                    entryValues =
+                        listOf(
+                            FlashColor.BLACK.name,
+                            FlashColor.WHITE.name,
+                            FlashColor.WHITE_BLACK.name,
+                        )
+                    visibleIf(preferences.flashOnPageChange()) { it }
                 }
             }
 

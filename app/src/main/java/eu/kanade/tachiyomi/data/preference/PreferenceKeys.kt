@@ -27,6 +27,14 @@ object PreferenceKeys {
 
     const val keepScreenOn = "pref_keep_screen_on_key"
 
+    const val flashOnPageChange = "pref_reader_flash"
+
+    const val flashDurationMillis = "pref_reader_flash_duration"
+
+    const val flashPageInterval = "pref_reader_flash_interval"
+
+    const val flashColor = "pref_reader_flash_color"
+
     const val customBrightness = "pref_custom_brightness_key"
 
     const val customBrightnessValue = "custom_brightness_value"

@@ -467,6 +467,15 @@
     <string name="dodge_lighten">Dodge / Lighten</string>
     <string name="burn_darken">Burn / Darken</string>
     <string name="keep_screen_on">Keep screen on</string>
+    <string name="e_ink">E-Ink</string>
+    <string name="flash_page_on_change">Flash on page change</string>
+    <string name="flash_page_on_change_summary">Reduces ghosting on e-ink displays</string>
+    <string name="flash_duration">Flash duration</string>
+    <string name="flash_page_interval">Flash every</string>
+    <string name="flash_with">Flash with</string>
+    <string name="flash_black">Black</string>
+    <string name="flash_white">White</string>
+    <string name="flash_white_then_black">White and Black</string>
     <string name="skip_read_chapters">Skip chapters marked read</string>
     <string name="skip_filtered_chapters">Skip filtered chapters</string>
     <string name="skip_dupe_chapters">Skip duplicate chapters</string>

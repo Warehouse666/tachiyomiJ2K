@@ -68,7 +68,59 @@ class ReaderGeneralView
             binding.keepscreen.bindToPreference(preferences.keepScreenOn())
             binding.alwaysShowChapterTransition.bindToPreference(preferences.alwaysShowChapterTransition())
 
+            initFlashPreferences()
             initVerticalSeekbarPreferences()
+        }
+
+        private fun initFlashPreferences() {
+            val flashPref = preferences.flashOnPageChange()
+            binding.flashExtraSettings.isVisible = flashPref.get()
+            binding.flashOnPageChange.bindToPreference(flashPref) { isChecked ->
+                binding.flashExtraSettings.isVisible = isChecked
+            }
+
+            val durationPref = preferences.flashDurationMillis()
+            binding.flashDuration.value = durationPref.get().toFloat()
+            binding.flashDuration.setLabelFormatter { value -> "${value.roundToInt()}ms" }
+            updateFlashDurationText(durationPref.get())
+            binding.flashDuration.addOnChangeListener { _, value, fromUser ->
+                updateFlashDurationText(value.roundToInt())
+                if (fromUser) durationPref.set(value.roundToInt())
+            }
+
+            val intervalPref = preferences.flashPageInterval()
+            binding.flashInterval.value = intervalPref.get().toFloat()
+            binding.flashInterval.setLabelFormatter { value ->
+                context.resources.getQuantityString(R.plurals.pages_plural, value.roundToInt(), value.roundToInt())
+            }
+            updateFlashIntervalText(intervalPref.get())
+            binding.flashInterval.addOnChangeListener { _, value, fromUser ->
+                updateFlashIntervalText(value.roundToInt())
+                if (fromUser) intervalPref.set(value.roundToInt())
+            }
+
+            binding.flashColor.setEntries(
+                listOf(
+                    context.getString(R.string.flash_black),
+                    context.getString(R.string.flash_white),
+                    context.getString(R.string.flash_white_then_black),
+                ),
+            )
+            binding.flashColor.bindToPreference(preferences.flashColor())
+        }
+
+        private fun updateFlashDurationText(ms: Int) {
+            binding.flashDurationText.text =
+                context
+                    .getString(R.string.flash_duration)
+                    .withSubtitle(context, "${ms}ms")
+        }
+
+        private fun updateFlashIntervalText(interval: Int) {
+            binding.flashIntervalText.text =
+                context
+                    .getString(R.string.flash_page_interval)
+                    .withSubtitle(context, context.resources.getQuantityString(R.plurals.pages_plural, interval, interval))
         }
 
         fun currentModeSelected(modes: Set<String>): Boolean {

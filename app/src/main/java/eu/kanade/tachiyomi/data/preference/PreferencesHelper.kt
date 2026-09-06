@@ -19,6 +19,7 @@ import eu.kanade.tachiyomi.extension.util.ExtensionInstaller
 import eu.kanade.tachiyomi.network.NetworkHelper
 import eu.kanade.tachiyomi.ui.library.LibraryItem
 import eu.kanade.tachiyomi.ui.library.filter.FilterBottomSheet
+import eu.kanade.tachiyomi.ui.reader.settings.FlashColor
 import eu.kanade.tachiyomi.ui.reader.settings.OrientationType
 import eu.kanade.tachiyomi.ui.reader.settings.PageLayout
 import eu.kanade.tachiyomi.ui.reader.settings.ReaderBottomButton
@@ -148,6 +149,14 @@ class PreferencesHelper(
     fun fullscreen() = flowPrefs.getBoolean(Keys.fullscreen, true)
 
     fun keepScreenOn() = flowPrefs.getBoolean(Keys.keepScreenOn, true)
+
+    fun flashOnPageChange() = flowPrefs.getBoolean(Keys.flashOnPageChange, false)
+
+    fun flashDurationMillis() = flowPrefs.getInt(Keys.flashDurationMillis, 100)
+
+    fun flashPageInterval() = flowPrefs.getInt(Keys.flashPageInterval, 1)
+
+    fun flashColor() = flowPrefs.getEnum(Keys.flashColor, FlashColor.BLACK)
 
     fun customBrightness() = flowPrefs.getBoolean(Keys.customBrightness, false)
 

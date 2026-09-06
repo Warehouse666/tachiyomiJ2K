@@ -100,6 +100,7 @@ import eu.kanade.tachiyomi.ui.reader.ReaderViewModel.SetAsCoverResult.Success
 import eu.kanade.tachiyomi.ui.reader.model.ReaderChapter
 import eu.kanade.tachiyomi.ui.reader.model.ReaderPage
 import eu.kanade.tachiyomi.ui.reader.model.ViewerChapters
+import eu.kanade.tachiyomi.ui.reader.settings.FlashColor
 import eu.kanade.tachiyomi.ui.reader.settings.OrientationType
 import eu.kanade.tachiyomi.ui.reader.settings.PageLayout
 import eu.kanade.tachiyomi.ui.reader.settings.ReaderBottomButton
@@ -198,6 +199,9 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
     private var menuTemporarilyVisible = false
 
     private var coroutine: Job? = null
+
+    private var flashJob: Job? = null
+    private var flashTimesCalled = 0
 
     private var fromUrl = false
 
@@ -1366,7 +1370,13 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
             val noInsetForFullScreen = fullscreen && !isInMultiWindowMode
 
             val insetsToUse = if (!fullscreen) systemCutoutInsets else systemInsets
-            listOf(binding.viewerContainer, binding.navigationOverlay, binding.colorOverlay, binding.brightnessOverlay).forEach {
+            listOf(
+                binding.viewerContainer,
+                binding.navigationOverlay,
+                binding.colorOverlay,
+                binding.brightnessOverlay,
+                binding.flashOverlay,
+            ).forEach {
                 it.updateLayoutParams<CoordinatorLayout.LayoutParams> {
                     if (!isLandscapeFully) {
                         val cutoutInsets =
@@ -1899,6 +1909,36 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
     }
 
     /**
+     * Briefly flashes the screen black/white to reduce ghosting on e-ink displays.
+     */
+    private fun flashPage() {
+        if (!preferences.flashOnPageChange().get()) return
+
+        val interval = preferences.flashPageInterval().get().coerceAtLeast(1)
+        val shouldFlash = flashTimesCalled % interval == 0
+        flashTimesCalled++
+        if (!shouldFlash) return
+
+        val durationHalf = preferences.flashDurationMillis().get() / 2L
+        val color = preferences.flashColor().get()
+
+        flashJob?.cancel()
+        flashJob =
+            scope.launch {
+                binding.flashOverlay.isVisible = true
+                binding.flashOverlay.setBackgroundColor(
+                    if (color == FlashColor.BLACK) Color.BLACK else Color.WHITE,
+                )
+                delay(durationHalf)
+                if (color == FlashColor.WHITE_BLACK) {
+                    binding.flashOverlay.setBackgroundColor(Color.BLACK)
+                }
+                delay(durationHalf)
+                binding.flashOverlay.isVisible = false
+            }
+    }
+
+    /**
      * Called from the viewer whenever a [page] is marked as active. It updates the values of the
      * bottom menu and delegates the change to the view model.
      */
@@ -1908,6 +1948,7 @@ class ReaderActivity : BaseActivity<ReaderActivityBinding>() {
         hasExtraPage: Boolean,
     ) {
         viewModel.onPageSelected(page, hasExtraPage)
+        flashPage()
         val pages = page.chapter.pages ?: return
 
         val currentPage =
