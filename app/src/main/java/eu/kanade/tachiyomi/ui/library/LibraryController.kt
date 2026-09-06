@@ -171,6 +171,7 @@ open class LibraryController(
      */
     private var activeCategory: Int = preferences.lastUsedCategory().get()
     private var lastUsedCategory: Int = preferences.lastUsedCategory().get()
+    private var lastUsedCategoryAtTop: Boolean = preferences.lastUsedCategoryAtTop().get()
 
     private var justStarted = true
 
@@ -372,8 +373,10 @@ open class LibraryController(
                 val savedCurrentCategory = getHeader(true)?.category ?: return
                 if (savedCurrentCategory.order != lastUsedCategory) {
                     lastUsedCategory = savedCurrentCategory.order
+                    lastUsedCategoryAtTop = isFirstCategory(savedCurrentCategory)
                     if (!isSubClass) {
                         preferences.lastUsedCategory().set(savedCurrentCategory.order)
+                        preferences.lastUsedCategoryAtTop().set(lastUsedCategoryAtTop)
                     }
                 }
             }
@@ -729,10 +732,13 @@ open class LibraryController(
             if (justStarted) {
                 val activityBinding = activityBinding ?: return
                 val bigToolbarHeight = fullAppBarHeight ?: return
-                if (lastUsedCategory > 0) {
+                if (!lastUsedCategoryAtTop) {
                     activityBinding.appBar.y =
                         -bigToolbarHeight + activityBinding.cardFrame.height.toFloat()
                     activityBinding.appBar.useSearchToolbarForMenu(true)
+                } else {
+                    activityBinding.appBar.y = 0f
+                    activityBinding.appBar.updateAppBarAfterY(binding.libraryGridRecycler.recycler)
                 }
                 activityBinding.appBar.lockYPos = true
             }
@@ -1027,6 +1033,10 @@ open class LibraryController(
         return null
     }
 
+    /** Whether [category] is the first header actually rendered in the current (filtered) adapter. */
+    private fun isFirstCategory(category: Category): Boolean =
+        (adapter.headerItems.firstOrNull() as? LibraryHeaderItem)?.category?.order == category.order
+
     private fun getVisibleHeader(): LibraryHeaderItem? {
         val fPosition = binding.libraryGridRecycler.recycler.findFirstVisibleItemPosition()
         when (val item = adapter.getItem(fPosition)) {
@@ -1282,15 +1292,18 @@ open class LibraryController(
         }
         if (justStarted && freshStart && !isSubClass) {
             val activeC = activeCategory
+            val atTop = lastUsedCategoryAtTop
             scrollToHeader(activeCategory)
             binding.libraryGridRecycler.recycler.post {
                 if (isControllerVisible) {
                     activityBinding?.appBar?.y = 0f
                     activityBinding?.appBar?.updateAppBarAfterY(binding.libraryGridRecycler.recycler)
-                    if (activeC > 0) {
+                    if (!atTop) {
                         activityBinding?.appBar?.useSearchToolbarForMenu(true)
                     }
                 }
+                // Unlock only once the app bar has been snapped to its correct position
+                activityBinding?.appBar?.lockYPos = false
             }
 
             if (binding.libraryGridRecycler.recycler.manager is StaggeredGridLayoutManager && isControllerVisible) {
@@ -1301,7 +1314,7 @@ open class LibraryController(
                             scrollToHeader(activeC, false)
                             activityBinding?.appBar?.y = 0f
                             activityBinding?.appBar?.updateAppBarAfterY(binding.libraryGridRecycler.recycler)
-                            if (activeC > 0) {
+                            if (!atTop) {
                                 activityBinding?.appBar?.useSearchToolbarForMenu(true)
                             }
                         }
@@ -1312,13 +1325,12 @@ open class LibraryController(
                     delay(500.milliseconds)
                     removeStaggeredObserver()
                     if (!isControllerVisible) return@launchUI
-                    if (activeC > 0) {
+                    if (!atTop) {
                         activityBinding?.appBar?.useSearchToolbarForMenu(true)
                     }
                 }
             }
-        }
-        if (isControllerVisible) {
+        } else if (isControllerVisible) {
             activityBinding?.appBar?.lockYPos = false
         }
         binding.libraryGridRecycler.recycler.post {
@@ -1523,8 +1535,10 @@ open class LibraryController(
                 saveActiveCategory(it)
             }
             activeCategory = pos
+            lastUsedCategoryAtTop = index == 0
             if (!isSubClass) {
                 preferences.lastUsedCategory().set(pos)
+                preferences.lastUsedCategoryAtTop().set(lastUsedCategoryAtTop)
             }
             binding.libraryGridRecycler.recycler.post {
                 if (isControllerVisible) {

@@ -243,6 +243,9 @@ class PreferencesHelper(
 
     fun lastUsedCategory() = flowPrefs.getInt(Keys.lastUsedCategory, 0)
 
+    /** Whether [lastUsedCategory] was the first header actually rendered in the library the last time it was saved. */
+    fun lastUsedCategoryAtTop() = flowPrefs.getBoolean(Keys.lastUsedCategoryAtTop, true)
+
     fun lastUsedSources() = flowPrefs.getStringSet("last_used_sources", emptySet())
 
     fun lastVersionCode() = flowPrefs.getInt("last_version_code", 0)
