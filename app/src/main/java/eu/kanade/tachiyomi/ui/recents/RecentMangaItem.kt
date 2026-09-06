@@ -13,6 +13,7 @@ import eu.kanade.tachiyomi.data.download.model.Download
 import eu.kanade.tachiyomi.source.model.Page
 import eu.kanade.tachiyomi.ui.manga.chapter.BaseChapterHolder
 import eu.kanade.tachiyomi.ui.manga.chapter.BaseChapterItem
+import eu.kanade.tachiyomi.util.view.groupEdges
 
 class RecentMangaItem(
     val mch: MangaChapterHistory = MangaChapterHistory.createBlank(),
@@ -79,16 +80,10 @@ class RecentMangaItem(
         holder: RecentMangaHolder,
         recentMangaAdapter: RecentMangaAdapter,
     ) {
-        val setTop =
-            (recentMangaAdapter.getItem(position - 1) as? RecentMangaItem)
-                ?.mch
-                ?.manga
-                ?.id == null
-        val setBottom =
-            (recentMangaAdapter.getItem(position + 1) as? RecentMangaItem)
-                ?.mch
-                ?.manga
-                ?.id == null
+        val (setTop, setBottom) =
+            groupEdges(recentMangaAdapter, position) {
+                (it as? RecentMangaItem)?.mch?.manga?.id != null
+            }
         holder.setCorners(setTop, setBottom)
     }
 

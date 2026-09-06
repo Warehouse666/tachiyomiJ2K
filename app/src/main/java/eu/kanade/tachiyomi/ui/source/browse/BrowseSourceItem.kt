@@ -17,6 +17,7 @@ import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.databinding.MangaGridItemBinding
 import eu.kanade.tachiyomi.ui.library.LibraryItem
 import eu.kanade.tachiyomi.ui.library.setBGAndFG
+import eu.kanade.tachiyomi.util.view.groupEdges
 import eu.kanade.tachiyomi.widget.AutofitRecyclerView
 
 class BrowseSourceItem(
@@ -81,8 +82,7 @@ class BrowseSourceItem(
         holder.isDuplicateInLibrary = isDuplicateInLibrary
         holder.onSetValues(manga)
         if (holder is BrowseSourceListHolder) {
-            val setTop = adapter.getItem(position - 1) !is BrowseSourceItem
-            val setBottom = adapter.getItem(position + 1) !is BrowseSourceItem
+            val (setTop, setBottom) = groupEdges(adapter, position) { it is BrowseSourceItem }
             holder.setCorners(setTop, setBottom)
         }
     }

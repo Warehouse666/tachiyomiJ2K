@@ -8,6 +8,7 @@ import eu.davidea.flexibleadapter.items.IFlexible
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.source.CatalogueSource
 import eu.kanade.tachiyomi.source.LocalSource
+import eu.kanade.tachiyomi.util.view.groupEdges
 
 /**
  * Item that contains source information.
@@ -45,9 +46,7 @@ class SourceItem(
         payloads: MutableList<Any>,
     ) {
         holder.bind(this)
-        val mangaAdapter = adapter as SourceAdapter
-        val setTop = mangaAdapter.getItem(position - 1) !is SourceItem
-        val setBottom = mangaAdapter.getItem(position + 1) !is SourceItem
+        val (setTop, setBottom) = groupEdges(adapter, position) { it is SourceItem }
         holder.setCorners(setTop, setBottom)
     }
 

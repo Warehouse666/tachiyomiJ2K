@@ -118,6 +118,7 @@ import eu.kanade.tachiyomi.util.system.rootWindowInsetsCompat
 import eu.kanade.tachiyomi.util.system.setCustomTitleAndMessage
 import eu.kanade.tachiyomi.util.system.timeSpanFromNow
 import eu.kanade.tachiyomi.util.system.toast
+import eu.kanade.tachiyomi.util.view.GroupedRowDivider
 import eu.kanade.tachiyomi.util.view.activityBinding
 import eu.kanade.tachiyomi.util.view.backgroundColor
 import eu.kanade.tachiyomi.util.view.copyToClipboard
@@ -200,7 +201,7 @@ class MangaDetailsController :
     override val presenter: MangaDetailsPresenter
     private var themeColors = MangaDetailsColors()
     private var headerColor: Int? = null
-    private var chapterDivider: MangaDetailsDivider? = null
+    private var chapterDivider: GroupedRowDivider? = null
     private var toolbarIsColored = false
     private var snack: Snackbar? = null
     val shouldLockIfNeeded: Boolean
@@ -468,7 +469,7 @@ class MangaDetailsController :
         binding.recycler.adapter = adapter
         adapter?.isSwipeEnabled = true
         binding.recycler.layoutManager = LinearLayoutManagerAccurateOffset(view.context)
-        val divider = MangaDetailsDivider(view.context)
+        val divider = GroupedRowDivider(view.context, isGroupedRow = { it is ChapterHolder }, maskGapWithBackground = false)
         divider.accentColor = themeColors.accent
         chapterDivider = divider
         binding.recycler.addItemDecoration(divider)

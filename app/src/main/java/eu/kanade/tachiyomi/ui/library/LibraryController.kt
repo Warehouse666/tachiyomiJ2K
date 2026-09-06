@@ -114,6 +114,7 @@ import eu.kanade.tachiyomi.util.system.launchUI
 import eu.kanade.tachiyomi.util.system.materialAlertDialog
 import eu.kanade.tachiyomi.util.system.openInBrowser
 import eu.kanade.tachiyomi.util.system.rootWindowInsetsCompat
+import eu.kanade.tachiyomi.util.view.GroupedRowDivider
 import eu.kanade.tachiyomi.util.view.activityBinding
 import eu.kanade.tachiyomi.util.view.collapse
 import eu.kanade.tachiyomi.util.view.expand
@@ -654,7 +655,13 @@ open class LibraryController(
         setRecyclerLayout()
         binding.libraryGridRecycler.recycler.setHasFixedSize(true)
         binding.libraryGridRecycler.recycler.adapter = adapter
-        binding.libraryGridRecycler.recycler.addItemDecoration(LibraryListDivider(view.context))
+        binding.libraryGridRecycler.recycler.addItemDecoration(
+            GroupedRowDivider(
+                view.context,
+                isGroupedRow = { it is LibraryListHolder },
+                isActive = { LibraryItem.libraryLayout == LibraryItem.LAYOUT_LIST },
+            ),
+        )
 
         adapter.fastScroller = binding.fastScroller
         binding.fastScroller.controller = this

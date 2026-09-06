@@ -51,6 +51,7 @@ import eu.kanade.tachiyomi.util.system.getResourceColor
 import eu.kanade.tachiyomi.util.system.openInBrowser
 import eu.kanade.tachiyomi.util.system.rootWindowInsetsCompat
 import eu.kanade.tachiyomi.util.system.spToPx
+import eu.kanade.tachiyomi.util.view.GroupedRowDivider
 import eu.kanade.tachiyomi.util.view.activityBinding
 import eu.kanade.tachiyomi.util.view.checkHeightThen
 import eu.kanade.tachiyomi.util.view.collapse
@@ -136,7 +137,7 @@ class BrowseController :
         binding.sourceRecycler.layoutManager = LinearLayoutManagerAccurateOffset(view.context)
 
         binding.sourceRecycler.adapter = adapter
-        binding.sourceRecycler.addItemDecoration(SourceDividerItemDecoration(view.context))
+        binding.sourceRecycler.addItemDecoration(GroupedRowDivider(view.context, { it is SourceHolder }))
         adapter?.isSwipeEnabled = true
         adapter?.stateRestorationPolicy = RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
         scrollViewWith(

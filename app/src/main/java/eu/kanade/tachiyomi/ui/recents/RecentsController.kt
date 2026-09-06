@@ -69,6 +69,7 @@ import eu.kanade.tachiyomi.util.system.rootWindowInsetsCompat
 import eu.kanade.tachiyomi.util.system.setCustomTitleAndMessage
 import eu.kanade.tachiyomi.util.system.spToPx
 import eu.kanade.tachiyomi.util.system.toInt
+import eu.kanade.tachiyomi.util.view.GroupedRowDivider
 import eu.kanade.tachiyomi.util.view.activityBinding
 import eu.kanade.tachiyomi.util.view.collapse
 import eu.kanade.tachiyomi.util.view.expand
@@ -226,7 +227,13 @@ class RecentsController(
         binding.recycler.adapter = adapter
         binding.recycler.layoutManager = LinearLayoutManagerAccurateOffset(view.context)
         binding.recycler.setHasFixedSize(true)
-        binding.recycler.addItemDecoration(RecentMangaDivider(view.context))
+        binding.recycler.addItemDecoration(
+            GroupedRowDivider(
+                view.context,
+                isGroupedRow = { it is RecentMangaHolder },
+                isRowInset = { (it as RecentMangaHolder).isContained() },
+            ),
+        )
         adapter.isSwipeEnabled = true
         adapter.itemTouchHelperCallback.setSwipeFlags(
             if (view.resources.isLTR) ItemTouchHelper.LEFT else ItemTouchHelper.RIGHT,

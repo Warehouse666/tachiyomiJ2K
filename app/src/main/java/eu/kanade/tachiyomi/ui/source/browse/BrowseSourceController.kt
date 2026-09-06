@@ -47,6 +47,7 @@ import eu.kanade.tachiyomi.util.system.connectivityManager
 import eu.kanade.tachiyomi.util.system.dpToPx
 import eu.kanade.tachiyomi.util.system.openInBrowser
 import eu.kanade.tachiyomi.util.system.toast
+import eu.kanade.tachiyomi.util.view.GroupedRowDivider
 import eu.kanade.tachiyomi.util.view.activityBinding
 import eu.kanade.tachiyomi.util.view.applyBottomAnimatedInsets
 import eu.kanade.tachiyomi.util.view.fullAppBarHeight
@@ -245,7 +246,7 @@ open class BrowseSourceController(
                     id = R.id.recycler
                     layoutManager = LinearLayoutManagerAccurateOffset(context)
                     layoutParams = RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
-                    addItemDecoration(BrowseSourceListDivider(context))
+                    addItemDecoration(GroupedRowDivider(context, isGroupedRow = { it is BrowseSourceListHolder }))
                 }
             } else {
                 (binding.catalogueView.inflate(R.layout.manga_recycler_autofit) as AutofitRecyclerView).apply {

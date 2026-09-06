@@ -10,6 +10,7 @@ import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.database.models.Chapter
 import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.ui.manga.MangaDetailsAdapter
+import eu.kanade.tachiyomi.util.view.groupEdges
 
 class ChapterItem(
     chapter: Chapter,
@@ -35,9 +36,7 @@ class ChapterItem(
         payloads: MutableList<Any?>?,
     ) {
         holder.bind(this, manga)
-        val mangaAdapter = adapter as MangaDetailsAdapter
-        val setTop = mangaAdapter.getItem(position - 1) !is ChapterItem
-        val setBottom = mangaAdapter.getItem(position + 1) !is ChapterItem
+        val (setTop, setBottom) = groupEdges(adapter, position) { it is ChapterItem }
         holder.setCorners(setTop, setBottom)
     }
 

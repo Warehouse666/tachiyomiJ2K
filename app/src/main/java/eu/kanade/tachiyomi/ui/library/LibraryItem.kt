@@ -15,6 +15,7 @@ import eu.kanade.tachiyomi.source.LocalSource
 import eu.kanade.tachiyomi.source.SourceManager
 import eu.kanade.tachiyomi.ui.library.search.QueryNode
 import eu.kanade.tachiyomi.ui.library.search.matches
+import eu.kanade.tachiyomi.util.view.groupEdges
 import eu.kanade.tachiyomi.widget.AutofitRecyclerView
 import uy.kohesive.injekt.injectLazy
 
@@ -81,9 +82,7 @@ class LibraryItem(
         holder.onSetValues(this)
         (holder as? LibraryGridHolder)?.setSelected(adapter.isSelected(position))
         if (holder is LibraryListHolder) {
-            val libraryAdapter = adapter as LibraryCategoryAdapter
-            val setTop = libraryAdapter.getItem(position - 1) !is LibraryItem
-            val setBottom = libraryAdapter.getItem(position + 1) !is LibraryItem
+            val (setTop, setBottom) = groupEdges(adapter, position) { it is LibraryItem }
             holder.setCorners(setTop, setBottom)
         }
         val layoutParams = holder.itemView.layoutParams as? StaggeredGridLayoutManager.LayoutParams
