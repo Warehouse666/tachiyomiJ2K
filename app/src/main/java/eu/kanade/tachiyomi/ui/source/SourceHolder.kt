@@ -82,7 +82,7 @@ class SourceHolder(
         top: Boolean,
         bottom: Boolean,
     ) {
-        val shapeModel = binding.sourceCard.makeContainerShape(top, bottom)
+        val shapeModel = binding.sourceCard.makeContainerShape(top, bottom, clipContentTo = binding.card)
         binding.sourceCard.shapeAppearanceModel = shapeModel
         binding.startView.shapeAppearanceModel = shapeModel
         binding.endView.shapeAppearanceModel = shapeModel

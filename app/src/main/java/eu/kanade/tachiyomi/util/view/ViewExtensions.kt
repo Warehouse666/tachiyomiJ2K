@@ -14,6 +14,8 @@ import android.content.IntentFilter
 import android.content.res.ColorStateList
 import android.content.res.Resources
 import android.graphics.Color
+import android.graphics.Outline
+import android.graphics.Path
 import android.graphics.Point
 import android.graphics.Rect
 import android.graphics.RenderEffect
@@ -26,6 +28,7 @@ import android.view.Gravity
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewOutlineProvider
 import android.view.ViewTreeObserver
 import android.view.Window
 import android.view.WindowInsets
@@ -456,11 +459,13 @@ inline fun View.popupMenu(
 fun MaterialCardView.makeContainerShape(
     top: Boolean,
     bottom: Boolean,
+    clipContentTo: View? = null,
 ): ShapeAppearanceModel {
     val mainCornerRadius = resources.getDimension(R.dimen.container_main_corner)
     val subCornerRadius = resources.getDimension(R.dimen.container_sub_corner)
     val topRadius = if (top) mainCornerRadius else subCornerRadius
     val bottomRadius = if (bottom) mainCornerRadius else subCornerRadius
+    clipContentTo?.clipToRoundedCorners(topRadius, bottomRadius)
     return shapeAppearanceModel
         .toBuilder()
         .apply {
@@ -469,6 +474,61 @@ fun MaterialCardView.makeContainerShape(
             setBottomLeftCorner(CornerFamily.ROUNDED, bottomRadius)
             setBottomRightCorner(CornerFamily.ROUNDED, bottomRadius)
         }.build()
+}
+
+@RequiresApi(Build.VERSION_CODES.R)
+private class RoundedCornerOutlineProvider : ViewOutlineProvider() {
+    var topRadius = 0f
+    var bottomRadius = 0f
+    private val path = Path()
+
+    override fun getOutline(
+        view: View,
+        outline: Outline,
+    ) {
+        if (view.width == 0 || view.height == 0) return
+        if (topRadius == bottomRadius) {
+            outline.setRoundRect(0, 0, view.width, view.height, topRadius)
+            return
+        }
+        path.reset()
+        path.addRoundRect(
+            0f,
+            0f,
+            view.width.toFloat(),
+            view.height.toFloat(),
+            floatArrayOf(
+                topRadius,
+                topRadius,
+                topRadius,
+                topRadius,
+                bottomRadius,
+                bottomRadius,
+                bottomRadius,
+                bottomRadius,
+            ),
+            Path.Direction.CW,
+        )
+        outline.setPath(path)
+    }
+}
+
+/**
+ * Clips this view's rendering to a rect with a different radius to the same asymmetric corners
+ * [makeContainerShape] gives the surrounding card, so a child's rectangular ripple
+ * doesn't bleed past the card's rounded edges. Uses [RoundedCornerOutlineProvider] so it
+ * doesn't create a new outline every bind.
+ */
+fun View.clipToRoundedCorners(
+    topRadius: Float,
+    bottomRadius: Float,
+) {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return
+    clipToOutline = true
+    val provider = outlineProvider as? RoundedCornerOutlineProvider ?: RoundedCornerOutlineProvider().also { outlineProvider = it }
+    provider.topRadius = topRadius
+    provider.bottomRadius = bottomRadius
+    invalidateOutline()
 }
 
 fun MaterialCardView.makeShapeCorners(

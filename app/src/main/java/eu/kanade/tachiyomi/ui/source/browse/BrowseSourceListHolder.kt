@@ -53,7 +53,8 @@ class BrowseSourceListHolder(
         top: Boolean,
         bottom: Boolean,
     ) {
-        binding.listCard.shapeAppearanceModel = binding.listCard.makeContainerShape(top, bottom)
+        binding.listCard.shapeAppearanceModel =
+            binding.listCard.makeContainerShape(top, bottom, clipContentTo = binding.constraintLayout)
     }
 
     override fun setImage(manga: Manga) {

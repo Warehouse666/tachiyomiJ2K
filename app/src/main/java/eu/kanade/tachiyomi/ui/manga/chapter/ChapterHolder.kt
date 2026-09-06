@@ -194,7 +194,7 @@ class ChapterHolder(
         top: Boolean,
         bottom: Boolean,
     ) {
-        val shapeModel = binding.chapterCard.makeContainerShape(top, bottom)
+        val shapeModel = binding.chapterCard.makeContainerShape(top, bottom, clipContentTo = binding.frontView)
         binding.chapterCard.shapeAppearanceModel = shapeModel
         binding.startView.shapeAppearanceModel = shapeModel
         binding.endView.shapeAppearanceModel = shapeModel

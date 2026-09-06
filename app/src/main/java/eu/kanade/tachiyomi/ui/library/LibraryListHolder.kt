@@ -146,7 +146,8 @@ class LibraryListHolder(
         bottom: Boolean,
     ) {
         if (LibraryItem.libraryLayout != LibraryItem.LAYOUT_LIST) return
-        binding.listCard.shapeAppearanceModel = binding.listCard.makeContainerShape(top, bottom)
+        binding.listCard.shapeAppearanceModel =
+            binding.listCard.makeContainerShape(top, bottom, clipContentTo = binding.constraintLayout)
     }
 
     private fun playButtonClicked() {

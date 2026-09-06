@@ -34,6 +34,7 @@ import eu.kanade.tachiyomi.util.system.contextCompatColor
 import eu.kanade.tachiyomi.util.system.dpToPx
 import eu.kanade.tachiyomi.util.system.getResourceColor
 import eu.kanade.tachiyomi.util.system.timeSpanFromNow
+import eu.kanade.tachiyomi.util.view.clipToRoundedCorners
 import eu.kanade.tachiyomi.util.view.setAnimVectorCompat
 import eu.kanade.tachiyomi.util.view.setCards
 import java.util.Date
@@ -600,6 +601,7 @@ class RecentMangaHolder(
         val subCornerRadius = itemView.resources.getDimension(R.dimen.container_sub_corner)
         val topRadius = if (top) mainCornerRadius else subCornerRadius
         val bottomRadius = if (bottom) mainCornerRadius else subCornerRadius
+        binding.mainView.clipToRoundedCorners(topRadius, if (hasSubChapters) 0f else bottomRadius)
         val shapeModel =
             binding.recentCard.shapeAppearanceModel
                 .toBuilder()
