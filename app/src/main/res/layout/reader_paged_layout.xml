@@ -21,7 +21,7 @@
             android:id="@+id/pager_nav"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="@dimen/reader_settings_spacing"
             app:title="@string/tap_zones"
             android:entries="@array/reader_nav" />
 
@@ -29,7 +29,7 @@
             android:id="@+id/pager_invert"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="@dimen/reader_settings_spacing"
             app:title="@string/invert_tapping"
             android:entries="@array/invert_tapping_mode" />
 
@@ -37,7 +37,7 @@
             android:id="@+id/scale_type"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="@dimen/reader_settings_spacing"
             app:title="@string/scale_type"
             android:entries="@array/image_scale_type" />
 
@@ -45,7 +45,7 @@
             android:id="@+id/landscape_zoom"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="@dimen/reader_settings_spacing"
             android:text="@string/zoom_double_page_spreads"
             android:textColor="?attr/colorOnBackground" />
 
@@ -53,7 +53,7 @@
             android:id="@+id/navigate_pan"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="@dimen/reader_settings_spacing"
             android:text="@string/navigate_pan"
             android:textColor="?attr/colorOnBackground" />
 
@@ -61,7 +61,7 @@
             android:id="@+id/page_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="@dimen/reader_settings_spacing"
             app:title="@string/page_layout"
             android:entries="@array/page_layouts" />
 
@@ -69,7 +69,7 @@
             android:id="@+id/extend_past_cutout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="@dimen/reader_settings_spacing"
             app:title="@string/cutout_area_behavior"
             android:entries="@array/cutout_behavior" />
 
@@ -77,7 +77,7 @@
             android:id="@+id/extend_past_cutout_landscape"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="@dimen/reader_settings_spacing"
             app:title="@string/cutout_area_behavior"
             android:entries="@array/cutout_behavior_landscape" />
 
@@ -85,7 +85,7 @@
             android:id="@+id/zoom_start"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="@dimen/reader_settings_spacing"
             app:title="@string/zoom_start_position"
             android:entries="@array/zoom_start" />
 
@@ -93,7 +93,7 @@
             android:id="@+id/invert_double_pages"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="@dimen/reader_settings_spacing"
             android:text="@string/invert_double_pages"
             android:textColor="?attr/colorOnBackground" />
 
@@ -101,7 +101,7 @@
             android:id="@+id/crop_borders"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="@dimen/reader_settings_spacing"
             android:text="@string/crop_borders"
             android:textColor="?attr/colorOnBackground" />
 
@@ -109,7 +109,7 @@
             android:id="@+id/page_transitions"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="@dimen/reader_settings_spacing"
             android:text="@string/animate_page_transitions"
             android:textColor="?attr/colorOnBackground" />
 
@@ -118,7 +118,7 @@
             android:id="@+id/webtoon_nav"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="@dimen/reader_settings_spacing"
             android:entries="@array/reader_nav"
             app:title="@string/tap_zones" />
 
@@ -126,7 +126,7 @@
             android:id="@+id/webtoon_invert"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="@dimen/reader_settings_spacing"
             app:title="@string/invert_tapping"
             android:entries="@array/invert_tapping_mode" />
 
@@ -134,7 +134,7 @@
             android:id="@+id/webtoon_side_padding_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="@dimen/reader_settings_spacing"
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
@@ -162,7 +162,7 @@
             android:id="@+id/crop_borders_webtoon"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="@dimen/reader_settings_spacing"
             android:text="@string/crop_borders"
             android:textColor="?attr/colorOnBackground"
             app:layout_constraintTop_toTopOf="parent" />
@@ -171,7 +171,7 @@
             android:id="@+id/webtoon_enable_zoom_out"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="@dimen/reader_settings_spacing"
             android:text="@string/enable_zoom_out"
             android:textColor="?attr/colorOnBackground"
             app:layout_constraintTop_toBottomOf="@id/webtoon_side_padding" />
@@ -180,7 +180,7 @@
             android:id="@+id/webtoon_page_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="@dimen/reader_settings_spacing"
             app:title="@string/page_layout"
             android:entries="@array/webtoon_page_layouts" />
 
@@ -188,7 +188,7 @@
             android:id="@+id/webtoon_invert_double_pages"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="@dimen/reader_settings_spacing"
             android:text="@string/invert_double_pages"
             android:textColor="?attr/colorOnBackground" />
 
@@ -196,7 +196,7 @@
             android:id="@+id/webtoon_page_transitions"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="@dimen/reader_settings_spacing"
             android:text="@string/animate_page_transitions"
             android:textColor="?attr/colorOnBackground" />
     </LinearLayout>

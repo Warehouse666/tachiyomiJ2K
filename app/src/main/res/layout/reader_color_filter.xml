@@ -221,7 +221,7 @@
             android:id="@+id/custom_brightness"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="@dimen/reader_settings_spacing"
             android:text="@string/use_custom_brightness"
             app:layout_constraintTop_toBottomOf="@id/color_filter_mode" />
 
@@ -269,7 +269,7 @@
             android:id="@+id/grayscale"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="@dimen/reader_settings_spacing"
             android:text="@string/grayscale"
             app:layout_constraintTop_toBottomOf="@id/brightness_slider" />
 
@@ -277,7 +277,7 @@
             android:id="@+id/inverted_colors"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="@dimen/reader_settings_spacing"
             app:layout_constraintBottom_toBottomOf="parent"
             android:text="@string/pref_inverted_colors"
             app:layout_constraintTop_toBottomOf="@id/grayscale" />

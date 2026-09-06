@@ -6,8 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:clipToPadding="false"
-    android:background="@drawable/bottom_sheet_rounded_background"
-    android:forceDarkAllowed="false">
+    android:background="@drawable/bottom_sheet_rounded_background">
 
     <LinearLayout
         android:id="@+id/constraint_layout"
@@ -15,6 +14,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@android:color/transparent"
+        android:spacing="@dimen/reader_settings_spacing"
         android:clipToPadding="false"
         android:orientation="vertical"
         android:paddingStart="@dimen/material_component_dialogs_padding_around_content_area"
@@ -27,14 +27,14 @@
             android:layout_width="match_parent"
             android:textColor="?attr/colorPrimary"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="@dimen/reader_title_settings_spacing"
             android:text="@string/series" />
 
         <eu.kanade.tachiyomi.widget.MaterialSpinnerView
             android:id="@+id/viewer_series"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="@dimen/reader_settings_spacing"
             app:title="@string/reading_mode"
             android:entries="@array/viewers_selector" />
 
@@ -42,7 +42,7 @@
             android:id="@+id/rotation_mode"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="@dimen/reader_settings_spacing"
             app:title="@string/orientation"
             android:entries="@array/rotation_type" />
 
@@ -52,21 +52,21 @@
             android:layout_width="match_parent"
             android:textColor="?attr/colorPrimary"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="@dimen/reader_title_settings_spacing"
             android:text="@string/general" />
 
         <eu.kanade.tachiyomi.widget.MaterialSpinnerView
             android:id="@+id/background_color"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="@dimen/reader_settings_spacing"
             app:title="@string/background_color" />
 
         <com.google.android.material.materialswitch.MaterialSwitch
             android:id="@+id/show_page_number"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="@dimen/reader_settings_spacing"
             android:text="@string/show_page_number"
             android:textColor="?attr/colorOnBackground" />
 
@@ -74,7 +74,7 @@
             android:id="@+id/fullscreen"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="@dimen/reader_settings_spacing"
             android:text="@string/fullscreen"
             android:textColor="?attr/colorOnBackground" />
 
@@ -82,7 +82,7 @@
             android:id="@+id/keepscreen"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="@dimen/reader_settings_spacing"
             android:text="@string/keep_screen_on"
             android:textColor="?attr/colorOnBackground" />
 
@@ -90,7 +90,7 @@
             android:id="@+id/always_show_chapter_transition"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="@dimen/reader_settings_spacing"
             android:text="@string/always_show_chapter_transition"
             android:textColor="?attr/colorOnBackground" />
 
@@ -100,7 +100,7 @@
             android:layout_width="match_parent"
             android:textColor="?attr/colorPrimary"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="@dimen/reader_title_settings_spacing"
             android:text="@string/vertical_seekbar" />
 
         <HorizontalScrollView
@@ -132,7 +132,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="@dimen/reader_settings_spacing"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
