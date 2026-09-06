@@ -423,7 +423,7 @@
     <string name="loading_pages">Loading pages…</string>
     <string name="failed_to_load_pages_">Failed to load pages: %1$s</string>
     <string name="reading_">Reading %1$s</string>
-    <string name="webtoon_style">webtoon style</string>
+    <string name="long_strip">Long strip</string>
     <string name="next_page">Next page</string>
     <string name="previous_page">Previous page</string>
     <string name="next_chapter">Next chapter</string>
@@ -454,7 +454,7 @@
     <string name="split_double_pages_portrait">Split double pages in portrait</string>
     <string name="crop_borders">Crop borders</string>
     <string name="crop_borders_paged">Crop borders (Paged)</string>
-    <string name="crop_borders_webtoon">Crop borders (Webtoon)</string>
+    <string name="crop_borders_webtoon">Crop borders (Long strip)</string>
     <string name="remove_crop">Remove crop</string>
     <string name="use_custom_brightness">Use custom brightness</string>
     <string name="grayscale">Grayscale</string>
@@ -480,10 +480,10 @@
     <string name="smart_by_page">Smart (by page)</string>
     <string name="smart_by_theme">Smart (by theme)</string>
     <string name="default_reading_mode">Default reading mode</string>
-    <string name="left_to_right_viewer">Left to right</string>
-    <string name="right_to_left_viewer">Right to left</string>
-    <string name="vertical_viewer">Vertical</string>
-    <string name="continuous_vertical">Continuous vertical</string>
+    <string name="left_to_right_viewer">Paged (left to right)</string>
+    <string name="right_to_left_viewer">Paged (right to left)</string>
+    <string name="vertical_viewer">Paged (vertical)</string>
+    <string name="continuous_vertical">Long strip with gaps</string>
     <string name="paged">Paged</string>
     <string name="scale_type">Scale type</string>
     <string name="tap_zones">Tap zones</string>
