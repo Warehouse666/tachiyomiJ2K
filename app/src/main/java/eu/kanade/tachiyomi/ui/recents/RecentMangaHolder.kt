@@ -3,9 +3,11 @@ package eu.kanade.tachiyomi.ui.recents
 import android.animation.LayoutTransition
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.os.Build
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewOutlineProvider
 import android.widget.ImageView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.children
@@ -410,6 +412,13 @@ class RecentMangaHolder(
         subtitle.isVisible = false
         root.transitionName = null
         root.setOnClickListener(null)
+        root.shapeAppearanceModel =
+            root.shapeAppearanceModel
+                .toBuilder()
+                .build()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            root.outlineProvider = ViewOutlineProvider.BACKGROUND
+        }
         if (chapter?.id == null) {
             configureBlankView(item.mch.extraChapters.size - extraChapterMaxSize)
             return
@@ -628,5 +637,6 @@ class RecentMangaHolder(
                     setBottomLeftCorner(CornerFamily.ROUNDED, bottomRadius)
                     setBottomRightCorner(CornerFamily.ROUNDED, bottomRadius)
                 }.build()
+        finalCard?.clipToRoundedCorners(0f, bottomRadius)
     }
 }
