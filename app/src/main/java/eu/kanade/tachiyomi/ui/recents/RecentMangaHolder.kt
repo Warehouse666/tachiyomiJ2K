@@ -415,6 +415,7 @@ class RecentMangaHolder(
         root.shapeAppearanceModel =
             root.shapeAppearanceModel
                 .toBuilder()
+                .setAllCorners(CornerFamily.ROUNDED, 0f)
                 .build()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             root.outlineProvider = ViewOutlineProvider.BACKGROUND
