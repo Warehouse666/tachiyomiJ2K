@@ -6,7 +6,10 @@ import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
+import android.view.ViewGroup.LayoutParams.MATCH_PARENT
+import android.widget.FrameLayout
 import androidx.core.view.WindowInsetsCompat.Type.systemBars
+import androidx.core.view.isVisible
 import androidx.core.view.updatePaddingRelative
 import com.bluelinelabs.conductor.ControllerChangeHandler
 import com.bluelinelabs.conductor.ControllerChangeType
@@ -22,6 +25,8 @@ import eu.kanade.tachiyomi.ui.main.SearchActivity
 import eu.kanade.tachiyomi.ui.main.SearchControllerInterface
 import eu.kanade.tachiyomi.ui.manga.MangaDetailsController
 import eu.kanade.tachiyomi.ui.source.browse.BrowseSourceController
+import eu.kanade.tachiyomi.ui.source.searchhistory.SearchHistoryView
+import eu.kanade.tachiyomi.ui.source.searchhistory.addToSearchHistory
 import eu.kanade.tachiyomi.util.addOrRemoveToFavorites
 import eu.kanade.tachiyomi.util.system.rootWindowInsetsCompat
 import eu.kanade.tachiyomi.util.view.activityBinding
@@ -63,6 +68,10 @@ open class GlobalSearchController(
      */
     private var snack: Snackbar? = null
     private var lastPosition: Int = -1
+
+    private var searchHistoryView: SearchHistoryView? = null
+
+    protected open val supportsSearchHistory: Boolean = true
 
     /**
      * Called when controller is initialized.
@@ -170,7 +179,14 @@ open class GlobalSearchController(
         activityBinding?.searchToolbar?.searchItem?.expandActionView()
         activityBinding?.searchToolbar?.searchView?.setQuery(presenter.query, false)
 
-        setOnQueryTextChangeListener(activityBinding?.searchToolbar?.searchView, onlyOnSubmit = true, hideKbOnSubmit = true) {
+        setOnQueryTextChangeListener(
+            activityBinding?.searchToolbar?.searchView,
+            onlyOnSubmit = true,
+            hideKbOnSubmit = true,
+            onTextChange = { setSearchHistoryVisible(it.isNullOrBlank()) },
+        ) {
+            preferences.addToSearchHistory(it ?: "")
+            setSearchHistoryVisible(false)
             presenter.search(it ?: "")
             setTitle() // Update toolbar title
             true
@@ -199,6 +215,34 @@ open class GlobalSearchController(
     override fun onActionViewExpand(item: MenuItem?) {
         val searchView = activityBinding?.searchToolbar?.searchView ?: return
         searchView.setQuery(presenter.query, false)
+        setSearchHistoryVisible(presenter.query.isBlank())
+    }
+
+    private fun setUpSearchHistory() {
+        if (!supportsSearchHistory) return
+        val searchView = { activityBinding?.searchToolbar?.searchView }
+        searchHistoryView =
+            SearchHistoryView(binding.root.context).apply {
+                isVisible = false
+                onQueryClicked = { searchView()?.setQuery(it, true) }
+                onQueryFilled = { searchView()?.setQuery(it, false) }
+                onHistoryEmptied = { setSearchHistoryVisible(false) }
+                binding.root.addView(
+                    this,
+                    FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT),
+                )
+            }
+    }
+
+    // search is always expanded here, so this only kicks in once the query is cleared
+    private fun setSearchHistoryVisible(show: Boolean) {
+        val historyView = searchHistoryView ?: return
+        val shouldShow = show && historyView.hasHistory()
+        if (historyView.isVisible == shouldShow) return
+        historyView.isVisible = shouldShow
+        if (shouldShow) {
+            historyView.scrollToTop()
+        }
     }
 
     override fun onActionViewCollapse(item: MenuItem?) {
@@ -233,7 +277,17 @@ open class GlobalSearchController(
         // Create recycler and set adapter.
         binding.recycler.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(view.context)
         binding.recycler.adapter = adapter
-        scrollViewWith(binding.recycler, padBottom = true)
+        setUpSearchHistory()
+        scrollViewWith(
+            binding.recycler,
+            padBottom = true,
+            afterInsets = {
+                searchHistoryView?.setContentPadding(
+                    top = binding.recycler.paddingTop,
+                    bottom = binding.recycler.paddingBottom,
+                )
+            },
+        )
         if (extensionFilter != null) {
             customTitle = view.context?.getString(R.string.loading)
             setTitle()
@@ -242,6 +296,7 @@ open class GlobalSearchController(
 
     override fun onDestroyView(view: View) {
         adapter = null
+        searchHistoryView = null
         super.onDestroyView(view)
     }
 

@@ -9,7 +9,9 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import androidx.appcompat.widget.PopupMenu
+import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.view.WindowInsetsCompat.Type.systemBars
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
@@ -41,6 +43,8 @@ import eu.kanade.tachiyomi.ui.main.SearchActivity
 import eu.kanade.tachiyomi.ui.manga.MangaDetailsController
 import eu.kanade.tachiyomi.ui.source.BrowseController
 import eu.kanade.tachiyomi.ui.source.globalsearch.GlobalSearchController
+import eu.kanade.tachiyomi.ui.source.searchhistory.SearchHistoryView
+import eu.kanade.tachiyomi.ui.source.searchhistory.addToSearchHistory
 import eu.kanade.tachiyomi.ui.webview.WebViewActivity
 import eu.kanade.tachiyomi.util.addOrRemoveToFavorites
 import eu.kanade.tachiyomi.util.system.connectivityManager
@@ -122,6 +126,8 @@ open class BrowseSourceController(
      */
     private var recycler: RecyclerView? = null
 
+    private var searchHistoryView: SearchHistoryView? = null
+
     /**
      * Endless loading item.
      */
@@ -177,6 +183,7 @@ open class BrowseSourceController(
         // Initialize adapter, scroll listener and recycler views
         adapter = FlexibleAdapter(null, this)
         setupRecycler(view)
+        setUpSearchHistory()
 
         if (presenter.sourceFilters.isEmpty() && !presenter.source.supportsLatest) {
             binding.floatingBrowseBar.isVisible = false
@@ -219,6 +226,7 @@ open class BrowseSourceController(
         adapter = null
         snack = null
         recycler = null
+        searchHistoryView = null
         super.onDestroyView(view)
     }
 
@@ -284,6 +292,10 @@ open class BrowseSourceController(
                     top = (bigToolbarHeight + insets.getInsets(systemBars()).top),
                     bottom = insets.getInsets(systemBars()).bottom,
                 )
+                searchHistoryView?.setContentPadding(
+                    top = recycler.paddingTop,
+                    bottom = recycler.paddingBottom,
+                )
             },
         )
         binding.floatingBrowseBar.applyBottomAnimatedInsets(8.dpToPx)
@@ -316,7 +328,12 @@ open class BrowseSourceController(
             searchItem?.collapseActionView()
             searchView?.setQuery("", true)
         }
-        setOnQueryTextChangeListener(searchView, onlyOnSubmit = true, hideKbOnSubmit = true) {
+        setOnQueryTextChangeListener(
+            searchView,
+            onlyOnSubmit = true,
+            hideKbOnSubmit = true,
+            onTextChange = { setSearchHistoryVisible(it.isNullOrBlank()) },
+        ) {
             searchWithQuery(it ?: "")
             true
         }
@@ -339,11 +356,45 @@ open class BrowseSourceController(
         }
     }
 
+    override fun onActionViewExpand(item: MenuItem?) {
+        setSearchHistoryVisible(true)
+    }
+
     override fun onActionViewCollapse(item: MenuItem?) {
+        setSearchHistoryVisible(false)
         if (isBehindGlobalSearch) {
             router.popController(this)
         } else {
             searchWithQuery("")
+        }
+    }
+
+    // added last so it covers the floating popular/latest bar too
+    private fun setUpSearchHistory() {
+        val searchView = { activityBinding?.searchToolbar?.searchView }
+        searchHistoryView =
+            SearchHistoryView(binding.sourceLayout.context).apply {
+                isVisible = false
+                onQueryClicked = { searchView()?.setQuery(it, true) }
+                onQueryFilled = { searchView()?.setQuery(it, false) }
+                onHistoryEmptied = { setSearchHistoryVisible(false) }
+                binding.sourceLayout.addView(
+                    this,
+                    CoordinatorLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT),
+                )
+            }
+    }
+
+    private fun setSearchHistoryVisible(show: Boolean) {
+        val historyView = searchHistoryView ?: return
+        val shouldShow =
+            show &&
+                activityBinding?.searchToolbar?.isSearchExpanded == true &&
+                historyView.hasHistory()
+        if (historyView.isVisible == shouldShow) return
+        historyView.isVisible = shouldShow
+        if (shouldShow) {
+            historyView.scrollToTop()
         }
     }
 
@@ -570,6 +621,9 @@ open class BrowseSourceController(
      * @param newQuery the new query.
      */
     private fun searchWithQuery(newQuery: String) {
+        // saved before the early return below, so re-searching the same thing still bumps it up
+        presenter.prefs.addToSearchHistory(newQuery, presenter.source.id)
+        setSearchHistoryVisible(false)
         // If text didn't change, do nothing
         if (presenter.query == newQuery) {
             return
