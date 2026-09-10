@@ -201,10 +201,6 @@ abstract class BaseController<VB : ViewBinding>(
         }
     }
 
-    fun MenuItem.fixExpandInvalidate() {
-        fixExpand { invalidateMenuOnExpand() }
-    }
-
     /**
      * Workaround for menu items not disappearing when expanding an expandable item like a SearchView.
      * [expandActionViewFromInteraction] should be set to true in [onOptionsItemSelected] when the expandable item is selected
