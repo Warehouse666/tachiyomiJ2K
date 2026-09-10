@@ -6,6 +6,33 @@
     android:layout_height="wrap_content">
 
     <com.google.android.material.card.MaterialCardView
+        android:id="@+id/back_view"
+        style="@style/Widget.Tachiyomi.CardView.Container"
+        android:layout_height="@dimen/material_component_lists_two_line_height"
+        app:cardBackgroundColor="@color/material_red_500">
+
+        <ImageView
+            android:id="@+id/left_back_view"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="start|center_vertical"
+            android:layout_marginStart="21dp"
+            android:contentDescription="@string/remove"
+            android:src="@drawable/ic_delete_24dp"
+            app:tint="@color/md_white_1000" />
+
+        <ImageView
+            android:id="@+id/right_back_view"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="end|center_vertical"
+            android:layout_marginEnd="21dp"
+            android:contentDescription="@string/remove"
+            android:src="@drawable/ic_delete_24dp"
+            app:tint="@color/md_white_1000" />
+    </com.google.android.material.card.MaterialCardView>
+
+    <com.google.android.material.card.MaterialCardView
         android:id="@+id/history_card"
         style="@style/Widget.Tachiyomi.CardView.Container">
 
@@ -37,23 +64,10 @@
                 android:paddingEnd="8dp"
                 android:textColor="?attr/colorOnBackground"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@+id/delete_button"
+                app:layout_constraintEnd_toStartOf="@+id/fill_button"
                 app:layout_constraintStart_toEndOf="@+id/history_icon"
                 app:layout_constraintTop_toTopOf="parent"
                 tools:text="one piece" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/delete_button"
-                style="?materialIconButtonStyle"
-                android:layout_width="48dp"
-                android:layout_height="0dp"
-                android:layout_marginEnd="0dp"
-                android:contentDescription="@string/remove"
-                app:icon="@drawable/ic_close_24dp"
-                app:iconTint="?attr/colorOnSurfaceVariant"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@+id/fill_button"
-                app:layout_constraintTop_toTopOf="parent" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/fill_button"

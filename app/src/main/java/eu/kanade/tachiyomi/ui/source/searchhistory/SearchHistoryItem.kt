@@ -1,19 +1,16 @@
 package eu.kanade.tachiyomi.ui.source.searchhistory
 
 import android.view.View
-import android.widget.TextView
-import com.google.android.material.button.MaterialButton
-import com.google.android.material.card.MaterialCardView
 import com.mikepenz.fastadapter.FastAdapter
 import com.mikepenz.fastadapter.items.AbstractItem
 import eu.kanade.tachiyomi.R
+import eu.kanade.tachiyomi.databinding.SearchHistoryItemBinding
 import eu.kanade.tachiyomi.util.view.makeContainerShape
 
 class SearchHistoryItem(
     val query: String,
     private val isTopOfGroup: Boolean,
     private val isBottomOfGroup: Boolean,
-    private val onDeleteClicked: (String) -> Unit,
     private val onFillClicked: (String) -> Unit,
 ) : AbstractItem<FastAdapter.ViewHolder<SearchHistoryItem>>() {
     override val type: Int = R.id.history_card
@@ -26,33 +23,42 @@ class SearchHistoryItem(
 
     class ViewHolder(
         view: View,
-    ) : FastAdapter.ViewHolder<SearchHistoryItem>(view) {
-        private val card: MaterialCardView = view.findViewById(R.id.history_card)
-        private val frontView: View = view.findViewById(R.id.front_view)
-        private val title: TextView = view.findViewById(R.id.title)
-        private val deleteButton: MaterialButton = view.findViewById(R.id.delete_button)
-        private val fillButton: MaterialButton = view.findViewById(R.id.fill_button)
+    ) : FastAdapter.ViewHolder<SearchHistoryItem>(view),
+        ISwipeableViewHolder {
+        private val binding = SearchHistoryItemBinding.bind(view)
+
+        override val swipeableView: View = binding.historyCard
+        override val leftBackView: View = binding.leftBackView
+        override val rightBackView: View = binding.rightBackView
 
         override fun bindView(
             item: SearchHistoryItem,
             payloads: List<Any>,
         ) {
-            title.text = item.query
-            // merges consecutive rows into one rounded card, like ChapterHolder does for chapters
-            card.shapeAppearanceModel =
-                card.makeContainerShape(
+            binding.historyCard.translationX = 0f
+            binding.title.text = item.query
+            val shape =
+                binding.historyCard.makeContainerShape(
                     item.isTopOfGroup,
                     item.isBottomOfGroup,
-                    clipContentTo = frontView,
+                    clipContentTo = binding.frontView,
                 )
-            deleteButton.setOnClickListener { item.onDeleteClicked(item.query) }
-            fillButton.setOnClickListener { item.onFillClicked(item.query) }
+            binding.historyCard.shapeAppearanceModel = shape
+            binding.backView.shapeAppearanceModel = shape
+            binding.fillButton.setOnClickListener { item.onFillClicked(item.query) }
         }
 
         override fun unbindView(item: SearchHistoryItem) {
-            title.text = null
-            deleteButton.setOnClickListener(null)
-            fillButton.setOnClickListener(null)
+            binding.title.text = null
+            binding.fillButton.setOnClickListener(null)
+            // so a recycled holder doesn't reappear mid-swipe from whatever row it last showed
+            binding.historyCard.translationX = 0f
         }
     }
+}
+
+public interface ISwipeableViewHolder {
+    public abstract val swipeableView: View
+    public abstract val leftBackView: View
+    public abstract val rightBackView: View
 }

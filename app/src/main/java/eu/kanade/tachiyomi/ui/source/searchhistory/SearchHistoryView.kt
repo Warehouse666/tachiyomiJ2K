@@ -2,10 +2,14 @@ package eu.kanade.tachiyomi.ui.source.searchhistory
 
 import android.content.Context
 import android.util.AttributeSet
+import android.view.Gravity
 import android.view.LayoutInflater
+import android.view.View
 import android.widget.LinearLayout
+import androidx.appcompat.widget.PopupMenu
 import androidx.core.view.isVisible
 import androidx.core.view.updatePaddingRelative
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.mikepenz.fastadapter.FastAdapter
 import com.mikepenz.fastadapter.adapters.ItemAdapter
@@ -51,7 +55,6 @@ class SearchHistoryView
             binding = SearchHistoryViewBinding.inflate(LayoutInflater.from(context), this)
             binding.recycler.layoutManager = LinearLayoutManager(context)
             binding.recycler.adapter = fastAdapter
-            binding.recycler.itemAnimator = null
             binding.recycler.addItemDecoration(
                 GroupedRowDivider(context, isGroupedRow = { it is SearchHistoryItem.ViewHolder }),
             )
@@ -59,7 +62,14 @@ class SearchHistoryView
                 onQueryClicked(item.query)
                 true
             }
+            fastAdapter.onLongClickListener = { view, _, _, position ->
+                showDeletePopup(view, position)
+                true
+            }
             binding.clearAllButton.setOnClickListener { preferences.clearSearchHistory() }
+
+            val swipeCallback = SwipeDeleteCallback { position -> deleteAt(position) }
+            ItemTouchHelper(swipeCallback).attachToRecyclerView(binding.recycler)
         }
 
         override fun onAttachedToWindow() {
@@ -90,6 +100,26 @@ class SearchHistoryView
 
         fun scrollToTop() = binding.recycler.scrollToPosition(0)
 
+        private fun showDeletePopup(
+            anchor: View,
+            position: Int,
+        ) {
+            val popup = PopupMenu(anchor.context, anchor, Gravity.NO_GRAVITY)
+            popup.menu.add(0, 0, 0, R.string.remove)
+            popup.setOnMenuItemClickListener {
+                deleteAt(position)
+                true
+            }
+            popup.show()
+        }
+
+        // remove locally first so the item animator plays; the flow's later same-size set() is a silent rebind
+        private fun deleteAt(position: Int) {
+            val query = itemAdapter.getAdapterItem(position).query
+            itemAdapter.remove(position)
+            preferences.removeFromSearchHistory(query)
+        }
+
         private fun setHistory(history: List<String>) {
             itemAdapter.set(
                 history.mapIndexed { index, query ->
@@ -97,7 +127,6 @@ class SearchHistoryView
                         query = query,
                         isTopOfGroup = index == 0,
                         isBottomOfGroup = index == history.lastIndex,
-                        onDeleteClicked = { preferences.removeFromSearchHistory(it) },
                         onFillClicked = { onQueryFilled(it) },
                     )
                 },
