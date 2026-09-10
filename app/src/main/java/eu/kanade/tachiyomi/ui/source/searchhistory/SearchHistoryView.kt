@@ -20,7 +20,10 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.get
 import uy.kohesive.injekt.injectLazy
+import kotlin.collections.isNotEmpty
 
 /**
  * Recent browse queries, shown over a browse screen's content while its search bar is open and
@@ -76,10 +79,6 @@ class SearchHistoryView
             scope = null
         }
 
-        fun hasHistory(): Boolean =
-            preferences.showBrowseSearchHistory().get() &&
-                preferences.browseSearchHistory().get().isNotEmpty()
-
         /** Mirrors the host recycler's insets so the list clears the app bar and bottom nav. */
         fun setContentPadding(
             top: Int,
@@ -106,5 +105,11 @@ class SearchHistoryView
             if (history.isEmpty() && isVisible) {
                 onHistoryEmptied()
             }
+        }
+
+        companion object {
+            fun hasHistory(preferences: PreferencesHelper = Injekt.get()): Boolean =
+                preferences.showBrowseSearchHistory().get() &&
+                    preferences.browseSearchHistory().get().isNotEmpty()
         }
     }
