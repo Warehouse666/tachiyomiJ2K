@@ -5,9 +5,13 @@ import android.util.AttributeSet
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.appcompat.widget.PopupMenu
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
+import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePaddingRelative
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -16,8 +20,10 @@ import com.mikepenz.fastadapter.adapters.ItemAdapter
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.databinding.SearchHistoryViewBinding
+import eu.kanade.tachiyomi.ui.main.MainActivity
 import eu.kanade.tachiyomi.util.system.getResourceColor
 import eu.kanade.tachiyomi.util.view.GroupedRowDivider
+import eu.kanade.tachiyomi.util.view.snack
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -118,6 +124,29 @@ class SearchHistoryView
             val query = itemAdapter.getAdapterItem(position).query
             itemAdapter.remove(position)
             preferences.removeFromSearchHistory(query)
+            val undoSnack =
+                snack(R.string.search_removed) {
+                    setAction(R.string.undo) {
+                        preferences.reinsertIntoSearchHistory(query, position)
+                    }
+                }
+            // lift the snackbar above the keyboard, which is still up while browsing history,
+            // and never let it sit lower than the bottom nav bar - that's app UI, not a system
+            // inset, so it isn't covered by ime()/systemBars() and the snackbar can't render over it
+            val mainActivity = context as? MainActivity
+            val bottomNav = mainActivity?.binding?.bottomNav?.takeIf { it.isVisible }
+            val bottomNavHeight = bottomNav?.let { (it.height - it.translationY).toInt().coerceAtLeast(0) } ?: 0
+            ViewCompat.setOnApplyWindowInsetsListener(undoSnack.view) { snackView, insets ->
+                val bottomInset =
+                    insets
+                        .getInsets(WindowInsetsCompat.Type.ime() or WindowInsetsCompat.Type.systemBars())
+                        .bottom
+                snackView.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                    bottomMargin = maxOf(bottomInset, bottomNavHeight)
+                }
+                insets
+            }
+            mainActivity?.setUndoSnackBar(undoSnack)
         }
 
         private fun setHistory(history: List<String>) {

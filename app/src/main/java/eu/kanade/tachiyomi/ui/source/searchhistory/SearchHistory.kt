@@ -28,4 +28,15 @@ fun PreferencesHelper.removeFromSearchHistory(query: String) {
     pref.set(pref.get().filterNot { it.equals(query, true) })
 }
 
+/** Undoes [removeFromSearchHistory], putting the query back at the index it was removed from. */
+fun PreferencesHelper.reinsertIntoSearchHistory(
+    query: String,
+    position: Int,
+) {
+    val pref = browseSearchHistory()
+    val history = pref.get().toMutableList()
+    history.add(position.coerceIn(0, history.size), query)
+    pref.set(history.take(SEARCH_HISTORY_LIMIT))
+}
+
 fun PreferencesHelper.clearSearchHistory() = browseSearchHistory().delete()
