@@ -35,6 +35,8 @@ import uy.kohesive.injekt.api.get
  * (not a fixed value) since e.g. whether the current source even has filters isn't known yet
  * when this delegate is constructed.
  * @param extraBottomPadding extra clearance for whatever floats over the bottom of [recycler]
+ * @param currentSourceId the single source currently being browsed, if any
+ * @param onHidden called whenever the history overlay goes from shown to hidden
  */
 class SearchHistoryDelegate(
     private val controller: Controller,
@@ -46,6 +48,8 @@ class SearchHistoryDelegate(
     private val onApplyFilters: (List<SavedFilter>, Long?) -> FilterApplyResult = { _, _ -> FilterApplyResult.ALL },
     private val showFilterSnapshots: () -> Boolean = { false },
     private val extraBottomPadding: () -> Int = { 0 },
+    private val currentSourceId: () -> Long? = { null },
+    private val onHidden: () -> Unit = {},
 ) {
     private val preferences: PreferencesHelper by lazy { Injekt.get() }
 
@@ -88,9 +92,21 @@ class SearchHistoryDelegate(
                 }
                 onQueryFilled = { searchView()?.setQuery(it, false) }
                 onHistoryEmptied = { setVisible(false) }
+                onSaveHistoryEntry = { entry -> openSaveDialog(null, entry.query, entry.filters, entry.sourceId) }
+                onEditSavedSearch = { entry -> openSaveDialog(entry, entry.query, entry.filters, entry.sourceId) }
                 container().addView(this, ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
             }
         return view
+    }
+
+    private fun openSaveDialog(
+        existing: SearchHistoryEntry?,
+        query: String,
+        filters: List<SavedFilter>,
+        sourceId: Long?,
+    ) {
+        val activity = controller.activity ?: return
+        SaveSearchDialog.show(activity, existing, query, filters, sourceId)
     }
 
     /** Pads the history list under whatever height the app bar is currently showing on screen. */
@@ -111,16 +127,19 @@ class SearchHistoryDelegate(
         // re-evaluated every call, not just once at setUp() - e.g. a source's filters might not
         // have loaded yet the first time this ran
         val showFilterSnapshots = showFilterSnapshots()
+        val sourceId = currentSourceId()
         historyView.showFilterSnapshots = showFilterSnapshots
+        historyView.currentSourceId = sourceId
         val shouldShow =
             show &&
                 extraShouldShow() &&
                 (!requireSearchExpanded || controller.activityBinding?.searchToolbar?.isSearchExpanded == true) &&
-                SearchHistoryView.hasHistory(preferences, includeFilterSnapshots = showFilterSnapshots)
-        if (historyView.isVisible == shouldShow) return
-        historyView.isVisible = shouldShow
+                SearchHistoryView.hasHistory(preferences, includeFilterSnapshots = showFilterSnapshots, sourceId = sourceId)
+        if (historyView.historyShown == shouldShow) return
+        historyView.setAnimatedVisible(shouldShow)
         if (!shouldShow) {
             recycler()?.suppressLayout(false)
+            onHidden()
             return
         }
         val revealHistory = {

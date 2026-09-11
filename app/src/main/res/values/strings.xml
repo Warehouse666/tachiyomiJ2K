@@ -318,6 +318,9 @@
     <string name="global_search">Global search…</string>
     <string name="label_global_search">Global search</string>
     <string name="recent_searches">Recent searches</string>
+    <string name="saved_searches">Saved searches</string>
+    <string name="show_on">Show on</string>
+    <string name="only_x">Only %1$s</string>
     <string name="clear_all">Clear all</string>
     <string name="edit_search">Edit search</string>
     <string name="latest">Latest</string>

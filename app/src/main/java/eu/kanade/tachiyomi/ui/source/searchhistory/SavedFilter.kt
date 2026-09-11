@@ -1,5 +1,10 @@
 package eu.kanade.tachiyomi.ui.source.searchhistory
 
+import android.graphics.Typeface
+import android.text.Spannable
+import android.text.SpannableString
+import android.text.TextPaint
+import android.text.style.MetricAffectingSpan
 import eu.kanade.tachiyomi.source.model.Filter
 import eu.kanade.tachiyomi.source.model.FilterList
 import eu.kanade.tachiyomi.util.system.toInt
@@ -14,6 +19,7 @@ import kotlinx.serialization.Serializable
 sealed class SavedFilter {
     abstract val name: String
     abstract val filterName: String
+    abstract val copyName: String
 
     @Serializable
     @SerialName("checkbox")
@@ -21,8 +27,8 @@ sealed class SavedFilter {
         override val name: String,
         val checked: Boolean,
     ) : SavedFilter() {
-        override val filterName: String
-            get() = name
+        override val filterName: String get() = name
+        override val copyName: String get() = filterName
     }
 
     @Serializable
@@ -31,8 +37,8 @@ sealed class SavedFilter {
         override val name: String,
         val state: Int,
     ) : SavedFilter() {
-        override val filterName: String
-            get() = name
+        override val filterName: String get() = name
+        override val copyName: String get() = filterName
     }
 
     @Serializable
@@ -41,8 +47,8 @@ sealed class SavedFilter {
         override val name: String,
         val text: String,
     ) : SavedFilter() {
-        override val filterName: String
-            get() = text
+        override val filterName: String get() = text
+        override val copyName: String get() = filterName
     }
 
     @Serializable
@@ -51,8 +57,8 @@ sealed class SavedFilter {
         override val name: String,
         val value: String,
     ) : SavedFilter() {
-        override val filterName: String
-            get() = "$name: $value"
+        override val filterName: String get() = "$name: $value"
+        override val copyName: String get() = "$name:$value"
     }
 
     @Serializable
@@ -62,8 +68,8 @@ sealed class SavedFilter {
         val value: String,
         val ascending: Boolean,
     ) : SavedFilter() {
-        override val filterName: String
-            get() = value
+        override val filterName: String get() = "${if (ascending) ASCENDING_ARROW else DESCENDING_ARROW}$value"
+        override val copyName: String get() = value
     }
 
     @Serializable
@@ -72,8 +78,34 @@ sealed class SavedFilter {
         override val name: String,
         val children: List<SavedFilter>,
     ) : SavedFilter() {
-        override val filterName: String
-            get() = children.joinToString { it.filterName }
+        override val filterName: String get() = children.joinToString { it.filterName }
+        override val copyName: String get() = children.joinToString { it.copyName }
+    }
+
+    companion object {
+        const val ASCENDING_ARROW = '↑'
+        const val DESCENDING_ARROW = '↓'
+    }
+}
+
+private class BoldUprightSpan : MetricAffectingSpan() {
+    override fun updateDrawState(tp: TextPaint) = replace(tp)
+
+    override fun updateMeasureState(tp: TextPaint) = replace(tp)
+
+    private fun replace(tp: TextPaint) {
+        tp.typeface = Typeface.create(tp.typeface, Typeface.BOLD)
+    }
+}
+
+fun CharSequence.unitalicizeArrows(): CharSequence {
+    if (SavedFilter.ASCENDING_ARROW !in this && SavedFilter.DESCENDING_ARROW !in this) return this
+    return SpannableString(this).apply {
+        indices.forEach { i ->
+            if (this[i] == SavedFilter.ASCENDING_ARROW || this[i] == SavedFilter.DESCENDING_ARROW) {
+                setSpan(BoldUprightSpan(), i, i + 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+            }
+        }
     }
 }
 

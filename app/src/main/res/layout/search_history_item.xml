@@ -77,7 +77,7 @@
                     android:visibility="gone"
                     android:textStyle="italic"
                     tools:visibility="visible"
-                    android:ellipsize="end"
+                    android:ellipsize="middle"
                     android:maxLines="1"
                     android:textColor="?attr/colorOnSurfaceVariant"
                     tools:text="filters" />
@@ -90,6 +90,15 @@
                 android:layout_height="match_parent"
                 android:contentDescription="@string/edit_search"
                 app:icon="@drawable/ic_arrow_insert_24dp"
+                app:iconTint="?attr/colorOnSurfaceVariant" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/save_button"
+                style="?materialIconButtonStyle"
+                android:layout_width="48dp"
+                android:layout_height="match_parent"
+                android:contentDescription="@string/save"
+                app:icon="@drawable/ic_outline_save_24dp"
                 app:iconTint="?attr/colorOnSurfaceVariant" />
 
         </LinearLayout>

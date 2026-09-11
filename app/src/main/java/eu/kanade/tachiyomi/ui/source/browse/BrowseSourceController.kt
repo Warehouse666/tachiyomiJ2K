@@ -42,8 +42,10 @@ import eu.kanade.tachiyomi.ui.manga.MangaDetailsController
 import eu.kanade.tachiyomi.ui.source.BrowseController
 import eu.kanade.tachiyomi.ui.source.globalsearch.GlobalSearchController
 import eu.kanade.tachiyomi.ui.source.searchhistory.FilterApplyResult
+import eu.kanade.tachiyomi.ui.source.searchhistory.SaveSearchDialog
 import eu.kanade.tachiyomi.ui.source.searchhistory.SearchHistoryDelegate
 import eu.kanade.tachiyomi.ui.source.searchhistory.addToSearchHistory
+import eu.kanade.tachiyomi.ui.source.searchhistory.applicableTo
 import eu.kanade.tachiyomi.ui.source.searchhistory.applyTo
 import eu.kanade.tachiyomi.ui.source.searchhistory.diffFromDefault
 import eu.kanade.tachiyomi.ui.webview.WebViewActivity
@@ -153,6 +155,9 @@ open class BrowseSourceController(
                 val bar = binding.floatingBrowseBar
                 if (bar.isVisible) bar.height else 0
             },
+            currentSourceId = { presenter.source.id },
+            // scrolling the history list can hide this the same way scrolling the results does
+            onHidden = { showFloatingBrowseBar() },
         )
 
     /**
@@ -421,6 +426,13 @@ open class BrowseSourceController(
         if (filterSheet != null) return
         val sheet = SourceFilterSheet(activity!!)
         filterSheet = sheet
+        sheet.setSavedSearchesVisible(
+            presenter.prefs
+                .savedSearches()
+                .get()
+                .applicableTo(presenter.source.id)
+                .isNotEmpty(),
+        )
         sheet.setFilters(presenter.filterItems)
         presenter.filtersChanged = false
         val oldFilters = mutableListOf<Any?>()
@@ -478,6 +490,26 @@ open class BrowseSourceController(
             val newFilters = presenter.source.getFilterList()
             presenter.sourceFilters = newFilters
             sheet.setFilters(presenter.filterItems)
+        }
+        sheet.onSaveClicked = {
+            val diff = presenter.sourceFilters.diffFromDefault(presenter.source.getFilterList())
+            SaveSearchDialog.show(
+                activity = activity!!,
+                existing = null,
+                query = presenter.query,
+                filters = diff,
+                sourceId = presenter.source.id,
+                onSaved = {
+                    sheet.setSavedSearchesVisible(true)
+                    sheet.setFilters(presenter.filterItems)
+                },
+            )
+        }
+        sheet.onSavedSearchesClicked = {
+            if (activityBinding?.searchToolbar?.isSearchExpanded != true) {
+                activityBinding?.searchToolbar?.searchItem?.expandActionView()
+            }
+            searchHistory.setVisible(true)
         }
         sheet.setOnDismissListener {
             filterSheet = null
@@ -552,6 +584,13 @@ open class BrowseSourceController(
 
             adapter?.clear()
             presenter.restartPager("", filterList)
+            // a tag tapped from manga details restarts the pager directly, bypassing
+            // searchWithQuery - record it as a filter snapshot the same way the filter sheet does
+            presenter.prefs.addToSearchHistory(
+                "",
+                presenter.sourceFilters.diffFromDefault(presenter.source.getFilterList()),
+                presenter.source.id,
+            )
         } else {
             if (!useContains) {
                 searchGenres(genreNames, true)

@@ -160,6 +160,8 @@ object PreferenceKeys {
 
     const val browseSearchHistory = "browse_search_history"
 
+    const val savedSearches = "saved_searches"
+
     const val downloadNew = "download_new"
 
     const val libraryLayout = "pref_display_library_layout"

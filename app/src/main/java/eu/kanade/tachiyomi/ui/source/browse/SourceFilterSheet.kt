@@ -13,6 +13,7 @@ import eu.davidea.flexibleadapter.FlexibleAdapter
 import eu.davidea.flexibleadapter.items.IFlexible
 import eu.kanade.tachiyomi.databinding.SourceFilterSheetBinding
 import eu.kanade.tachiyomi.ui.main.MainActivity
+import eu.kanade.tachiyomi.ui.source.filter.SavedSearchesHeaderItem
 import eu.kanade.tachiyomi.util.system.dpToPx
 import eu.kanade.tachiyomi.util.view.checkHeightThen
 import eu.kanade.tachiyomi.util.view.collapse
@@ -29,8 +30,9 @@ class SourceFilterSheet(
             .setDisplayHeadersAtStartUp(true)
 
     var onSearchClicked = {}
-
     var onResetClicked = {}
+    var onSaveClicked = {}
+    var onSavedSearchesClicked = {}
 
     override var recyclerView: RecyclerView? = binding.filtersRecycler
 
@@ -42,6 +44,7 @@ class SourceFilterSheet(
     init {
         binding.searchBtn.setOnClickListener { dismiss() }
         binding.resetBtn.setOnClickListener { onResetClicked() }
+        binding.saveBtn.setOnClickListener { onSaveClicked() }
 
         sheetBehavior.peekHeight = 450.dpToPx
         sheetBehavior.collapse()
@@ -120,14 +123,34 @@ class SourceFilterSheet(
         array.recycle()
     }
 
-    override fun dismiss() {
+    override fun dismiss() = dismiss(triggerSearch = true)
+
+    private fun dismiss(triggerSearch: Boolean) {
         super.dismiss()
-        if (filterChanged) {
+        if (triggerSearch && filterChanged) {
             onSearchClicked()
         }
     }
 
+    /** Set once before showing the sheet - a row offering the saved-search list is pinned atop [setFilters] while true. */
+    private var hasSavedSearches = false
+
+    fun setSavedSearchesVisible(visible: Boolean) {
+        hasSavedSearches = visible
+    }
+
     fun setFilters(items: List<IFlexible<*>>) {
-        adapter.updateDataSet(items)
+        val prefix: List<IFlexible<*>> =
+            if (hasSavedSearches) {
+                listOf(
+                    SavedSearchesHeaderItem {
+                        dismiss(triggerSearch = false)
+                        onSavedSearchesClicked()
+                    },
+                )
+            } else {
+                emptyList()
+            }
+        adapter.updateDataSet(prefix + items)
     }
 }

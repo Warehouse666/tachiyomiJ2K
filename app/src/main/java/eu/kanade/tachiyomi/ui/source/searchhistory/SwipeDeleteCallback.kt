@@ -15,11 +15,15 @@ class SwipeDeleteCallback(
         target: RecyclerView.ViewHolder,
     ) = false
 
+    override fun getSwipeDirs(
+        recyclerView: RecyclerView,
+        viewHolder: RecyclerView.ViewHolder,
+    ): Int = if (viewHolder is ISwipeableViewHolder) super.getSwipeDirs(recyclerView, viewHolder) else 0
+
     override fun onSwiped(
         viewHolder: RecyclerView.ViewHolder,
         direction: Int,
     ) {
-        (viewHolder as? ISwipeableViewHolder)?.swipeableView?.translationX = 0f
         val position = viewHolder.bindingAdapterPosition
         if (position != RecyclerView.NO_POSITION) onSwiped.invoke(position)
     }

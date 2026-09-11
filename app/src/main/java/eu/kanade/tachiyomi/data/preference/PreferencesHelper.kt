@@ -394,6 +394,23 @@ class PreferencesHelper(
             emptyList(),
         )
 
+    /** User-named, permanently saved query/filter presets - unlike [browseSearchHistory], never auto-trimmed. */
+    fun savedSearches() =
+        flowPrefs.getObject(
+            Keys.savedSearches,
+            object : Serializer<List<SearchHistoryEntry>> {
+                override fun serialize(value: List<SearchHistoryEntry>): String = Json.encodeToString(value)
+
+                override fun deserialize(serialized: String): List<SearchHistoryEntry> =
+                    try {
+                        Json.decodeFromString(serialized)
+                    } catch (e: Exception) {
+                        emptyList()
+                    }
+            },
+            emptyList(),
+        )
+
     fun migrationSourceOrder() = flowPrefs.getInt("migration_source_order", Values.MigrationSourceOrder.Alphabetically.value)
 
     fun collapsedCategories() = flowPrefs.getStringSet("collapsed_categories", mutableSetOf())

@@ -1,17 +1,21 @@
 package eu.kanade.tachiyomi.ui.source.searchhistory
 
+import android.content.ClipData
 import android.content.Context
+import android.os.Build
 import android.util.AttributeSet
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewPropertyAnimator
 import android.view.inputmethod.InputMethodManager
 import android.widget.LinearLayout
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.content.getSystemService
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.doOnNextLayout
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePaddingRelative
@@ -20,11 +24,13 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import com.mikepenz.fastadapter.FastAdapter
+import com.mikepenz.fastadapter.GenericItem
 import com.mikepenz.fastadapter.adapters.ItemAdapter
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.databinding.SearchHistoryViewBinding
 import eu.kanade.tachiyomi.ui.main.MainActivity
+import eu.kanade.tachiyomi.util.system.clipboardManager
 import eu.kanade.tachiyomi.util.system.getResourceColor
 import eu.kanade.tachiyomi.util.view.GroupedRowDivider
 import eu.kanade.tachiyomi.util.view.snack
@@ -32,16 +38,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import uy.kohesive.injekt.injectLazy
 
-/**
- * Recent browse queries, shown over a browse screen's content while its search bar is open and
- * empty. Reads the pref itself so a query saved on one screen shows up on the next one.
- */
 class SearchHistoryView
     @JvmOverloads
     constructor(
@@ -50,14 +52,28 @@ class SearchHistoryView
     ) : LinearLayout(context, attrs) {
         private val preferences: PreferencesHelper by injectLazy()
         private val binding: SearchHistoryViewBinding
-        private val itemAdapter = ItemAdapter<SearchHistoryItem>()
-        private val fastAdapter = FastAdapter.with(itemAdapter)
+        private val savedHeaderAdapter = ItemAdapter<GenericItem>()
+        private val savedItemsAdapter = ItemAdapter<GenericItem>()
+        private val recentHeaderAdapter = ItemAdapter<GenericItem>()
+        private val recentItemsAdapter = ItemAdapter<GenericItem>()
+        private val fastAdapter: FastAdapter<GenericItem> =
+            FastAdapter.with(listOf(savedHeaderAdapter, savedItemsAdapter, recentHeaderAdapter, recentItemsAdapter))
         private var scope: CoroutineScope? = null
+        private var visibilityAnimator: ViewPropertyAnimator? = null
+        private var lastHistory: List<SearchHistoryEntry> = emptyList()
+        private var lastSaved: List<SearchHistoryEntry> = emptyList()
+
+        /** Tracks the target shown/hidden state immediately, unlike [isVisible] when animated */
+        var historyShown = false
+            private set
 
         var onQueryClicked: (SearchHistoryEntry) -> Unit = { _ -> }
         var onQueryFilled: (String) -> Unit = { _ -> }
         var onHistoryEmptied: () -> Unit = { }
+        var onSaveHistoryEntry: (SearchHistoryEntry) -> Unit = { _ -> }
+        var onEditSavedSearch: (SearchHistoryEntry) -> Unit = { _ -> }
         var showFilterSnapshots: Boolean = true
+        var currentSourceId: Long? = null
 
         init {
             orientation = VERTICAL
@@ -66,19 +82,37 @@ class SearchHistoryView
             binding.recycler.layoutManager = LinearLayoutManager(context)
             binding.recycler.adapter = fastAdapter
             binding.recycler.addItemDecoration(
-                GroupedRowDivider(context, isGroupedRow = { it is SearchHistoryItem.ViewHolder }),
+                GroupedRowDivider(
+                    context,
+                    isGroupedRow = { it is SearchRowItem.ViewHolder },
+                ),
             )
             fastAdapter.onClickListener = { _, _, item, _ ->
-                onQueryClicked(SearchHistoryEntry(item.query, item.filters, item.timestamp, item.sourceId))
+                if (item is SearchRowItem) {
+                    val entry = item.entry
+                    if (entry.name == null) {
+                        // move to top - a saved search isn't reordered by use
+                        preferences.addToSearchHistory(entry.query, entry.filters, entry.sourceId)
+                    }
+                    onQueryClicked(entry)
+                }
                 true
             }
-            fastAdapter.onLongClickListener = { view, _, _, position ->
-                showDeletePopup(view, position)
-                true
+            fastAdapter.onLongClickListener = { view, _, item, _ ->
+                if (item is SearchRowItem) {
+                    if (item.entry.name == null) showRecentPopup(view, item.entry) else showSavedPopup(view, item.entry)
+                    true
+                } else {
+                    false
+                }
             }
-            binding.clearAllButton.setOnClickListener { preferences.clearSearchHistory() }
 
-            val swipeCallback = SwipeDeleteCallback { position -> deleteAt(position) }
+            val swipeCallback =
+                SwipeDeleteCallback { position ->
+                    (fastAdapter.getItem(position) as? SearchRowItem)?.entry?.let { entry ->
+                        if (entry.name == null) deleteRecentAt(entry) else deleteSavedAt(entry)
+                    }
+                }
             ItemTouchHelper(swipeCallback).attachToRecyclerView(binding.recycler)
 
             binding.recycler.addOnScrollListener(
@@ -101,11 +135,11 @@ class SearchHistoryView
             super.onAttachedToWindow()
             val newScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
             scope = newScope
-            preferences
-                .browseSearchHistory()
-                .asFlow()
-                .onEach(::setHistory)
-                .launchIn(newScope)
+            combine(
+                preferences.browseSearchHistory().asFlow(),
+                preferences.savedSearches().asFlow(),
+                ::setHistory,
+            ).launchIn(newScope)
         }
 
         override fun onDetachedFromWindow() {
@@ -114,72 +148,240 @@ class SearchHistoryView
             scope = null
         }
 
+        /** Fades the whole overlay in or out instead of popping it on/off screen. */
+        fun setAnimatedVisible(visible: Boolean) {
+            if (historyShown == visible) return
+            historyShown = visible
+            visibilityAnimator?.cancel()
+            if (visible) {
+                alpha = 0f
+                isVisible = true
+                if (isLaidOut) {
+                    fadeIn()
+                } else {
+                    // freshly added to the hierarchy - animating before its first layout pass
+                    // just snaps straight to the end value instead of visibly fading in
+                    doOnNextLayout { if (historyShown) fadeIn() }
+                }
+            } else {
+                visibilityAnimator =
+                    animate()
+                        .alpha(0f)
+                        .setDuration(FADE_DURATION)
+                        .withEndAction {
+                            isVisible = false
+                            visibilityAnimator = null
+                        }
+                visibilityAnimator?.start()
+            }
+        }
+
+        private fun fadeIn() {
+            visibilityAnimator =
+                animate()
+                    .alpha(1f)
+                    .setDuration(FADE_DURATION)
+                    .withEndAction { visibilityAnimator = null }
+            visibilityAnimator?.start()
+        }
+
         fun setContentPadding(
             top: Int,
             bottom: Int,
         ) {
-            binding.header.updatePaddingRelative(top = top)
-            binding.recycler.updatePaddingRelative(bottom = bottom)
+            binding.recycler.updatePaddingRelative(top = top, bottom = bottom)
         }
 
         fun scrollToTop() = binding.recycler.scrollToPosition(0)
 
-        private fun showDeletePopup(
+        private fun showRecentPopup(
             anchor: View,
-            position: Int,
+            entry: SearchHistoryEntry,
         ) {
             val popup = PopupMenu(anchor.context, anchor, Gravity.NO_GRAVITY)
-            popup.menu.add(0, 0, 0, R.string.remove)
-            popup.setOnMenuItemClickListener {
-                deleteAt(position)
+            popup.menu.add(0, 0, 0, R.string.save)
+            popup.menu.add(0, 1, 1, R.string.copy_value)
+            popup.menu.add(0, 2, 2, R.string.remove)
+            popup.setOnMenuItemClickListener { menuItem ->
+                when (menuItem.itemId) {
+                    0 -> onSaveHistoryEntry(entry)
+                    1 -> copySummary(entry.query, entry.filters)
+                    else -> deleteRecentAt(entry)
+                }
                 true
             }
             popup.show()
         }
 
-        // remove locally first so the item animator plays; the flow's later same-size set() is a silent rebind
-        private fun deleteAt(position: Int) {
-            val item = itemAdapter.getAdapterItem(position)
-            val entry = SearchHistoryEntry(item.query, item.filters, item.timestamp, item.sourceId)
-            itemAdapter.remove(position)
-            preferences.removeFromSearchHistory(position)
+        private fun showSavedPopup(
+            anchor: View,
+            entry: SearchHistoryEntry,
+        ) {
+            val popup = PopupMenu(anchor.context, anchor, Gravity.NO_GRAVITY)
+            popup.menu.add(0, 0, 0, R.string.edit)
+            popup.menu.add(0, 1, 1, R.string.copy_value)
+            popup.menu.add(0, 2, 2, R.string.remove)
+            popup.setOnMenuItemClickListener { menuItem ->
+                when (menuItem.itemId) {
+                    0 -> onEditSavedSearch(entry)
+                    1 -> copySummary(entry.query, entry.filters)
+                    else -> deleteSavedAt(entry)
+                }
+                true
+            }
+            popup.show()
+        }
+
+        private fun copySummary(
+            query: String,
+            filters: List<SavedFilter>,
+        ) {
+            val summary =
+                (
+                    listOfNotNull(query.takeIf { it.isNotBlank() }) +
+                        filters.map { it.copyName }
+                ).joinToString(", ")
+            if (summary.isBlank()) return
+            val label = context.getString(R.string.search)
+            context.clipboardManager.setPrimaryClip(ClipData.newPlainText(label, summary))
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+                snack(context.getString(R.string._copied_to_clipboard, label))
+                    .moveAboveSafeAreas(context)
+            }
+        }
+
+        private fun deleteRecentAt(entry: SearchHistoryEntry) {
+            preferences.removeFromSearchHistory(entry)
             val undoSnack =
                 snack(R.string.search_removed) {
                     setAction(R.string.undo) {
-                        preferences.reinsertIntoSearchHistory(entry, position)
+                        preferences.reinsertIntoSearchHistory(entry)
                     }
                 }
             undoSnack.moveAboveSafeAreas(context)
             (context as? MainActivity)?.setUndoSnackBar(undoSnack)
         }
 
-        private fun setHistory(history: List<SearchHistoryEntry>) {
-            val shown = if (showFilterSnapshots) history else history.filter { it.query.isNotBlank() }
-            itemAdapter.set(
-                shown.mapIndexed { index, entry ->
-                    SearchHistoryItem(
-                        query = entry.query,
-                        filters = entry.filters,
-                        timestamp = entry.timestamp,
-                        sourceId = entry.sourceId,
-                        isTopOfGroup = index == 0,
-                        isBottomOfGroup = index == shown.lastIndex,
-                        onFillClicked = { onQueryFilled(it) },
+        private fun deleteSavedAt(entry: SearchHistoryEntry) {
+            preferences.removeSavedSearch(entry.id)
+            val undoSnack =
+                snack(R.string.search_removed) {
+                    setAction(R.string.undo) {
+                        preferences.reinsertSavedSearch(entry)
+                    }
+                }
+            undoSnack.moveAboveSafeAreas(context)
+            (context as? MainActivity)?.setUndoSnackBar(undoSnack)
+        }
+
+        /** Same filtering [setHistory] applies to the saved section, kept in one place since both it and [refreshSavedItems] need it. */
+        private fun computeShownSaved(): List<SearchHistoryEntry> =
+            lastSaved
+                .applicableTo(currentSourceId)
+                .let { if (showFilterSnapshots) it else it.filter { entry -> entry.query.isNotBlank() } }
+                .distinctBy { it.id }
+                .sortedBy { it.name?.lowercase() ?: "" }
+
+        /**
+         * Rebuilds only [savedItemsAdapter] - used for the collapse/expand toggle so it doesn't
+         * also re-set the header (which would replay its own item-level animation on top of the
+         * chevron's) or the unrelated recent-searches adapters.
+         */
+        private fun refreshSavedItems() {
+            val shownSaved = computeShownSaved()
+            savedItemsAdapter.set(
+                if (savedSearchesCollapsed) {
+                    emptyList()
+                } else {
+                    shownSaved.mapIndexed { index, entry ->
+                        SearchRowItem(
+                            entry = entry,
+                            isTopOfGroup = index == 0,
+                            isBottomOfGroup = index == shownSaved.lastIndex,
+                            onFillClicked = { onQueryFilled(it) },
+                            onTrailingClicked = onEditSavedSearch,
+                        )
+                    }
+                },
+            )
+        }
+
+        private fun setHistory(
+            history: List<SearchHistoryEntry>,
+            saved: List<SearchHistoryEntry>,
+        ) {
+            lastHistory = history
+            lastSaved = saved
+            val shownHistory =
+                (if (showFilterSnapshots) history else history.filter { it.query.isNotBlank() })
+                    .distinctBy { it.id }
+            val shownSaved = computeShownSaved()
+
+            savedHeaderAdapter.set(
+                if (shownSaved.isEmpty()) {
+                    emptyList()
+                } else {
+                    listOf(
+                        SearchHistorySectionHeaderItem(
+                            R.string.saved_searches,
+                            collapsible = true,
+                            collapsed = savedSearchesCollapsed,
+                            onToggleCollapsed = {
+                                savedSearchesCollapsed = !savedSearchesCollapsed
+                                refreshSavedItems()
+                                savedSearchesCollapsed
+                            },
+                        ),
                     )
                 },
             )
-            if (shown.isEmpty() && isVisible) {
+            refreshSavedItems()
+            recentHeaderAdapter.set(
+                if (shownHistory.isEmpty()) {
+                    emptyList()
+                } else {
+                    listOf(
+                        SearchHistorySectionHeaderItem(
+                            R.string.recent_searches,
+                            showClearAll = true,
+                            onClearAll = { preferences.clearSearchHistory() },
+                        ),
+                    )
+                },
+            )
+            recentItemsAdapter.set(
+                shownHistory.mapIndexed { index, entry ->
+                    SearchRowItem(
+                        entry = entry,
+                        isTopOfGroup = index == 0,
+                        isBottomOfGroup = index == shownHistory.lastIndex,
+                        onFillClicked = { onQueryFilled(it) },
+                        onTrailingClicked = onSaveHistoryEntry,
+                    )
+                },
+            )
+            if (shownHistory.isEmpty() && shownSaved.isEmpty() && isVisible) {
                 onHistoryEmptied()
             }
         }
 
         companion object {
+            private var savedSearchesCollapsed = false
+
             fun hasHistory(
                 preferences: PreferencesHelper = Injekt.get(),
                 includeFilterSnapshots: Boolean = true,
+                sourceId: Long? = null,
             ): Boolean =
                 preferences.showBrowseSearchHistory().get() &&
-                    preferences.browseSearchHistory().get().any { includeFilterSnapshots || it.query.isNotBlank() }
+                    (
+                        preferences.browseSearchHistory().get().any { includeFilterSnapshots || it.query.isNotBlank() } ||
+                            preferences
+                                .savedSearches()
+                                .get()
+                                .applicableTo(sourceId)
+                                .any { includeFilterSnapshots || it.query.isNotBlank() }
+                    )
         }
     }
 
@@ -199,3 +401,5 @@ fun Snackbar.moveAboveSafeAreas(context: Context): Snackbar {
     }
     return this
 }
+
+private const val FADE_DURATION = 150L
