@@ -6,53 +6,35 @@ import kotlinx.serialization.Serializable
 
 private const val SEARCH_HISTORY_LIMIT = 20
 
+/** [timestamp] is each entry's identity, so the same query can be saved again with new filters. */
 @Serializable
 data class SearchHistoryEntry(
     val query: String,
     val filters: List<SavedFilter> = emptyList(),
-    // timestamp saved as a key for entries without a query
     val timestamp: Long? = null,
     val sourceId: Long? = null,
 )
 
 /**
- * @param filters filters that were changed from the source's default when this query was searched.
+ * @param filters filters that changed from the source's default when this was saved.
  * @param sourceId the source being searched, so its extension's incognito setting counts too.
  * Null for global search, which only cares about the app wide one.
  */
 fun PreferencesHelper.addToSearchHistory(
-    query: String,
+    query: String = "",
     filters: List<SavedFilter> = emptyList(),
     sourceId: Long? = null,
 ) {
     if (!showBrowseSearchHistory().get()) return
     if (isIncognitoModeForSource(sourceId, this)) return
     val trimmedQuery = query.trim()
-    if (trimmedQuery.isBlank()) return
+    if (trimmedQuery.isBlank() && filters.isEmpty()) return
     val pref = browseSearchHistory()
-    // drop the old copy first so searching the same thing twice bumps it instead of doubling up
+    val entry = SearchHistoryEntry(trimmedQuery, filters, System.currentTimeMillis(), sourceId)
+    // bump instead of duplicating only when it's a truly identical repeat - same query, same filters
     val history =
-        listOf(SearchHistoryEntry(trimmedQuery, filters, sourceId = sourceId)) +
-            pref.get().filterNot { it.query.equals(trimmedQuery, true) }
+        listOf(entry) + pref.get().filterNot { it.query.equals(trimmedQuery, true) && it.filters == filters }
     pref.set(history.take(SEARCH_HISTORY_LIMIT))
-}
-
-/**
- * Saves a dateless filter change as its own entry, for when the filter sheet closes with
- * something changed but no search query to attach it to. Each snapshot is kept as its own entry
- * (unlike [addToSearchHistory], which dedupes by query) since a blank query isn't a meaningful
- * identity to collapse multiple snapshots onto.
- */
-fun PreferencesHelper.addFilterSnapshotToSearchHistory(
-    filters: List<SavedFilter>,
-    sourceId: Long? = null,
-) {
-    if (!showBrowseSearchHistory().get()) return
-    if (isIncognitoModeForSource(sourceId, this)) return
-    if (filters.isEmpty()) return
-    val pref = browseSearchHistory()
-    val entry = SearchHistoryEntry(query = "", filters = filters, timestamp = System.currentTimeMillis(), sourceId = sourceId)
-    pref.set((listOf(entry) + pref.get()).take(SEARCH_HISTORY_LIMIT))
 }
 
 fun PreferencesHelper.removeFromSearchHistory(position: Int) {

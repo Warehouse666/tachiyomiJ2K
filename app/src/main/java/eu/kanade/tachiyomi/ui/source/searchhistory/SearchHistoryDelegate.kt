@@ -34,6 +34,7 @@ import uy.kohesive.injekt.api.get
  * [eu.kanade.tachiyomi.ui.source.globalsearch.GlobalSearchController] leave this off. A lambda
  * (not a fixed value) since e.g. whether the current source even has filters isn't known yet
  * when this delegate is constructed.
+ * @param extraBottomPadding extra clearance for whatever floats over the bottom of [recycler]
  */
 class SearchHistoryDelegate(
     private val controller: Controller,
@@ -44,6 +45,7 @@ class SearchHistoryDelegate(
     private val requireSearchExpanded: Boolean = true,
     private val onApplyFilters: (List<SavedFilter>, Long?) -> FilterApplyResult = { _, _ -> FilterApplyResult.ALL },
     private val showFilterSnapshots: () -> Boolean = { false },
+    private val extraBottomPadding: () -> Int = { 0 },
 ) {
     private val preferences: PreferencesHelper by lazy { Injekt.get() }
 
@@ -101,7 +103,7 @@ class SearchHistoryDelegate(
             } else {
                 recycler.paddingTop
             }
-        view?.setContentPadding(top = visibleAppBarHeight, bottom = recycler.paddingBottom)
+        view?.setContentPadding(top = visibleAppBarHeight, bottom = recycler.paddingBottom + extraBottomPadding())
     }
 
     fun setVisible(show: Boolean) {

@@ -21,7 +21,8 @@ class SearchHistoryItem(
 
     override val layoutRes: Int = R.layout.search_history_item
 
-    override var identifier = if (query.isNotBlank()) query.hashCode().toLong() else timestamp ?: 0L
+    // falls back to the query for older stored entries saved before every entry got a timestamp
+    override var identifier = timestamp ?: query.hashCode().toLong()
 
     override fun getViewHolder(v: View): FastAdapter.ViewHolder<SearchHistoryItem> = ViewHolder(v)
 
