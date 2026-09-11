@@ -964,6 +964,10 @@
     <string name="show_recent_searches">Show recent searches</string>
     <string name="search_history_cleared">Search history cleared</string>
     <string name="search_removed">Search term removed</string>
+    <string name="filters">Filters: (%1$s)</string>
+    <string name="parenthesis" translatable="false">(%1$s)</string>
+    <string name="some_filters_not_applied">Some filters could not be applied</string>
+    <string name="no_filters_applied">No filters could be applied</string>
     <string name="hide_in_library_items">Hide entries already in library</string>
     <string name="show_duplicate_in_library_items">Show \"Duplicate\" badge</string>
     <string name="show_duplicate_in_library_items_summary">Display a \"Duplicate\" badge for entries already in library from another extension. Note: Some duplicates may not be detected due to differences in names or URLs.</string>

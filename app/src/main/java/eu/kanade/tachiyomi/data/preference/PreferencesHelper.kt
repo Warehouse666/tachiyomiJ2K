@@ -27,6 +27,7 @@ import eu.kanade.tachiyomi.ui.reader.settings.ReadingModeType
 import eu.kanade.tachiyomi.ui.reader.viewer.ViewerNavigation
 import eu.kanade.tachiyomi.ui.recents.RecentMangaAdapter
 import eu.kanade.tachiyomi.ui.recents.RecentsPresenter
+import eu.kanade.tachiyomi.ui.source.searchhistory.SearchHistoryEntry
 import eu.kanade.tachiyomi.util.system.Themes
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -380,10 +381,10 @@ class PreferencesHelper(
     fun browseSearchHistory() =
         flowPrefs.getObject(
             Keys.browseSearchHistory,
-            object : Serializer<List<String>> {
-                override fun serialize(value: List<String>): String = Json.encodeToString(value)
+            object : Serializer<List<SearchHistoryEntry>> {
+                override fun serialize(value: List<SearchHistoryEntry>): String = Json.encodeToString(value)
 
-                override fun deserialize(serialized: String): List<String> =
+                override fun deserialize(serialized: String): List<SearchHistoryEntry> =
                     try {
                         Json.decodeFromString(serialized)
                     } catch (e: Exception) {

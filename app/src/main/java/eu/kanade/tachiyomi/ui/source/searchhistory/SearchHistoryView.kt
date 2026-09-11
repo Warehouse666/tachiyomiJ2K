@@ -6,8 +6,10 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.InputMethodManager
 import android.widget.LinearLayout
 import androidx.appcompat.widget.PopupMenu
+import androidx.core.content.getSystemService
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
@@ -15,6 +17,8 @@ import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePaddingRelative
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.snackbar.Snackbar
 import com.mikepenz.fastadapter.FastAdapter
 import com.mikepenz.fastadapter.adapters.ItemAdapter
 import eu.kanade.tachiyomi.R
@@ -33,7 +37,6 @@ import kotlinx.coroutines.flow.onEach
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import uy.kohesive.injekt.injectLazy
-import kotlin.collections.isNotEmpty
 
 /**
  * Recent browse queries, shown over a browse screen's content while its search bar is open and
@@ -51,9 +54,10 @@ class SearchHistoryView
         private val fastAdapter = FastAdapter.with(itemAdapter)
         private var scope: CoroutineScope? = null
 
-        var onQueryClicked: (String) -> Unit = { _ -> }
+        var onQueryClicked: (SearchHistoryEntry) -> Unit = { _ -> }
         var onQueryFilled: (String) -> Unit = { _ -> }
         var onHistoryEmptied: () -> Unit = { }
+        var showFilterSnapshots: Boolean = true
 
         init {
             orientation = VERTICAL
@@ -65,7 +69,7 @@ class SearchHistoryView
                 GroupedRowDivider(context, isGroupedRow = { it is SearchHistoryItem.ViewHolder }),
             )
             fastAdapter.onClickListener = { _, _, item, _ ->
-                onQueryClicked(item.query)
+                onQueryClicked(SearchHistoryEntry(item.query, item.filters, item.timestamp, item.sourceId))
                 true
             }
             fastAdapter.onLongClickListener = { view, _, _, position ->
@@ -76,6 +80,21 @@ class SearchHistoryView
 
             val swipeCallback = SwipeDeleteCallback { position -> deleteAt(position) }
             ItemTouchHelper(swipeCallback).attachToRecyclerView(binding.recycler)
+
+            binding.recycler.addOnScrollListener(
+                object : RecyclerView.OnScrollListener() {
+                    override fun onScrollStateChanged(
+                        recyclerView: RecyclerView,
+                        newState: Int,
+                    ) {
+                        if (newState == RecyclerView.SCROLL_STATE_DRAGGING) {
+                            context
+                                .getSystemService<InputMethodManager>()
+                                ?.hideSoftInputFromWindow(windowToken, 0)
+                        }
+                    }
+                },
+            )
         }
 
         override fun onAttachedToWindow() {
@@ -95,7 +114,6 @@ class SearchHistoryView
             scope = null
         }
 
-        /** Mirrors the host recycler's insets so the list clears the app bar and bottom nav. */
         fun setContentPadding(
             top: Int,
             bottom: Int,
@@ -121,53 +139,63 @@ class SearchHistoryView
 
         // remove locally first so the item animator plays; the flow's later same-size set() is a silent rebind
         private fun deleteAt(position: Int) {
-            val query = itemAdapter.getAdapterItem(position).query
+            val item = itemAdapter.getAdapterItem(position)
+            val entry = SearchHistoryEntry(item.query, item.filters, item.timestamp, item.sourceId)
             itemAdapter.remove(position)
-            preferences.removeFromSearchHistory(query)
+            preferences.removeFromSearchHistory(position)
             val undoSnack =
                 snack(R.string.search_removed) {
                     setAction(R.string.undo) {
-                        preferences.reinsertIntoSearchHistory(query, position)
+                        preferences.reinsertIntoSearchHistory(entry, position)
                     }
                 }
-            // lift the snackbar above the keyboard, which is still up while browsing history,
-            // and never let it sit lower than the bottom nav bar - that's app UI, not a system
-            // inset, so it isn't covered by ime()/systemBars() and the snackbar can't render over it
-            val mainActivity = context as? MainActivity
-            val bottomNav = mainActivity?.binding?.bottomNav?.takeIf { it.isVisible }
-            val bottomNavHeight = bottomNav?.let { (it.height - it.translationY).toInt().coerceAtLeast(0) } ?: 0
-            ViewCompat.setOnApplyWindowInsetsListener(undoSnack.view) { snackView, insets ->
-                val bottomInset =
-                    insets
-                        .getInsets(WindowInsetsCompat.Type.ime() or WindowInsetsCompat.Type.systemBars())
-                        .bottom
-                snackView.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                    bottomMargin = maxOf(bottomInset, bottomNavHeight)
-                }
-                insets
-            }
-            mainActivity?.setUndoSnackBar(undoSnack)
+            undoSnack.moveAboveSafeAreas(context)
+            (context as? MainActivity)?.setUndoSnackBar(undoSnack)
         }
 
-        private fun setHistory(history: List<String>) {
+        private fun setHistory(history: List<SearchHistoryEntry>) {
+            val shown = if (showFilterSnapshots) history else history.filter { it.query.isNotBlank() }
             itemAdapter.set(
-                history.mapIndexed { index, query ->
+                shown.mapIndexed { index, entry ->
                     SearchHistoryItem(
-                        query = query,
+                        query = entry.query,
+                        filters = entry.filters,
+                        timestamp = entry.timestamp,
+                        sourceId = entry.sourceId,
                         isTopOfGroup = index == 0,
-                        isBottomOfGroup = index == history.lastIndex,
+                        isBottomOfGroup = index == shown.lastIndex,
                         onFillClicked = { onQueryFilled(it) },
                     )
                 },
             )
-            if (history.isEmpty() && isVisible) {
+            if (shown.isEmpty() && isVisible) {
                 onHistoryEmptied()
             }
         }
 
         companion object {
-            fun hasHistory(preferences: PreferencesHelper = Injekt.get()): Boolean =
+            fun hasHistory(
+                preferences: PreferencesHelper = Injekt.get(),
+                includeFilterSnapshots: Boolean = true,
+            ): Boolean =
                 preferences.showBrowseSearchHistory().get() &&
-                    preferences.browseSearchHistory().get().isNotEmpty()
+                    preferences.browseSearchHistory().get().any { includeFilterSnapshots || it.query.isNotBlank() }
         }
     }
+
+fun Snackbar.moveAboveSafeAreas(context: Context): Snackbar {
+    val mainActivity = context as? MainActivity
+    val bottomNav = mainActivity?.binding?.bottomNav?.takeIf { it.isVisible }
+    val bottomNavHeight = bottomNav?.let { (it.height - it.translationY).toInt().coerceAtLeast(0) } ?: 0
+    ViewCompat.setOnApplyWindowInsetsListener(view) { snackView, insets ->
+        val bottomInset =
+            insets
+                .getInsets(WindowInsetsCompat.Type.ime() or WindowInsetsCompat.Type.systemBars())
+                .bottom
+        snackView.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+            bottomMargin = maxOf(bottomInset, bottomNavHeight)
+        }
+        insets
+    }
+    return this
+}
