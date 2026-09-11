@@ -7,9 +7,8 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
- * A source-independent snapshot of one changed [Filter]'s state, keyed by [name] instead of
- * position so it can be matched against a *different* source's filter list later - unlike an
- * index, a filter name (and a [Select]/[Sort]'s chosen value label) still means something there.
+ * A source-independent snapshot of one changed [Filter]'s state, keyed by [name] (not position)
+ * so it can be matched against a *different* source's filter list later.
  */
 @Serializable
 sealed class SavedFilter {
@@ -99,17 +98,12 @@ private fun looselyMatchesType(
         is SavedFilter.CheckBox, is SavedFilter.TriState ->
             filter is Filter.CheckBox || filter is Filter.TriState
         is SavedFilter.Text, is SavedFilter.Select, is SavedFilter.Sort ->
-            // Some sources might have the same filter logic but extended to a group of checkbox
             filter is Filter.Text || filter is Filter.Select<*> || filter is Filter.Sort || filter is Filter.Group<*>
         is SavedFilter.Group ->
             filter is Filter.Group<*> || filter is Filter.Text || filter is Filter.Select<*> || filter is Filter.Sort
     }
 
-/**
- * Loosely equal for the purposes of cross-source filter matching: punctuation and spaces are
- * stripped before comparing (so e.g. "Oneshot" vs. "One-shot"), and a
- * match also counts if the shorter of the two strings is contained within the longer one.
- */
+/** Punctuation/case/spacing-insensitive, and true if either string contains the other. */
 private fun String.looselyMatches(other: String): Boolean {
     val a = normalizedForLooseMatch()
     val b = other.normalizedForLooseMatch()
@@ -151,10 +145,8 @@ private fun Filter<*>.toSavedFilter(default: Filter<*>?): SavedFilter? =
     }
 
 /**
- * The filters in `this` that differ from [default] - both must come from the same source (and
- * ideally the same, unedited [FilterList] instance from [eu.kanade.tachiyomi.source.CatalogueSource.getFilterList])
- * since they're compared by position, exactly like [eu.kanade.tachiyomi.ui.source.browse.BrowseSourcePresenter]'s
- * own default-tracking already does.
+ * The filters in `this` that differ from the [default], compared by position, like
+ * [eu.kanade.tachiyomi.ui.source.browse.BrowseSourcePresenter]'s own default-tracking does.
  */
 fun FilterList.diffFromDefault(default: FilterList): List<SavedFilter> =
     mapIndexedNotNull { index, filter -> filter.toSavedFilter(default.getOrNull(index)) }
@@ -202,13 +194,13 @@ private fun SavedFilter.applyTo(filter: Filter<*>): Boolean =
     }
 
 /**
- * Sets [value] onto [target] for whichever "one value out of many" filter kind it turns out to
- * be, including a [Filter.Group] - there, [value] is matched against a child's *name* (e.g.
- * "Completed") rather than the group's own name, and that child is switched on.
+ * Sets [value] as [target]'s state for whichever "one value out of many" kind it is, including a
+ * [Filter.Group] (matched against a child's name). [ascending] only matters for a [Filter.Sort].
  */
 private fun applyValueLoosely(
     value: String,
     target: Filter<*>,
+    ascending: Boolean? = null,
 ): Boolean =
     when (target) {
         is Filter.Text -> {
@@ -224,7 +216,7 @@ private fun applyValueLoosely(
         is Filter.Sort -> {
             val index = target.values.indexOfFirst { it.looselyMatches(value) }
             if (index == -1) return false
-            target.state = Filter.Sort.Selection(index, target.state?.ascending ?: true)
+            target.state = Filter.Sort.Selection(index, ascending ?: target.state?.ascending ?: true)
             true
         }
         is Filter.Group<*> -> {
@@ -243,11 +235,7 @@ private fun applyValueLoosely(
         else -> false
     }
 
-/**
- * The single value this group collapses to, if any - i.e. exactly one child is switched "on"
- * (a checked [Filter.CheckBox] or included [Filter.TriState]). A group with zero or several such
- * children has no single value a flat filter (or a differently-shaped group) could hold instead.
- */
+/** The one child switched "on" in this group, if exactly one is - else there's no single value to hand off. */
 private val SavedFilter.Group.singleIncludedChildName: String?
     get() =
         children
@@ -259,11 +247,7 @@ private val SavedFilter.Group.singleIncludedChildName: String?
                 }
             }.singleOrNull()
 
-/**
- * @param filters the full list [filter] came from - needed only so a [SavedFilter.Group]'s
- * children that don't fit in [filter] (it was matched by name/type alone, not by contents) can
- * each still get their own [applyValueAnywhere] chance elsewhere in the list.
- */
+/** [filters] is needed so a group child that doesn't fit [filter] can still search the rest of the list. */
 private fun SavedFilter.looselyApplyTo(
     filter: Filter<*>,
     filters: FilterList,
@@ -297,16 +281,7 @@ private fun SavedFilter.looselyApplyTo(
         }
         is SavedFilter.Text -> applyValueLoosely(text, filter)
         is SavedFilter.Select -> applyValueLoosely(value, filter)
-        is SavedFilter.Sort -> {
-            if (filter is Filter.Sort) {
-                val index = filter.values.indexOfFirst { it.looselyMatches(value) }
-                if (index == -1) return false
-                filter.state = Filter.Sort.Selection(index, ascending)
-                true
-            } else {
-                applyValueLoosely(value, filter)
-            }
-        }
+        is SavedFilter.Sort -> applyValueLoosely(value, filter, ascending)
         is SavedFilter.Group -> {
             when (filter) {
                 is Filter.Group<*> -> {
@@ -314,21 +289,14 @@ private fun SavedFilter.looselyApplyTo(
                     children.isNotEmpty() &&
                         children.all { saved ->
                             val exact = groupChildren.find { it.name.equals(saved.name, ignoreCase = true) && matchesType(it, saved) }
-                            val exactApplied = exact != null && saved.applyTo(exact)
-                            if (exactApplied) {
-                                true
-                            } else {
-                                val loose =
-                                    groupChildren.find { it.name.looselyMatches(saved.name) && looselyMatchesType(it, saved) }
-                                val looseApplied = loose != null && saved.looselyApplyTo(loose, filters)
-                                if (looseApplied) {
-                                    true
-                                } else {
-                                    // this child didn't fit into the group [filter] matched on
-                                    // name alone - it may just live under a differently-named
-                                    // group (or flat filter) entirely
-                                    saved.anyValue?.let { applyValueAnywhere(it, filters) } ?: false
-                                }
+                            val loose =
+                                groupChildren.find { it.name.looselyMatches(saved.name) && looselyMatchesType(it, saved) }
+                            when {
+                                exact != null && saved.applyTo(exact) -> true
+                                loose != null && saved.looselyApplyTo(loose, filters) -> true
+                                // this child didn't fit the group [filter] matched on name alone -
+                                // it may live under a differently-named group or flat filter
+                                else -> saved.anyValue?.let { applyValueAnywhere(it, filters) } ?: false
                             }
                         }
                 }
@@ -340,11 +308,8 @@ private fun SavedFilter.looselyApplyTo(
     }
 
 /**
- * The one value this filter represents, if it has a clear "chosen option" to look for elsewhere -
- * a checked [SavedFilter.CheckBox]/included [SavedFilter.TriState]'s own name, a
- * [SavedFilter.Text]/[SavedFilter.Select]/[SavedFilter.Sort]'s value, or a [SavedFilter.Group]'s
- * [singleIncludedChildName]. `null` for a checkbox/tristate that isn't actually turned on - there's
- * nothing meaningful to go looking for.
+ * The one value this filter represents - a checked/included name, a text/select/sort's value, or
+ * a [SavedFilter.Group]'s [singleIncludedChildName]. `null` when there's nothing to look for.
  */
 private val SavedFilter.anyValue: String?
     get() =
@@ -358,57 +323,24 @@ private val SavedFilter.anyValue: String?
         }
 
 /**
- * Last resort: ignore which filter [value] is even supposed to belong to, and just look for it
- * anywhere in [filters] - a top-level checkbox/tristate's own name, a select/sort's list of
- * values, or a group child's name. The same idea as how a manga's tags already get matched
- * against a filter list regardless of which filter they end up living in.
+ * Last resort: ignore names and look for [value] anywhere in [filters], the same way a
+ * manga's tags get matched against a filter list regardless of which filter they live in.
  */
 private fun applyValueAnywhere(
     value: String,
     filters: FilterList,
-    ascending: Boolean = true,
+    ascending: Boolean? = null,
 ): Boolean {
     for (filter in filters) {
-        when (filter) {
-            is Filter.CheckBox ->
-                if (filter.name.looselyMatches(value)) {
-                    filter.state = true
-                    return true
-                }
-            is Filter.TriState ->
-                if (filter.name.looselyMatches(value)) {
-                    filter.state = Filter.TriState.STATE_INCLUDE
-                    return true
-                }
-            is Filter.Select<*> -> {
-                val index = filter.values.indexOfFirst { it.toString().looselyMatches(value) }
-                if (index != -1) {
-                    filter.state = index
-                    return true
-                }
+        val applied =
+            when (filter) {
+                is Filter.CheckBox -> filter.name.looselyMatches(value).also { if (it) filter.state = true }
+                is Filter.TriState -> filter.name.looselyMatches(value).also { if (it) filter.state = Filter.TriState.STATE_INCLUDE }
+                // too aggressive to stuff an arbitrary value into an unrelated free-text field
+                is Filter.Text -> false
+                else -> applyValueLoosely(value, filter, ascending)
             }
-            is Filter.Sort -> {
-                val index = filter.values.indexOfFirst { it.looselyMatches(value) }
-                if (index != -1) {
-                    filter.state = Filter.Sort.Selection(index, ascending)
-                    return true
-                }
-            }
-            is Filter.Group<*> -> {
-                when (val child = filter.state.filterIsInstance<Filter<*>>().find { it.name.looselyMatches(value) }) {
-                    is Filter.CheckBox -> {
-                        child.state = true
-                        return true
-                    }
-                    is Filter.TriState -> {
-                        child.state = Filter.TriState.STATE_INCLUDE
-                        return true
-                    }
-                    else -> {}
-                }
-            }
-            else -> {}
-        }
+        if (applied) return true
     }
     return false
 }
@@ -421,16 +353,13 @@ enum class FilterApplyResult {
 }
 
 /**
- * Applies whichever of these remembered filters still have a same-named, same-kind match in
- * [filters] - which may belong to a different source than the one they were captured from.
- * Mutates matching filters' `.state` in place, mirroring how
- * [eu.kanade.tachiyomi.ui.source.browse.BrowseSourceController.searchGenres] already restores a
- * genre filter by name.
+ * Applies saved filters to [filters], which may belong to a different source. Mutates matching
+ * filters' `.state` in place, mirroring how
+ * [eu.kanade.tachiyomi.ui.source.browse.BrowseSourceController.searchGenres] restores a genre
+ * filter by name.
  *
- * @param strict skip the loose/anywhere fallback tiers entirely - only an exact name+kind match
- * counts. Safe (and preferred) when [filters] is known to be the very same source these were
- * captured from, since matching should already be exact there and loose matching only exists to
- * bridge *different* sources' filter lists.
+ * @param strict skip the loose/anywhere fallbacks - only an exact match counts. For when [filters]
+ * is are from the same source.
  */
 fun List<SavedFilter>.applyTo(
     filters: FilterList,
@@ -449,17 +378,13 @@ fun List<SavedFilter>.applyTo(
             } else {
                 val looseTarget = filters.find { it.name.looselyMatches(saved.name) && looselyMatchesType(it, saved) }
                 val looseApplied = looseTarget != null && saved.looselyApplyTo(looseTarget, filters)
-                if (looseApplied) {
-                    true
-                } else if (saved is SavedFilter.Group) {
-                    // no group in filters even loosely shares this one's name - fall back to
-                    // giving each of its children their own independent anywhere-search, since
-                    // a whole group with several children can't collapse to one anyValue
-                    saved.children.isNotEmpty() &&
-                        saved.children.all { child -> child.anyValue?.let { applyValueAnywhere(it, filters) } ?: false }
-                } else {
-                    val ascending = (saved as? SavedFilter.Sort)?.ascending ?: true
-                    saved.anyValue?.let { applyValueAnywhere(it, filters, ascending) } ?: false
+                when {
+                    looseApplied -> true
+                    // if no group even loosely matches, anywhere-search each child its own
+                    saved is SavedFilter.Group ->
+                        saved.children.isNotEmpty() &&
+                            saved.children.all { child -> child.anyValue?.let { applyValueAnywhere(it, filters) } ?: false }
+                    else -> saved.anyValue?.let { applyValueAnywhere(it, filters, (saved as? SavedFilter.Sort)?.ascending) } ?: false
                 }
             }
         if (applied) appliedCount++

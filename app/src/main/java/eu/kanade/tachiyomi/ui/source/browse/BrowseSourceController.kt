@@ -135,21 +135,13 @@ open class BrowseSourceController(
             container = { binding.sourceLayout },
             recycler = { recycler },
             onApplyFilters = { filters, sourceId ->
-                // start from default so a saved snapshot doesn't just layer on top of whatever
-                // else is currently toggled
                 val previousFilters = presenter.sourceFilters
                 presenter.sourceFilters = presenter.source.getFilterList()
-                // captured on this exact source - matching is already exact, no need to guess
                 val strict = sourceId == presenter.source.id
                 val result = filters.applyTo(presenter.sourceFilters, strict = strict)
                 if (result == FilterApplyResult.NONE) {
-                    // nothing landed - put back what was there before the reset above instead
-                    // of leaving the source wiped to default
                     presenter.sourceFilters = previousFilters
                 } else {
-                    // always re-search here (even for a query-carrying entry, where the query
-                    // submit right after will search again) since a filters-only snapshot has no
-                    // query submit to fall back on for actually applying the change
                     showProgressBar()
                     adapter?.clear()
                     presenter.setSourceFilter(presenter.sourceFilters)

@@ -6,17 +6,11 @@ import kotlinx.serialization.Serializable
 
 private const val SEARCH_HISTORY_LIMIT = 20
 
-/**
- * One remembered search: the query text, plus any filters that were changed from default when
- * it ran. [query] is blank for a filters-only snapshot (filters changed with nothing searched) -
- * such entries carry [timestamp] instead, so they can be shown/identified by date. [sourceId] is
- * the source it was captured on, so [filters] can be applied exactly (no loose matching needed)
- * when reused on that same source.
- */
 @Serializable
 data class SearchHistoryEntry(
     val query: String,
     val filters: List<SavedFilter> = emptyList(),
+    // timestamp saved as a key for entries without a query
     val timestamp: Long? = null,
     val sourceId: Long? = null,
 )
