@@ -12,6 +12,7 @@ import android.widget.LinearLayout
 import androidx.appcompat.widget.SearchView
 import androidx.core.graphics.ColorUtils
 import eu.kanade.tachiyomi.R
+import eu.kanade.tachiyomi.ui.base.controller.currentIncognitoSourceId
 import eu.kanade.tachiyomi.util.system.getResourceColor
 import eu.kanade.tachiyomi.widget.TachiyomiTextInputEditText.Companion.setIncognito
 import kotlinx.coroutines.CoroutineScope
@@ -51,7 +52,7 @@ class MiniSearchView
         override fun onAttachedToWindow() {
             super.onAttachedToWindow()
             scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
-            searchTextView?.setIncognito(scope!!)
+            searchTextView?.setIncognito(scope!!) { context.currentIncognitoSourceId() }
         }
 
         override fun onDetachedFromWindow() {
