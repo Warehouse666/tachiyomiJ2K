@@ -1,6 +1,7 @@
 package eu.kanade.tachiyomi.ui.source.searchhistory
 
 import android.graphics.Canvas
+import android.view.View
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
@@ -36,9 +37,13 @@ class SwipeDeleteCallback(
             super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
             return
         }
-        val swipeableView = (viewHolder as? ISwipeableViewHolder)?.swipeableView ?: viewHolder.itemView
-        (viewHolder as? ISwipeableViewHolder)?.leftBackView?.isVisible = dX > 0
-        (viewHolder as? ISwipeableViewHolder)?.rightBackView?.isVisible = dX < 0
+        val swipeable = viewHolder as? ISwipeableViewHolder
+        val swipeableView = swipeable?.swipeableView ?: viewHolder.itemView
+        swipeable?.leftBackView?.isVisible = dX > 0
+        swipeable?.rightBackView?.isVisible = dX < 0
+        // the rear card itself only needs to be drawn while actually swiped - at rest (or
+        // settling back to rest) the front view fully covers it anyway
+        (swipeable?.leftBackView?.parent as? View)?.isVisible = dX != 0f
         swipeableView.translationX = dX
     }
 }
