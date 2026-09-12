@@ -635,6 +635,13 @@ class ReaderViewModel(
 
         duplicateUnreadChapters.forEach { it.read = true }
         db.updateChaptersProgress(duplicateUnreadChapters).executeAsBlocking()
+
+        if (preferences.removeAfterReadSlots().get() != -1) {
+            val downloadedDuplicates = duplicateUnreadChapters.filter { downloadManager.isChapterDownloaded(it, manga) }
+            if (downloadedDuplicates.isNotEmpty()) {
+                downloadManager.enqueueDeleteChapters(downloadedDuplicates, manga)
+            }
+        }
     }
 
     /**
