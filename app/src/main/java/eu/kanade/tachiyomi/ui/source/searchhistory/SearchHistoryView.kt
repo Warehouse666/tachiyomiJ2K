@@ -100,7 +100,7 @@ class SearchHistoryView
             }
             fastAdapter.onLongClickListener = { view, _, item, _ ->
                 if (item is SearchRowItem) {
-                    if (item.entry.name == null) showRecentPopup(view, item.entry) else showSavedPopup(view, item.entry)
+                    showRowPopup(view, item.entry)
                     true
                 } else {
                     false
@@ -109,9 +109,7 @@ class SearchHistoryView
 
             val swipeCallback =
                 SwipeDeleteCallback { position ->
-                    (fastAdapter.getItem(position) as? SearchRowItem)?.entry?.let { entry ->
-                        if (entry.name == null) deleteRecentAt(entry) else deleteSavedAt(entry)
-                    }
+                    (fastAdapter.getItem(position) as? SearchRowItem)?.entry?.let { deleteEntry(it) }
                 }
             ItemTouchHelper(swipeCallback).attachToRecyclerView(binding.recycler)
 
@@ -194,38 +192,20 @@ class SearchHistoryView
 
         fun scrollToTop() = binding.recycler.scrollToPosition(0)
 
-        private fun showRecentPopup(
+        private fun showRowPopup(
             anchor: View,
             entry: SearchHistoryEntry,
         ) {
+            val isSaved = entry.name != null
             val popup = PopupMenu(anchor.context, anchor, Gravity.NO_GRAVITY)
-            popup.menu.add(0, 0, 0, R.string.save)
+            popup.menu.add(0, 0, 0, if (isSaved) R.string.edit else R.string.save)
             popup.menu.add(0, 1, 1, R.string.copy_value)
             popup.menu.add(0, 2, 2, R.string.remove)
             popup.setOnMenuItemClickListener { menuItem ->
                 when (menuItem.itemId) {
-                    0 -> onSaveHistoryEntry(entry)
+                    0 -> if (isSaved) onEditSavedSearch(entry) else onSaveHistoryEntry(entry)
                     1 -> copySummary(entry.query, entry.filters)
-                    else -> deleteRecentAt(entry)
-                }
-                true
-            }
-            popup.show()
-        }
-
-        private fun showSavedPopup(
-            anchor: View,
-            entry: SearchHistoryEntry,
-        ) {
-            val popup = PopupMenu(anchor.context, anchor, Gravity.NO_GRAVITY)
-            popup.menu.add(0, 0, 0, R.string.edit)
-            popup.menu.add(0, 1, 1, R.string.copy_value)
-            popup.menu.add(0, 2, 2, R.string.remove)
-            popup.setOnMenuItemClickListener { menuItem ->
-                when (menuItem.itemId) {
-                    0 -> onEditSavedSearch(entry)
-                    1 -> copySummary(entry.query, entry.filters)
-                    else -> deleteSavedAt(entry)
+                    else -> deleteEntry(entry)
                 }
                 true
             }
@@ -250,24 +230,13 @@ class SearchHistoryView
             }
         }
 
-        private fun deleteRecentAt(entry: SearchHistoryEntry) {
-            preferences.removeFromSearchHistory(entry)
+        private fun deleteEntry(entry: SearchHistoryEntry) {
+            val isSaved = entry.name != null
+            if (isSaved) preferences.removeSavedSearch(entry.id) else preferences.removeFromSearchHistory(entry)
             val undoSnack =
                 snack(R.string.search_removed) {
                     setAction(R.string.undo) {
-                        preferences.reinsertIntoSearchHistory(entry)
-                    }
-                }
-            undoSnack.moveAboveSafeAreas(context)
-            (context as? MainActivity)?.setUndoSnackBar(undoSnack)
-        }
-
-        private fun deleteSavedAt(entry: SearchHistoryEntry) {
-            preferences.removeSavedSearch(entry.id)
-            val undoSnack =
-                snack(R.string.search_removed) {
-                    setAction(R.string.undo) {
-                        preferences.reinsertSavedSearch(entry)
+                        if (isSaved) preferences.reinsertSavedSearch(entry) else preferences.reinsertIntoSearchHistory(entry)
                     }
                 }
             undoSnack.moveAboveSafeAreas(context)
@@ -282,6 +251,20 @@ class SearchHistoryView
                 .distinctBy { it.id }
                 .sortedBy { it.name?.lowercase() ?: "" }
 
+        private fun buildRowItems(
+            entries: List<SearchHistoryEntry>,
+            onTrailingClicked: (SearchHistoryEntry) -> Unit,
+        ): List<GenericItem> =
+            entries.mapIndexed { index, entry ->
+                SearchRowItem(
+                    entry = entry,
+                    isTopOfGroup = index == 0,
+                    isBottomOfGroup = index == entries.lastIndex,
+                    onFillClicked = { onQueryFilled(it) },
+                    onTrailingClicked = onTrailingClicked,
+                )
+            }
+
         /**
          * Rebuilds only [savedItemsAdapter] - used for the collapse/expand toggle so it doesn't
          * also re-set the header (which would replay its own item-level animation on top of the
@@ -290,19 +273,7 @@ class SearchHistoryView
         private fun refreshSavedItems() {
             val shownSaved = computeShownSaved()
             savedItemsAdapter.set(
-                if (savedSearchesCollapsed) {
-                    emptyList()
-                } else {
-                    shownSaved.mapIndexed { index, entry ->
-                        SearchRowItem(
-                            entry = entry,
-                            isTopOfGroup = index == 0,
-                            isBottomOfGroup = index == shownSaved.lastIndex,
-                            onFillClicked = { onQueryFilled(it) },
-                            onTrailingClicked = onEditSavedSearch,
-                        )
-                    }
-                },
+                if (savedSearchesCollapsed) emptyList() else buildRowItems(shownSaved, onEditSavedSearch),
             )
         }
 
@@ -349,17 +320,7 @@ class SearchHistoryView
                     )
                 },
             )
-            recentItemsAdapter.set(
-                shownHistory.mapIndexed { index, entry ->
-                    SearchRowItem(
-                        entry = entry,
-                        isTopOfGroup = index == 0,
-                        isBottomOfGroup = index == shownHistory.lastIndex,
-                        onFillClicked = { onQueryFilled(it) },
-                        onTrailingClicked = onSaveHistoryEntry,
-                    )
-                },
-            )
+            recentItemsAdapter.set(buildRowItems(shownHistory, onSaveHistoryEntry))
             if (shownHistory.isEmpty() && shownSaved.isEmpty() && isVisible) {
                 onHistoryEmptied()
             }

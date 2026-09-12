@@ -19,7 +19,7 @@ import kotlinx.serialization.Serializable
 sealed class SavedFilter {
     abstract val name: String
     abstract val filterName: String
-    abstract val copyName: String
+    open val copyName: String get() = filterName
 
     @Serializable
     @SerialName("checkbox")
@@ -28,7 +28,6 @@ sealed class SavedFilter {
         val checked: Boolean,
     ) : SavedFilter() {
         override val filterName: String get() = name
-        override val copyName: String get() = filterName
     }
 
     @Serializable
@@ -38,7 +37,6 @@ sealed class SavedFilter {
         val state: Int,
     ) : SavedFilter() {
         override val filterName: String get() = name
-        override val copyName: String get() = filterName
     }
 
     @Serializable
@@ -48,7 +46,6 @@ sealed class SavedFilter {
         val text: String,
     ) : SavedFilter() {
         override val filterName: String get() = text
-        override val copyName: String get() = filterName
     }
 
     @Serializable
@@ -58,7 +55,6 @@ sealed class SavedFilter {
         val value: String,
     ) : SavedFilter() {
         override val filterName: String get() = "$name: $value"
-        override val copyName: String get() = "$name:$value"
     }
 
     @Serializable

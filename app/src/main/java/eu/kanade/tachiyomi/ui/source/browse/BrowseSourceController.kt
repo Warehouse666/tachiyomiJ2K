@@ -44,6 +44,7 @@ import eu.kanade.tachiyomi.ui.source.globalsearch.GlobalSearchController
 import eu.kanade.tachiyomi.ui.source.searchhistory.FilterApplyResult
 import eu.kanade.tachiyomi.ui.source.searchhistory.SaveSearchDialog
 import eu.kanade.tachiyomi.ui.source.searchhistory.SearchHistoryDelegate
+import eu.kanade.tachiyomi.ui.source.searchhistory.SearchHistoryEntry
 import eu.kanade.tachiyomi.ui.source.searchhistory.addToSearchHistory
 import eu.kanade.tachiyomi.ui.source.searchhistory.applicableTo
 import eu.kanade.tachiyomi.ui.source.searchhistory.applyTo
@@ -493,12 +494,11 @@ open class BrowseSourceController(
         }
         sheet.onSaveClicked = {
             val diff = presenter.sourceFilters.diffFromDefault(presenter.source.getFilterList())
+            val draft = SearchHistoryEntry(id = 0L, query = presenter.query, filters = diff, sourceId = presenter.source.id)
             SaveSearchDialog.show(
                 activity = activity!!,
-                existing = null,
-                query = presenter.query,
-                filters = diff,
-                sourceId = presenter.source.id,
+                entry = draft,
+                isExisting = false,
                 onSaved = {
                     sheet.setSavedSearchesVisible(true)
                     sheet.setFilters(presenter.filterItems)

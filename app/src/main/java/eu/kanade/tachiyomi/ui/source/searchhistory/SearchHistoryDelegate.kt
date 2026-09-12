@@ -92,21 +92,19 @@ class SearchHistoryDelegate(
                 }
                 onQueryFilled = { searchView()?.setQuery(it, false) }
                 onHistoryEmptied = { setVisible(false) }
-                onSaveHistoryEntry = { entry -> openSaveDialog(null, entry.query, entry.filters, entry.sourceId) }
-                onEditSavedSearch = { entry -> openSaveDialog(entry, entry.query, entry.filters, entry.sourceId) }
+                onSaveHistoryEntry = { entry -> openSaveDialog(entry, isExisting = false) }
+                onEditSavedSearch = { entry -> openSaveDialog(entry, isExisting = true) }
                 container().addView(this, ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT))
             }
         return view
     }
 
     private fun openSaveDialog(
-        existing: SearchHistoryEntry?,
-        query: String,
-        filters: List<SavedFilter>,
-        sourceId: Long?,
+        entry: SearchHistoryEntry,
+        isExisting: Boolean,
     ) {
         val activity = controller.activity ?: return
-        SaveSearchDialog.show(activity, existing, query, filters, sourceId)
+        SaveSearchDialog.show(activity, entry, isExisting)
     }
 
     /** Pads the history list under whatever height the app bar is currently showing on screen. */

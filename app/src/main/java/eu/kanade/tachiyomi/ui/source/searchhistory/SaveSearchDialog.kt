@@ -11,27 +11,24 @@ import eu.kanade.tachiyomi.source.SourceManager
 import eu.kanade.tachiyomi.util.system.materialAlertDialog
 import uy.kohesive.injekt.injectLazy
 
-/** Shows a dialog that creates a new saved [SearchHistoryEntry], or renames/re-flags an [existing] one. */
+/** Shows a dialog that creates a new or edit an existing [SearchHistoryEntry]. */
 object SaveSearchDialog {
     private val preferences by injectLazy<PreferencesHelper>()
     private val sourceManager by injectLazy<SourceManager>()
 
     fun show(
         activity: Activity,
-        existing: SearchHistoryEntry?,
-        query: String,
-        filters: List<SavedFilter>,
-        sourceId: Long?,
+        entry: SearchHistoryEntry,
+        isExisting: Boolean,
         onSaved: () -> Unit = {},
     ) {
         val binding = SaveSearchDialogBinding.inflate(activity.layoutInflater)
-        binding.name.append(existing?.name ?: "")
+        binding.name.append(entry.name ?: "")
 
-        if (sourceId != null) {
+        if (entry.sourceId != null) {
             binding.showOnSourceBtn.text =
-                binding.root.context.getString(R.string.only_x, sourceManager.getOrStub(sourceId).name)
-            val showOnAllSources = existing?.showOnAllSources ?: false
-            binding.showOnGroup.check(if (showOnAllSources) binding.showOnAllBtn.id else binding.showOnSourceBtn.id)
+                binding.root.context.getString(R.string.only_x, sourceManager.getOrStub(entry.sourceId).name)
+            binding.showOnGroup.check(if (entry.showOnAllSources) binding.showOnAllBtn.id else binding.showOnSourceBtn.id)
         } else {
             // nothing to scope to a single source - there's no choice to offer
             binding.showOnRow.isVisible = false
@@ -41,7 +38,7 @@ object SaveSearchDialog {
             activity
                 .materialAlertDialog()
                 .apply {
-                    setTitle(if (existing == null) R.string.save else R.string.edit)
+                    setTitle(if (isExisting) R.string.edit else R.string.save)
                     setView(binding.root)
                     setNegativeButton(android.R.string.cancel, null)
                     setPositiveButton(R.string.save) { _, _ ->
@@ -49,11 +46,12 @@ object SaveSearchDialog {
                             binding.name.text
                                 .toString()
                                 .trim()
-                        val showOnAllSources = sourceId == null || binding.showOnGroup.checkedButtonId == binding.showOnAllBtn.id
-                        if (existing == null) {
-                            preferences.addSavedSearch(name, query, filters, sourceId, showOnAllSources)
+                        val showOnAllSources =
+                            entry.sourceId == null || binding.showOnGroup.checkedButtonId == binding.showOnAllBtn.id
+                        if (isExisting) {
+                            preferences.updateSavedSearch(entry.id, name, showOnAllSources)
                         } else {
-                            preferences.updateSavedSearch(existing.id, name, showOnAllSources)
+                            preferences.addSavedSearch(name, entry.query, entry.filters, entry.sourceId, showOnAllSources)
                         }
                         onSaved()
                     }
@@ -71,7 +69,11 @@ object SaveSearchDialog {
                 positiveButton?.isEnabled = name.isNotBlank()
                 val conflicts =
                     name.isNotBlank() &&
-                        preferences.savedSearches().get().findConflictingEntry(name, sourceId, excludingId = existing?.id) != null
+                        preferences.savedSearches().get().findConflictingEntry(
+                            name,
+                            entry.sourceId,
+                            excludingId = if (isExisting) entry.id else null,
+                        ) != null
                 positiveButton?.text = activity.getString(if (conflicts) R.string.replace else R.string.save)
             }
             refreshPositiveButton()
