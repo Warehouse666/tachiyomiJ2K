@@ -193,7 +193,9 @@ open class GlobalSearchController(
             hideKbOnSubmit = true,
             onTextChange = { searchHistory.setVisible(it.isNullOrBlank()) },
         ) {
-            preferences.addToSearchHistory(it ?: "")
+            if (!searchHistory.consumeSuppressSave()) {
+                preferences.addToSearchHistory(it ?: "")
+            }
             searchHistory.setVisible(false)
             presenter.search(it ?: "")
             setTitle() // Update toolbar title

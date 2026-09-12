@@ -364,7 +364,7 @@ open class BrowseSourceController(
             hideKbOnSubmit = true,
             onTextChange = { searchHistory.setVisible(it.isNullOrBlank()) },
         ) {
-            searchWithQuery(it ?: "")
+            searchWithQuery(it ?: "", save = !searchHistory.consumeSuppressSave())
             true
         }
         // Show next display mode
