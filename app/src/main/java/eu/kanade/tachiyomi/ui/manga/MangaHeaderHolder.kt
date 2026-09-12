@@ -58,6 +58,7 @@ import io.noties.markwon.SoftBreakAddsNewLinePlugin
 import io.noties.markwon.image.coil.CoilImagesPlugin
 import io.noties.markwon.linkify.LinkifyPlugin
 import kotlin.FloatArray
+import kotlin.math.abs
 
 @SuppressLint("ClickableViewAccessibility")
 class MangaHeaderHolder(
@@ -595,7 +596,7 @@ class MangaHeaderHolder(
                                 when {
                                     amoled && dark -> 0.1f
                                     dark -> 0.225f
-                                    else -> 0.85f
+                                    else -> if (abs(bgArray[2] - 0.85f) > 0.1f) 0.85f else 0.75f
                                 }
                             ),
                         ),
@@ -626,7 +627,7 @@ class MangaHeaderHolder(
                 )
             val colorStateList = ColorStateList(states, colors)
             if (manga.genre.isNullOrBlank().not()) {
-                (manga.getGenres() ?: emptyList()).map { genreText ->
+                (manga.getGenres() ?: emptyList()).forEach { genreText ->
                     val chip =
                         LayoutInflater.from(binding.root.context).inflate(
                             R.layout.genre_chip,
