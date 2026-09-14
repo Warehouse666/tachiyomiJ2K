@@ -28,12 +28,7 @@ import uy.kohesive.injekt.api.get
  * [eu.kanade.tachiyomi.ui.source.browse.BrowseSourceController] has one), passing along the
  * source id the entry was captured on so an exact match can skip loose matching entirely. Return
  * how many of them found a match - anything short of [FilterApplyResult.ALL] shows a heads-up.
- * @param showFilterSnapshots whether to show dateless, query-less filter-only entries - these
- * can only be applied on the source screen they were captured on, so
- * [eu.kanade.tachiyomi.ui.source.BrowseController] and
- * [eu.kanade.tachiyomi.ui.source.globalsearch.GlobalSearchController] leave this off. A lambda
- * (not a fixed value) since e.g. whether the current source even has filters isn't known yet
- * when this delegate is constructed.
+ * @param showFilterSnapshots whether to show query-less filter-only entries
  * @param extraBottomPadding extra clearance for whatever floats over the bottom of [recycler]
  * @param currentSourceId the single source currently being browsed, if any
  * @param onHidden called whenever the history overlay goes from shown to hidden
@@ -55,6 +50,20 @@ class SearchHistoryDelegate(
 
     var view: SearchHistoryView? = null
         private set
+
+    private var suppressNextSave = false
+
+    /**
+     * Whether the submission this call is answering for should skip being recorded into recent
+     * history - true right after picking a saved search, since [searchView]'s own submit fires
+     * the controller's normal search-and-save flow the same way a manually typed query would.
+     * Resets itself on read so it only ever applies to the one submission it was set for.
+     */
+    fun consumeSuppressSave(): Boolean {
+        val value = suppressNextSave
+        suppressNextSave = false
+        return value
+    }
 
     private fun searchView(): SearchView? = controller.activityBinding?.searchToolbar?.searchView
 
@@ -80,6 +89,10 @@ class SearchHistoryDelegate(
                                 ?.collapseActionView()
                         }
                     } else {
+                        // a saved search is never itself reordered into/recorded as recent - the
+                        // controller's own submit listener saves every search by default, so tell
+                        // it to skip just this once
+                        if (entry.name != null) suppressNextSave = true
                         searchView()?.setQuery(entry.query, true)
                     }
                     val message =
