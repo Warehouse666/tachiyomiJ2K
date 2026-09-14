@@ -863,22 +863,10 @@ open class BrowseSourceController(
 
     private fun updatePopLatestIcons() {
         val allDefault = presenter.filtersMatchDefault() && presenter.query.isBlank()
+        // popular/latest icons are state-list selectors keyed on isChecked (filled when checked,
+        // outline otherwise) - filter has no such pair, so it's left as a single static icon
         binding.latestGroup.isChecked = presenter.useLatest && allDefault
-        binding.latestGroup.setIconResource(
-            if (presenter.useLatest && allDefault) {
-                R.drawable.ic_new_releases_24dp
-            } else {
-                R.drawable.ic_new_releases_outline_24dp
-            },
-        )
         binding.popularGroup.isChecked = !presenter.useLatest && allDefault
-        binding.popularGroup.setIconResource(
-            if (!presenter.useLatest && allDefault) {
-                R.drawable.ic_heart_24dp
-            } else {
-                R.drawable.ic_heart_outline_24dp
-            },
-        )
         binding.filterGroup.isChecked = !allDefault
     }
 
