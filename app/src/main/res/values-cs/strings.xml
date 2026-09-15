@@ -46,14 +46,12 @@
     <string name="weekly">Týdně</string>
     <string name="app_theme">Téma aplikace</string>
     <string name="dark">Tmavé téma</string>
-    <string name="amoled_black">AMOLED téma</string>
     <string name="language">Jazyk</string>
     <string name="system_default">Výchozí</string>
     <string name="pending">Čeká se</string>
     <string name="installing">Instalování</string>
     <string name="installed">Nainstalováno</string>
     <string name="trust">Důvěryhodné</string>
-    <string name="untrusted">Nedůvěryhodné</string>
     <string name="uninstall">Odinstalovat</string>
     <string name="untrusted_extension">Nedůvěryhodné rozšíření</string>
     <string name="untrusted_extension_message">Škodlivá rozšíření můžou přečíst přihlašovací údaje nebo spustit libovolný kód.
@@ -72,7 +70,6 @@
     <string name="right_to_left_viewer">Zprava doleva</string>
     <string name="rotation">Otáčení</string>
     <string name="free">Volné</string>
-    <string name="lock">Zamknuté</string>
     <string name="red_initial">R</string>
     <string name="green_initial">G</string>
     <string name="blue_initial">B</string>
@@ -130,7 +127,6 @@
     <string name="searching_for_updates">Vyhledávání aktualizací…</string>
     <string name="download_complete">Stahování dokončeno</string>
     <string name="download_error">Chyba při stahování</string>
-    <string name="update_available">Dostupná aktualizace</string>
     <string name="no_recent_chapters">Žádné nedávné kapitoly</string>
     <string name="no_recently_read_manga">Žádné nedávno čtené publikace</string>
     <string name="could_not_download_unexpected_error">Došlo k neznámé chybě při stahování kapitoly</string>
@@ -143,7 +139,6 @@
     <string name="bookmarked">Založeno</string>
     <string name="total_chapters">Celkem kapitol</string>
     <string name="move_to_categories">Přesunout do kategorií</string>
-    <string name="start">Start</string>
     <string name="stop">Stop</string>
     <string name="pause">Pauza</string>
     <string name="clear">Vymazat</string>
@@ -189,7 +184,6 @@
     <string name="normal">Normální</string>
     <string name="fast">Rychle</string>
     <string name="services">Služby</string>
-    <string name="backup">Záloha</string>
     <string name="create_backup">Vytvořit zálohu</string>
     <string name="restore_backup">Obnovit zálohu</string>
     <string name="backup_location">Adresář zálohy</string>
@@ -231,9 +225,7 @@
     <string name="started">Započato</string>
     <string name="set_as_cover">Nastavit jako obal</string>
     <string name="cover_updated">Obal aktualizován</string>
-    <string name="categories_to_include_in_global_update">Kategorie zahrnuté do globální aktualizace</string>
     <string name="library_update_restriction">Omezení zařízení</string>
-    <string name="library_update_restriction_summary">Aktualizovat pouze pokud jsou splněny podmínky</string>
     <string name="keep_screen_on">Udržovat obrazovku zapnutou</string>
     <string name="navigation">Navigování</string>
     <string name="last_read_chapter">Poslední přečtená kapitola</string>
@@ -241,7 +233,6 @@
     <string name="third_to_last">Třetí až poslední kapitola</string>
     <string name="fourth_to_last">Čtvrtá až poslední kapitola</string>
     <string name="fifth_to_last">Pátá až poslední kapitola</string>
-    <string name="categories_to_include_in_download">Kategorie zahrnuté do stahování</string>
     <string name="can_be_used_to_restore">Lze použít k obnovení aktuální knihovny</string>
     <string name="restore_from_backup_file">Obnovit knihovnu ze záložního souboru</string>
     <string name="max_auto_backups">Maximální automatické zálohování</string>
@@ -257,13 +248,11 @@
     <string name="library_is_empty_add_from_browse">Vaše knihovna je prázdná, můžete si sem přidat série ze záložky \"Procházet\".</string>
     <string name="common">Běžný</string>
     <string name="creating_backup">Vytváření zálohy</string>
-    <string name="pref_global_search">Globální vyhledávání</string>
     <string name="back">Zpět</string>
     <string name="update">Aktualizovat</string>
     <string name="no_results_found">Nenalezeny žádné výsledky</string>
     <string name="obsolete">Zastaralý</string>
     <string name="obsolete_extension_message">Tohle rozšíření již není dostupné.</string>
-    <string name="true_32bit_color">32-bitová barva</string>
     <string name="color_filter_blend_mode">Režim mísení filtru barev</string>
     <string name="overlay">Překrytí</string>
     <string name="multiply">Násobení</string>
@@ -288,10 +277,8 @@
     <string name="never">Nikdy</string>
     <string name="newest">Nejnovější</string>
     <string name="add_tracking">Přidat sledování</string>
-    <string name="no_chapters_error">Nebyly nalezeny žádné kapitoly</string>
     <string name="local_source_help_guide">Návod pro lokální zdroj</string>
     <string name="email">Emailová adresa</string>
-    <string name="whats_new">Co je nového</string>
     <string name="website">Webová stránka</string>
     <string name="battery_optimization_disabled">Optimalizace je již vypnuta</string>
     <string name="crash_log_saved">Chybový protokol uložen</string>
@@ -303,14 +290,7 @@
         <item quantity="other">Dokončeno za %1$s s %2$s chybami</item>
     </plurals>
     <string name="restore_duration">%02d minut, %02d sekund</string>
-    <string name="invalid_backup_file_type">Neplatný typ souboru se zálohou: %1$s
-\nSoubor by měl končit na .proto.gz nebo .json.</string>
     <string name="invalid_backup_file">Neplatný soubor se zálohou</string>
-    <string name="webtoon_side_padding_25">25%</string>
-    <string name="webtoon_side_padding_20">20%</string>
-    <string name="webtoon_side_padding_15">15%</string>
-    <string name="webtoon_side_padding_10">10%</string>
-    <string name="webtoon_side_padding_0">Žádné</string>
     <string name="right_and_left_nav">Vpravo a Vlevo</string>
     <string name="l_nav">Ve tvaru písmene L</string>
     <string name="secure_screen">Chráněná obrazovka</string>
@@ -538,7 +518,6 @@
     <string name="save_first_page">Uložit první stránku</string>
     <string name="share_first_page">Sdílet první stránku</string>
     <string name="set_first_page_as_cover">Nastavit první stránku jako přebal</string>
-    <string name="webtoon_style">styl webtoon</string>
     <string name="pages_">Stránky %1$s</string>
     <string name="label_global_search">Globální vyhledávání</string>
     <string name="cancel_all_for_series">Zrušit vše pro tuto sérii</string>
@@ -566,8 +545,6 @@
     <string name="locked_portrait">Zamknuto na výšku</string>
     <string name="landscape">Na šířku</string>
     <string name="portrait">Na výšku</string>
-    <string name="switch_to_single">Přepnout na jednu stránku</string>
-    <string name="switch_to_double">Přepnout na dvojstránky</string>
     <string name="double_pages">Dvojstránky</string>
     <string name="single_page">Jedna stránka</string>
     <string name="group_chapters_together">Seskupit kapitoly dohromady</string>
@@ -599,12 +576,7 @@
     <string name="remember_this_choice">Zapamatovat si tuto volbu</string>
     <string name="reset_cover">Obnovit přebal</string>
     <string name="add_tag">Přidat štítek</string>
-    <string name="oldest_first">Od nejstaršího po nejnovější</string>
-    <string name="newest_first">Od nejnovějšího po nejstarší</string>
-    <string name="sort_by_chapter_number">Seřadit podle čísla kapitoly</string>
-    <string name="sort_by_source_s_order">Seřadit podle pořadí zdroje</string>
     <string name="hide_chapter_titles">Skrýt názvy kapitol</string>
-    <string name="show_read_chapters">Zobrazit přečtené kapitoly</string>
     <string name="show_unread_chapters">Zobrazit nepřečtené kapitoly</string>
     <string name="show_downloaded_chapters">Zobrazit stažené kapitoly</string>
     <string name="show_bookmarked_chapters">Zobrazit založené kapitoly</string>
@@ -688,7 +660,6 @@
     <string name="channel_errors">Chyby</string>
     <string name="download_queue_size_warning">Varování: hromadné stahování může vést k tomu, že zdroje zpomalí a/nebo zablokují Tachiyomi. Klepnutím se dozvíte více.</string>
     <string name="every_3_days">Každé 3 dny</string>
-    <string name="reduces_banding_impacts_performance">Snižuje pruhování barev, ale může mít vliv na výkon</string>
     <string name="external_storage_permission_notice">TachiyomiJ2K požaduje přístup ke všem souborům v Android 11, aby mohlo stahovat kapitoly, vytvářet zálohy a načíst lokálně uložené publikace.
 \n
 \nNa obrazovce povolte \"Povolit aplikaci přístup ke všem souborům.\"</string>
@@ -765,7 +736,6 @@
     <string name="webview_data_deleted">Data z WebView vyčištěna</string>
     <string name="pref_manage_notifications">Spravovat oznámení</string>
     <string name="tap_to_learn_more">Klepnutím se dozvíte více</string>
-    <string name="faq_and_guides">FAQ a Návody</string>
     <string name="secure_screen_summary">Secure screen skryje obsah aplikace při přepínání aplikací a blokuje tvorbu snímků obrazovky</string>
     <string name="pref_hide_threshold">Citlivost pro skrytí menu při posouvání</string>
     <string name="pref_highest">Nejvyšší</string>
@@ -826,7 +796,6 @@
     <string name="migrate_now">Migrovat nyní</string>
     <string name="spring_blossom">Jarní Rozkvět</string>
     <string name="yin">Jin</string>
-    <string name="hot_pink">Horká Růžová</string>
     <string name="chocolate_strawberries">Čokoládové Jahody</string>
     <string name="lime_time">Čas Limetek</string>
     <string name="flat_lime">Plochá Limetka</string>
@@ -839,7 +808,6 @@
     <string name="copy_now">Kopírovat nyní</string>
     <string name="migrate_">Migrovat %1$s</string>
     <string name="use_staggered_grid">Použít odstupňovanou mřížku</string>
-    <string name="pref_update_only_completely_read_summary">Aktualizovat publikace pouze v případě, že není žádná nepřečtená kapitola (kompletně přečtená)</string>
     <string name="show_">Zobrazit %1$s</string>
     <string name="currently_reading">Aktuálně čteno</string>
     <string name="select_an_entry">Vyberte položky</string>
@@ -866,7 +834,6 @@
     <string name="automatic_can_still_switch">Při použití automatického rozvržení stránky můžete mezi rozvrženími přepínat i během čtení, aniž byste toto nastavení přepsali</string>
     <string name="remove_tracking_from_">Odebrat také z %1$s</string>
     <string name="update_tracking_marked_read">Aktualizovat sledování, když je označeno jako přečtené</string>
-    <string name="classic_blue">Klasická Modrá</string>
     <string name="includes_recently_read_updated_added">Zahrnout nedávno přečtené, aktualizované a přidané série</string>
     <string name="shift_one_page_over">Posunout o jednu stránku</string>
     <string name="clean_read_manga_not_in_library">Vyčištění publikací, které nejsou v knihovně</string>
@@ -925,7 +892,6 @@
     <string name="warning_unenroll_from_beta">Návrat k předchozí produkční verzi může způsobit problémy a může vyžadovat vymazání dat aplikace.</string>
     <string name="no_folders_to_cleanup">Žádné složky k vyčištění</string>
     <string name="disable_if_issues_with_updating">Vypněte tuto možnost, pokud máte problémy s aktualizací nebo obnovou knihovny</string>
-    <string name="only_search_pinned_when">Vyhledávání pouze v připnutých zdrojích</string>
     <string name="notify_extension_updated">Oznamovat aktualizaci rozšíření</string>
     <string name="some_extensions_may_not_update">Některá rozšíření nemusí být automaticky aktualizována, pokud byla nainstalována mimo tuto aplikaci</string>
     <string name="only_enable_enabled_for_migration">Povolit migraci pouze aktuálně povolených zdrojů</string>
@@ -976,7 +942,6 @@
     <string name="keep">Ponechat</string>
     <string name="hide">Skrýt</string>
     <string name="shift_double_pages">Posunout dvojstránky</string>
-    <string name="not_logged_into_">Nejste přihlášeni do %1$s</string>
     <string name="force_download_cache_refresh">Obnovení mezipaměti pro stahování</string>
     <string name="force_download_cache_refresh_summary">Tím donutíte mezipaměť pro stahování k přepočítání. Užitečné, pokud jste upravili stahování mimo tuto aplikaci a chcete, aby je aplikace zachytila</string>
     <string name="try_new_features">Vyzkoušejte si nové funkce ještě před jejich oficiálním vydáním. Beta verze mohou být nestabilní a slouží k poskytnutí zpětné vazby vývojáři.</string>
@@ -1003,7 +968,6 @@
     <string name="downloads_swipe_tutorial">Stahování lze zrušit tak, že je přetáhnete pryč
 \nPřejetím prstem po tomto tipu ho zavřete</string>
     <string name="remove_download">Odstranění stahování</string>
-    <string name="view_all">Zobrazit všechny</string>
     <string name="starting_cleanup">Zahájení čištění</string>
     <string name="clean_up_downloaded_chapters">Vyčištění stažených kapitol</string>
     <string name="delete_all_covers__not_in_library_used_">Odstranění všech obalů uložených v mezipaměti, které nejsou ve vaší knihovně
@@ -1012,9 +976,7 @@
     <string name="username_must_not_be_blank">Uživatelské jméno nebo heslo nesmí být prázdné</string>
     <string name="beta">BETA</string>
     <string name="no_new_chapters_open_details">Pokud nejsou k dispozici žádné nové kapitoly, otevřou se místo toho podrobnosti o sérii</string>
-    <string name="delete_old_covers_in_library_used_">Odstranění starých a nepoužívaných obalů publikací v knihovně, které byly aktualizovány.
-\nAktuálně používáno: %1$s</string>
-    <string name="webtoon_side_padding_5">5%</string>
+    <string name="delete_old_covers_in_library_used_">Odstranění starých a nepoužívaných obalů publikací v knihovně, které byly aktualizovány. \nAktuálně používáno: %1$s</string>
     <string name="user_agent_string">Výchozí řetězec uživatelského agenta</string>
     <string name="language_requires_app_restart">Některé jazyky mohou pro správné zobrazení vyžadovat opětovné spuštění aplikace</string>
     <string name="loader_rar5_error">Formát RARv5 není podporován</string>
@@ -1115,4 +1077,80 @@
     <string name="confirm_repo_deletion">Odstranit repozitář</string>
     <string name="delete_repo_confirmation">Přejete si odstranit repozitář \"%s\"?</string>
     <string name="url_not_set_click_again">URL repozitáře není nastavena, upravte prosím URL</string>
+    <plurals name="num_sources">
+        <item quantity="one">%1$d zdroj</item>
+        <item quantity="few">%1$d zdroje</item>
+        <item quantity="many">%1$d zdrojů</item>
+        <item quantity="other">%1$d zdrojů</item>
+    </plurals>
+    <plurals name="num_pages">
+        <item quantity="one">%1$d stránka</item>
+        <item quantity="few">%1$d stránky</item>
+        <item quantity="many">%1$d stránek</item>
+        <item quantity="other">%1$d stránek</item>
+    </plurals>
+    <string name="library_search_filters">Zobrazit záznamy, které…</string>
+    <string name="library_optional_search_filters">Zobrazit záznamy, které případně…</string>
+    <string name="search_operator_and">Zahrnout</string>
+    <string name="search_operator_not">Vyloučit</string>
+    <string name="search_toggle_optional">Nastavte tento filtr jako volitelný</string>
+    <string name="search_exactly">Přímo</string>
+    <string name="search_between">Mezi</string>
+    <string name="search_more_than">Více než</string>
+    <string name="search_less_than">Méně než</string>
+    <string name="search_fewer_than">O méně než</string>
+    <string name="search_after">Po</string>
+    <string name="search_before">Před</string>
+    <string name="pref_mark_duplicate_read_chapter_read">Označit duplicitně přečtenou kapitolu jako přečtenou</string>
+    <string name="pref_mark_duplicate_read_chapter_read_existing">Po přečtení kapitoly</string>
+    <string name="pref_mark_duplicate_read_chapter_read_new">Po načtení nové kapitoly</string>
+    <string name="duplicate_in_library">Duplikát</string>
+    <string name="orphaned">Osamocený</string>
+    <string name="extension_must_reinstall">Chcete-li provést aktualizaci, odinstalujte prosím aplikaci a poté ji znovu nainstalujte.</string>
+    <string name="error_repo_unreachable">Nedařilo se navázat spojení s tímto obchodem ani jej analyzovat</string>
+    <string name="vertical_seekbar">Použijte svislý ukazatel průběhu pro</string>
+    <string name="vertical_seekbar_dock_left">Umístit svislý ukazatel průběhu</string>
+    <string name="vertical_seekbar_height">Výška svislého ukazatele průběhu</string>
+    <plurals name="missing_chapters">
+        <item quantity="one">Chybí %d kapitola</item>
+        <item quantity="few">Chybí %d kapitoly</item>
+        <item quantity="many">Chybí %d kapitol</item>
+        <item quantity="other">Chybí %d kapitol</item>
+    </plurals>
+    <string name="missing_chapters_count">Chybí %d</string>
+    <string name="missing_chapters_range">Chybějící kapitoly %1$s</string>
+    <string name="considering">Zvažuji</string>
+    <string name="copy_link">Zkopírovat odkaz</string>
+    <string name="link">Odkaz</string>
+    <string name="track_privately">Sledovat soukromě</string>
+    <string name="track_publicly">Sledovat veřejně</string>
+    <string name="tracked_privately">Sledováno soukromě</string>
+    <string name="add_tracking_privately">Přidat sledování v soukromém režimu</string>
+    <string name="track_options">Možnosti sledování</string>
+    <string name="tokyo_light">Tokyo Light</string>
+    <string name="tokyo_night">Tokyo Night</string>
+    <string name="render_description_images">Zobrazit obrázky v popisech</string>
+    <string name="render_description_images_summary">Zobrazit obrázky vložené do popisů ve formátu Markdown</string>
+    <string name="show_missing_chapters">Zobrazit chybějící kapitoly</string>
+    <string name="show_missing_chapters_summary">V seznamu kapitol zobrazit oddělovač pro chybějící kapitoly a vedle počtu kapitol zobrazit podtitulek</string>
+    <string name="pref_firebase">Analytika a protokoly o selháních</string>
+    <string name="firebase_summary">Odesílání protokolů o chybách a analytických údajů nám umožní identifikovat a odstranit problémy, zlepšit výkon a přizpůsobit budoucí aktualizace vašim potřebám</string>
+    <string name="enable_analytics">Povolit analytiku</string>
+    <string name="enable_analytics_summary">Odesílejte anonymizované údaje o používání, které pomohou vylepšit funkce aplikace</string>
+    <string name="share_crash_logs">Sdílet protokoly o selhání</string>
+    <string name="crash_screen_title">Jejda!</string>
+    <string name="crash_screen_description">%s došlo k neočekávané chybě. Můžete sdílet protokoly o selhání, abyste pomohli problém vyřešit.</string>
+    <string name="crash_screen_restart_application">Restartujte aplikaci</string>
+    <string name="sources_to_search">Zdroje pro vyhledávání</string>
+    <string name="show_duplicate_in_library_items">Zobrazit značku „Duplikát“</string>
+    <string name="show_duplicate_in_library_items_summary">U položek, které již v knihovně existují z jiného rozšíření, se zobrazí značka „Duplikát“. Poznámka: Některé duplikáty nemusí být rozpoznány kvůli rozdílům v názvech nebo URL adresách.</string>
+    <string name="logging_in">Přihlašuji se…</string>
+    <string name="finding_downloads">Hledání souborů ke stažení…</string>
+    <string name="concurrent_source_downloads">Souběžné stahování ze zdrojů</string>
+    <string name="concurrent_page_downloads">Souběžné stahování stránek</string>
+    <string name="concurrent_page_downloads_summary">Počet stránek stažených současně z jednoho zdroje</string>
+    <string name="unread_chapters">Nepřečtené kapitoly</string>
+    <string name="all_enabled">Vše povoleno</string>
+    <string name="pinned_only">Pouze připnuté</string>
+    <string name="replace">Nahradit</string>
 </resources>
